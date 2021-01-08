@@ -14,7 +14,7 @@
  */
 #pragma once
 /*
-  This is the main Copter class
+  This is the main Blimp class
  */
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -50,7 +50,7 @@
 #include <AP_Airspeed/AP_Airspeed.h>        // needed for AHRS build
 #include <AP_Vehicle/AP_Vehicle.h>         // needed for AHRS build
 #include <AP_InertialNav/AP_InertialNav.h>     // ArduPilot Mega inertial navigation library
-#include <AC_WPNav/AC_WPNav.h>           // ArduCopter waypoint navigation library
+#include <AC_WPNav/AC_WPNav.h>           // ArduBlimp waypoint navigation library
 #include <AC_WPNav/AC_Loiter.h>
 #include <AC_WPNav/AC_Circle.h>          // circle navigation library
 #include <AP_Declination/AP_Declination.h>     // ArduPilot Mega Declination Helper Library
@@ -90,7 +90,7 @@
 #include "RC_Channel.h"         // RC Channel Library
 
 #include "GCS_Mavlink.h"
-#include "GCS_Copter.h"
+#include "GCS_Blimp.h"
 #include "AP_Rally.h"           // Rally point library
 #include "AP_Arming.h"
 
@@ -146,7 +146,7 @@
 #endif
 
 #if ADVANCED_FAILSAFE == ENABLED
- # include "afs_copter.h"
+ # include "afs_blimp.h"
 #endif
 #if TOY_MODE_ENABLED == ENABLED
  # include "toy_mode.h"
@@ -177,22 +177,22 @@
 
 #include "mode.h"
 
-class Copter : public AP_Vehicle {
+class Blimp : public AP_Vehicle {
 public:
-    friend class GCS_MAVLINK_Copter;
-    friend class GCS_Copter;
-    friend class AP_Rally_Copter;
+    friend class GCS_MAVLINK_Blimp;
+    friend class GCS_Blimp;
+    friend class AP_Rally_Blimp;
     friend class Parameters;
     friend class ParametersG2;
-    friend class AP_Avoidance_Copter;
+    friend class AP_Avoidance_Blimp;
 
 #if ADVANCED_FAILSAFE == ENABLED
-    friend class AP_AdvancedFailsafe_Copter;
+    friend class AP_AdvancedFailsafe_Blimp;
 #endif
-    friend class AP_Arming_Copter;
+    friend class AP_Arming_Blimp;
     friend class ToyMode;
-    friend class RC_Channel_Copter;
-    friend class RC_Channels_Copter;
+    friend class RC_Channel_Blimp;
+    friend class RC_Channels_Blimp;
 
     friend class AutoTune;
 
@@ -223,7 +223,7 @@ public:
     friend class ModeZigZag;
     friend class ModeAutorotate;
 
-    Copter(void);
+    Blimp(void);
 
 private:
 
@@ -310,7 +310,7 @@ private:
 #endif
 
     // Arming/Disarming management class
-    AP_Arming_Copter arming;
+    AP_Arming_Blimp arming;
 
     // Optical flow sensor
 #if OPTFLOW == ENABLED
@@ -329,8 +329,8 @@ private:
     } vibration_check;
 
     // GCS selection
-    GCS_Copter _gcs; // avoid using this; use gcs()
-    GCS_Copter &gcs() { return _gcs; }
+    GCS_Blimp _gcs; // avoid using this; use gcs()
+    GCS_Blimp &gcs() { return _gcs; }
 
     // User variables
 #ifdef USERHOOK_VARIABLES
@@ -439,7 +439,7 @@ private:
 
     // Battery Sensors
     AP_BattMonitor battery{MASK_LOG_CURRENT,
-                           FUNCTOR_BIND_MEMBER(&Copter::handle_battery_failsafe, void, const char*, const int8_t),
+                           FUNCTOR_BIND_MEMBER(&Blimp::handle_battery_failsafe, void, const char*, const int8_t),
                            _failsafe_priorities};
 
 #if OSD_ENABLED || OSD_PARAM_ENABLED
@@ -501,7 +501,7 @@ private:
 
     // Rally library
 #if AC_RALLY == ENABLED
-    AP_Rally_Copter rally;
+    AP_Rally_Blimp rally;
 #endif
 
     // Crop Sprayer
@@ -537,7 +537,7 @@ private:
     AP_ADSB adsb;
 
     // avoidance of adsb enabled vehicles (normally manned vehicles)
-    AP_Avoidance_Copter avoidance_adsb{adsb};
+    AP_Avoidance_Blimp avoidance_adsb{adsb};
 #endif
 
     // last valid RC input time
@@ -633,7 +633,7 @@ private:
     void set_failsafe_gcs(bool b);
     void update_using_interlock();
 
-    // Copter.cpp
+    // Blimp.cpp
     void get_scheduler_tasks(const AP_Scheduler::Task *&tasks,
                              uint8_t &task_count,
                              uint32_t &log_bit) override;
@@ -977,7 +977,7 @@ public:
     void failsafe_check();      // failsafe.cpp
 };
 
-extern Copter copter;
+extern Blimp blimp;
 
 using AP_HAL::millis;
 using AP_HAL::micros;

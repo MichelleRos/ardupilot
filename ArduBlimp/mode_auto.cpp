@@ -1,4 +1,4 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 #if MODE_AUTO_ENABLED == ENABLED
 
@@ -26,7 +26,7 @@ bool ModeAuto::init(bool ignore_checks)
         _mode = Auto_Loiter;
 
         // reject switching to auto mode if landed with motors armed but first command is not a takeoff (reduce chance of flips)
-        if (motors->armed() && copter.ap.land_complete && !mission.starts_with_takeoff_cmd()) {
+        if (motors->armed() && blimp.ap.land_complete && !mission.starts_with_takeoff_cmd()) {
             gcs().send_text(MAV_SEVERITY_CRITICAL, "Auto: Missing Takeoff Cmd");
             return false;
         }
@@ -41,11 +41,11 @@ bool ModeAuto::init(bool ignore_checks)
         wp_nav->wp_and_spline_init();
 
         // clear guided limits
-        copter.mode_guided.limit_clear();
+        blimp.mode_guided.limit_clear();
 
         // don't start the mission until we have an origin
         Location loc;
-        if (copter.ahrs.get_origin(loc)) {
+        if (blimp.ahrs.get_origin(loc)) {
             // start/resume the mission (based on MIS_RESTART parameter)
             mission.start_or_resume();
             waiting_for_origin = false;
@@ -114,7 +114,7 @@ void ModeAuto::run()
 
 bool ModeAuto::allows_arming(bool from_gcs) const
 {
-    return (copter.g2.auto_options & (uint32_t)Options::AllowArming) != 0;
+    return (blimp.g2.auto_options & (uint32_t)Options::AllowArming) != 0;
 };
 
 // auto_loiter_start - initialises loitering in auto mode
@@ -122,7 +122,7 @@ bool ModeAuto::allows_arming(bool from_gcs) const
 bool ModeAuto::loiter_start()
 {
     // return failure if GPS is bad
-    if (!copter.position_ok()) {
+    if (!blimp.position_ok()) {
         return false;
     }
     _mode = Auto_Loiter;
@@ -146,7 +146,7 @@ void ModeAuto::rtl_start()
     _mode = Auto_RTL;
 
     // call regular rtl flight mode initialisation and ask it to ignore checks
-    copter.mode_rtl.init(true);
+    blimp.mode_rtl.init(true);
 }
 
 // auto_takeoff_start - initialises waypoint controller to implement take-off
@@ -156,15 +156,15 @@ void ModeAuto::takeoff_start(const Location& dest_loc)
 
     Location dest(dest_loc);
 
-    if (!copter.current_loc.initialised()) {
+    if (!blimp.current_loc.initialised()) {
         // vehicle doesn't know where it is ATM.  We should not
         // initialise our takeoff destination without knowing this!
         return;
     }
 
     // set horizontal target
-    dest.lat = copter.current_loc.lat;
-    dest.lng = copter.current_loc.lng;
+    dest.lat = blimp.current_loc.lat;
+    dest.lng = blimp.current_loc.lng;
 
     // get altitude target
     int32_t alt_target;
@@ -172,12 +172,12 @@ void ModeAuto::takeoff_start(const Location& dest_loc)
         // this failure could only happen if take-off alt was specified as an alt-above terrain and we have no terrain data
         AP::logger().Write_Error(LogErrorSubsystem::TERRAIN, LogErrorCode::MISSING_TERRAIN_DATA);
         // fall back to altitude above current altitude
-        alt_target = copter.current_loc.alt + dest.alt;
+        alt_target = blimp.current_loc.alt + dest.alt;
     }
 
     // sanity check target
-    if (alt_target < copter.current_loc.alt) {
-        dest.set_alt_cm(copter.current_loc.alt, Location::AltFrame::ABOVE_HOME);
+    if (alt_target < blimp.current_loc.alt) {
+        dest.set_alt_cm(blimp.current_loc.alt, Location::AltFrame::ABOVE_HOME);
     }
     // Note: if taking off from below home this could cause a climb to an unexpectedly high altitude
     if (alt_target < 100) {
@@ -187,7 +187,7 @@ void ModeAuto::takeoff_start(const Location& dest_loc)
     // set waypoint controller target
     if (!wp_nav->set_wp_destination(dest)) {
         // failure to set destination can only be because of missing terrain data
-        copter.failsafe_terrain_on_event();
+        blimp.failsafe_terrain_on_event();
         return;
     }
 
@@ -209,7 +209,7 @@ void ModeAuto::wp_start(const Location& dest_loc)
     // send target to waypoint controller
     if (!wp_nav->set_wp_destination(dest_loc)) {
         // failure to set destination can only be because of missing terrain data
-        copter.failsafe_terrain_on_event();
+        blimp.failsafe_terrain_on_event();
         return;
     }
 
@@ -249,7 +249,7 @@ void ModeAuto::land_start(const Vector3f& destination)
     auto_yaw.set_mode(AUTO_YAW_HOLD);
 
     // optionally deploy landing gear
-    copter.landinggear.deploy_for_landing();
+    blimp.landinggear.deploy_for_landing();
 }
 
 // auto_circle_movetoedge_start - initialise waypoint controller to move to edge of a circle with it's center at the specified location
@@ -257,16 +257,16 @@ void ModeAuto::land_start(const Vector3f& destination)
 void ModeAuto::circle_movetoedge_start(const Location &circle_center, float radius_m)
 {
     // set circle center
-    copter.circle_nav->set_center(circle_center);
+    blimp.circle_nav->set_center(circle_center);
 
     // set circle radius
     if (!is_zero(radius_m)) {
-        copter.circle_nav->set_radius(radius_m * 100.0f);
+        blimp.circle_nav->set_radius(radius_m * 100.0f);
     }
 
     // check our distance from edge of circle
     Vector3f circle_edge_neu;
-    copter.circle_nav->get_closest_point_on_circle(circle_edge_neu);
+    blimp.circle_nav->get_closest_point_on_circle(circle_edge_neu);
     float dist_to_edge = (inertial_nav.get_position() - circle_edge_neu).length();
 
     // if more than 3m then fly to edge
@@ -283,17 +283,17 @@ void ModeAuto::circle_movetoedge_start(const Location &circle_center, float radi
         // initialise wpnav to move to edge of circle
         if (!wp_nav->set_wp_destination(circle_edge)) {
             // failure to set destination can only be because of missing terrain data
-            copter.failsafe_terrain_on_event();
+            blimp.failsafe_terrain_on_event();
         }
 
         // if we are outside the circle, point at the edge, otherwise hold yaw
-        const Vector3f &circle_center_neu = copter.circle_nav->get_center();
+        const Vector3f &circle_center_neu = blimp.circle_nav->get_center();
         const Vector3f &curr_pos = inertial_nav.get_position();
         float dist_to_center = norm(circle_center_neu.x - curr_pos.x, circle_center_neu.y - curr_pos.y);
         // initialise yaw
         // To-Do: reset the yaw only when the previous navigation command is not a WP.  this would allow removing the special check for ROI
         if (auto_yaw.mode() != AUTO_YAW_ROI) {
-            if (dist_to_center > copter.circle_nav->get_radius() && dist_to_center > 500) {
+            if (dist_to_center > blimp.circle_nav->get_radius() && dist_to_center > 500) {
                 auto_yaw.set_mode_to_default(false);
             } else {
                 // vehicle is within circle so hold yaw to avoid spinning as we move to edge of circle
@@ -312,7 +312,7 @@ void ModeAuto::circle_start()
     _mode = Auto_Circle;
 
     // initialise circle controller
-    copter.circle_nav->init(copter.circle_nav->get_center(), copter.circle_nav->center_is_terrain_alt());
+    blimp.circle_nav->init(blimp.circle_nav->get_center(), blimp.circle_nav->center_is_terrain_alt());
 
     if (auto_yaw.mode() != AUTO_YAW_ROI) {
         auto_yaw.set_mode(AUTO_YAW_CIRCLE);
@@ -330,7 +330,7 @@ void ModeAuto::spline_start(const Location& destination, bool stopped_at_start,
     // initialise wpnav
     if (!wp_nav->set_spline_destination(destination, stopped_at_start, seg_end_type, next_destination)) {
         // failure to set destination can only be because of missing terrain data
-        copter.failsafe_terrain_on_event();
+        blimp.failsafe_terrain_on_event();
         return;
     }
 
@@ -348,10 +348,10 @@ void ModeAuto::nav_guided_start()
     _mode = Auto_NavGuided;
 
     // call regular guided flight mode initialisation
-    copter.mode_guided.init(true);
+    blimp.mode_guided.init(true);
 
     // initialise guided start time and position as reference for limit checking
-    copter.mode_guided.limit_init_time_and_pos();
+    blimp.mode_guided.limit_init_time_and_pos();
 }
 #endif //NAV_GUIDED
 
@@ -361,7 +361,7 @@ bool ModeAuto::is_landing() const
     case Auto_Land:
         return true;
     case Auto_RTL:
-        return copter.mode_rtl.is_landing();
+        return blimp.mode_rtl.is_landing();
     default:
         return false;
     }
@@ -387,15 +387,15 @@ void ModeAuto::payload_place_start()
 // returns true if pilot's yaw input should be used to adjust vehicle's heading
 bool ModeAuto::use_pilot_yaw(void) const
 {
-    return (copter.g2.auto_options.get() & uint32_t(Options::IgnorePilotYaw)) == 0;
+    return (blimp.g2.auto_options.get() & uint32_t(Options::IgnorePilotYaw)) == 0;
 }
 
 // start_command - this function will be called when the ap_mission lib wishes to start a new command
 bool ModeAuto::start_command(const AP_Mission::Mission_Command& cmd)
 {
     // To-Do: logging when new commands start/end
-    if (copter.should_log(MASK_LOG_CMD)) {
-        copter.logger.Write_Mission_Cmd(mission, cmd);
+    if (blimp.should_log(MASK_LOG_CMD)) {
+        blimp.logger.Write_Mission_Cmd(mission, cmd);
     }
 
     switch(cmd.id) {
@@ -480,7 +480,7 @@ bool ModeAuto::start_command(const AP_Mission::Mission_Command& cmd)
         break;
 
     case MAV_CMD_DO_SET_ROI:                // 201
-        // point the copter and camera at a region of interest (ROI)
+        // point the blimp and camera at a region of interest (ROI)
         do_roi(cmd);
         break;
 
@@ -492,10 +492,10 @@ bool ModeAuto::start_command(const AP_Mission::Mission_Command& cmd)
     case MAV_CMD_DO_FENCE_ENABLE:
 #if AC_FENCE == ENABLED
         if (cmd.p1 == 0) { //disable
-            copter.fence.enable(false);
+            blimp.fence.enable(false);
             gcs().send_text(MAV_SEVERITY_INFO, "Fence Disabled");
         } else { //enable fence
-            copter.fence.enable(true);
+            blimp.fence.enable(true);
             gcs().send_text(MAV_SEVERITY_INFO, "Fence Enabled");
         }
 #endif //AC_FENCE == ENABLED
@@ -528,14 +528,14 @@ void ModeAuto::exit_mission()
     // play a tone
     AP_Notify::events.mission_complete = 1;
     // if we are not on the ground switch to loiter or land
-    if (!copter.ap.land_complete) {
+    if (!blimp.ap.land_complete) {
         // try to enter loiter but if that fails land
         if (!loiter_start()) {
             set_mode(Mode::Number::LAND, ModeReason::MISSION_END);
         }
     } else {
         // if we've landed it's safe to disarm
-        copter.arming.disarm(AP_Arming::Method::MISSIONEXIT);
+        blimp.arming.disarm(AP_Arming::Method::MISSIONEXIT);
     }
 }
 
@@ -543,7 +543,7 @@ void ModeAuto::exit_mission()
 bool ModeAuto::do_guided(const AP_Mission::Mission_Command& cmd)
 {
     // only process guided waypoint if we are in guided mode
-    if (copter.control_mode != Mode::Number::GUIDED && !(copter.control_mode == Mode::Number::AUTO && mode() == Auto_NavGuided)) {
+    if (blimp.control_mode != Mode::Number::GUIDED && !(blimp.control_mode == Mode::Number::AUTO && mode() == Auto_NavGuided)) {
         return false;
     }
 
@@ -554,7 +554,7 @@ bool ModeAuto::do_guided(const AP_Mission::Mission_Command& cmd)
         {
             // set wp_nav's destination
             Location dest(cmd.content.location);
-            return copter.mode_guided.set_destination(dest);
+            return blimp.mode_guided.set_destination(dest);
         }
 
         case MAV_CMD_CONDITION_YAW:
@@ -573,7 +573,7 @@ uint32_t ModeAuto::wp_distance() const
 {
     switch (_mode) {
     case Auto_Circle:
-        return copter.circle_nav->get_distance_to_target();
+        return blimp.circle_nav->get_distance_to_target();
     case Auto_WP:
     case Auto_CircleMoveToEdge:
     default:
@@ -585,7 +585,7 @@ int32_t ModeAuto::wp_bearing() const
 {
     switch (_mode) {
     case Auto_Circle:
-        return copter.circle_nav->get_bearing_to_target();
+        return blimp.circle_nav->get_bearing_to_target();
     case Auto_WP:
     case Auto_CircleMoveToEdge:
     default:
@@ -597,11 +597,11 @@ bool ModeAuto::get_wp(Location& destination)
 {
     switch (_mode) {
     case Auto_NavGuided:
-        return copter.mode_guided.get_wp(destination);
+        return blimp.mode_guided.get_wp(destination);
     case Auto_WP:
         return wp_nav->get_oa_wp_destination(destination);
     case Auto_RTL:
-        return copter.mode_rtl.get_wp(destination);
+        return blimp.mode_rtl.get_wp(destination);
     default:
         return false;
     }
@@ -612,7 +612,7 @@ void ModeAuto::run_autopilot()
 {
     Location loc;
     if (waiting_for_origin) {
-        if (copter.ahrs.get_origin(loc)) {
+        if (blimp.ahrs.get_origin(loc)) {
             // start/resume the mission (based on MIS_RESTART parameter)
             mission.start_or_resume();
             waiting_for_origin = false;
@@ -635,7 +635,7 @@ Return true if we do not recognize the command so that we move on to the next co
 //      we double check that the flight mode is AUTO to avoid the possibility of ap-mission triggering actions while we're not in AUTO mode
 bool ModeAuto::verify_command(const AP_Mission::Mission_Command& cmd)
 {
-    if (copter.flightmode != &copter.mode_auto) {
+    if (blimp.flightmode != &blimp.mode_auto) {
         return false;
     }
 
@@ -743,8 +743,8 @@ void ModeAuto::takeoff_run()
 {
     // if the user doesn't want to raise the throttle we can set it automatically
     // note that this can defeat the disarm check on takeoff
-    if ((copter.g2.auto_options & (int32_t)Options::AllowTakeOffWithoutRaisingThrottle) != 0) {
-        copter.set_auto_armed(true);
+    if ((blimp.g2.auto_options & (int32_t)Options::AllowTakeOffWithoutRaisingThrottle) != 0) {
+        blimp.set_auto_armed(true);
     }
     auto_takeoff_run();
 }
@@ -755,7 +755,7 @@ void ModeAuto::wp_run()
 {
     // process pilot's yaw input
     float target_yaw_rate = 0;
-    if (!copter.failsafe.radio && use_pilot_yaw()) {
+    if (!blimp.failsafe.radio && use_pilot_yaw()) {
         // get pilot's desired yaw rate
         target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->get_control_in());
         if (!is_zero(target_yaw_rate)) {
@@ -774,7 +774,7 @@ void ModeAuto::wp_run()
     motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::THROTTLE_UNLIMITED);
 
     // run waypoint controller
-    copter.failsafe_terrain_set_status(wp_nav->update_wpnav());
+    blimp.failsafe_terrain_set_status(wp_nav->update_wpnav());
 
     // call z-axis position controller (wpnav should have already updated it's alt target)
     pos_control->update_z_controller();
@@ -802,7 +802,7 @@ void ModeAuto::spline_run()
 
     // process pilot's yaw input
     float target_yaw_rate = 0;
-    if (!copter.failsafe.radio && use_pilot_yaw()) {
+    if (!blimp.failsafe.radio && use_pilot_yaw()) {
         // get pilot's desired yaw rate
         target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->get_control_in());
         if (!is_zero(target_yaw_rate)) {
@@ -854,7 +854,7 @@ void ModeAuto::land_run()
 void ModeAuto::rtl_run()
 {
     // call regular rtl flight mode run function
-    copter.mode_rtl.run(false);
+    blimp.mode_rtl.run(false);
 }
 
 // auto_circle_run - circle in AUTO flight mode
@@ -863,7 +863,7 @@ void ModeAuto::circle_run()
 {
     // process pilot's yaw input
     float target_yaw_rate = 0;
-    if (!copter.failsafe.radio && use_pilot_yaw()) {
+    if (!blimp.failsafe.radio && use_pilot_yaw()) {
         // get pilot's desired yaw rate
         target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->get_control_in());
         if (!is_zero(target_yaw_rate)) {
@@ -872,17 +872,17 @@ void ModeAuto::circle_run()
     }
 
     // call circle controller
-    copter.failsafe_terrain_set_status(copter.circle_nav->update());
+    blimp.failsafe_terrain_set_status(blimp.circle_nav->update());
 
     // call z-axis position controller
     pos_control->update_z_controller();
 
     if (auto_yaw.mode() == AUTO_YAW_HOLD) {
         // roll & pitch from waypoint controller, yaw rate from pilot
-        attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(copter.circle_nav->get_roll(), copter.circle_nav->get_pitch(), target_yaw_rate);
+        attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(blimp.circle_nav->get_roll(), blimp.circle_nav->get_pitch(), target_yaw_rate);
     } else {
         // roll, pitch from waypoint controller, yaw heading from auto_heading()
-        attitude_control->input_euler_angle_roll_pitch_yaw(copter.circle_nav->get_roll(), copter.circle_nav->get_pitch(), auto_yaw.yaw(), true);
+        attitude_control->input_euler_angle_roll_pitch_yaw(blimp.circle_nav->get_roll(), blimp.circle_nav->get_pitch(), auto_yaw.yaw(), true);
     }
 }
 
@@ -892,7 +892,7 @@ void ModeAuto::circle_run()
 void ModeAuto::nav_guided_run()
 {
     // call regular guided flight mode run function
-    copter.mode_guided.run();
+    blimp.mode_guided.run();
 }
 #endif  // NAV_GUIDED
 
@@ -909,7 +909,7 @@ void ModeAuto::loiter_run()
 
     // accept pilot input of yaw
     float target_yaw_rate = 0;
-    if (!copter.failsafe.radio && use_pilot_yaw()) {
+    if (!blimp.failsafe.radio && use_pilot_yaw()) {
         target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->get_control_in());
     }
 
@@ -917,7 +917,7 @@ void ModeAuto::loiter_run()
     motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::THROTTLE_UNLIMITED);
 
     // run waypoint and z-axis position controller
-    copter.failsafe_terrain_set_status(wp_nav->update_wpnav());
+    blimp.failsafe_terrain_set_status(wp_nav->update_wpnav());
 
     pos_control->update_z_controller();
     attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(wp_nav->get_roll(), wp_nav->get_pitch(), target_yaw_rate);
@@ -948,7 +948,7 @@ void ModeAuto::loiter_to_alt_run()
         _mode = Auto_LoiterToAlt;
         loiter_to_alt.loiter_start_done = true;
     }
-    const float alt_error_cm = copter.current_loc.alt - loiter_to_alt.alt;
+    const float alt_error_cm = blimp.current_loc.alt - loiter_to_alt.alt;
     if (fabsf(alt_error_cm) < 5.0) { // random numbers R US
         loiter_to_alt.reached_alt = true;
     } else if (alt_error_cm * loiter_to_alt.alt_error_cm < 0) {
@@ -1037,11 +1037,11 @@ bool ModeAuto::payload_place_run_should_run()
         return false;
     }
     // must be auto-armed
-    if (!copter.ap.auto_armed) {
+    if (!blimp.ap.auto_armed) {
         return false;
     }
     // must not be landed
-    if (copter.ap.land_complete) {
+    if (blimp.ap.land_complete) {
         return false;
     }
     // interlock must be enabled (i.e. unsafe)
@@ -1076,14 +1076,14 @@ Location ModeAuto::terrain_adjusted_location(const AP_Mission::Mission_Command& 
 
     // decide if we will use terrain following
     int32_t curr_terr_alt_cm, target_terr_alt_cm;
-    if (copter.current_loc.get_alt_cm(Location::AltFrame::ABOVE_TERRAIN, curr_terr_alt_cm) &&
+    if (blimp.current_loc.get_alt_cm(Location::AltFrame::ABOVE_TERRAIN, curr_terr_alt_cm) &&
         target_loc.get_alt_cm(Location::AltFrame::ABOVE_TERRAIN, target_terr_alt_cm)) {
         curr_terr_alt_cm = MAX(curr_terr_alt_cm,200);
         // if using terrain, set target altitude to current altitude above terrain
         target_loc.set_alt_cm(curr_terr_alt_cm, Location::AltFrame::ABOVE_TERRAIN);
     } else {
         // set target altitude to current altitude above home
-        target_loc.set_alt_cm(copter.current_loc.alt, Location::AltFrame::ABOVE_HOME);
+        target_loc.set_alt_cm(blimp.current_loc.alt, Location::AltFrame::ABOVE_HOME);
     }
     return target_loc;
 }
@@ -1105,19 +1105,19 @@ Location ModeAuto::loc_from_cmd(const AP_Mission::Mission_Command& cmd) const
 
     // use current lat, lon if zero
     if (ret.lat == 0 && ret.lng == 0) {
-        ret.lat = copter.current_loc.lat;
-        ret.lng = copter.current_loc.lng;
+        ret.lat = blimp.current_loc.lat;
+        ret.lng = blimp.current_loc.lng;
     }
     // use current altitude if not provided
     if (ret.alt == 0) {
         // set to current altitude but in command's alt frame
         int32_t curr_alt;
-        if (copter.current_loc.get_alt_cm(ret.get_alt_frame(),curr_alt)) {
+        if (blimp.current_loc.get_alt_cm(ret.get_alt_frame(),curr_alt)) {
             ret.set_alt_cm(curr_alt, ret.get_alt_frame());
         } else {
             // default to current altitude as alt-above-home
-            ret.set_alt_cm(copter.current_loc.alt,
-                           copter.current_loc.get_alt_frame());
+            ret.set_alt_cm(blimp.current_loc.alt,
+                           blimp.current_loc.get_alt_frame());
         }
     }
     return ret;
@@ -1164,7 +1164,7 @@ void ModeAuto::do_nav_wp(const AP_Mission::Mission_Command& cmd)
                 // for unsupported commands it is safer to stop
                 break;
         }
-        copter.wp_nav->set_fast_waypoint(fast_waypoint);
+        blimp.wp_nav->set_fast_waypoint(fast_waypoint);
     }
 }
 
@@ -1201,7 +1201,7 @@ void ModeAuto::do_loiter_unlimited(const AP_Mission::Mission_Command& cmd)
     if (target_loc.lat == 0 && target_loc.lng == 0) {
         // To-Do: make this simpler
         Vector3f temp_pos;
-        copter.wp_nav->get_wp_stopping_point_xy(temp_pos);
+        blimp.wp_nav->get_wp_stopping_point_xy(temp_pos);
         const Location temp_loc(temp_pos);
         target_loc.lat = temp_loc.lat;
         target_loc.lng = temp_loc.lng;
@@ -1212,12 +1212,12 @@ void ModeAuto::do_loiter_unlimited(const AP_Mission::Mission_Command& cmd)
     if (target_loc.alt == 0) {
         // set to current altitude but in command's alt frame
         int32_t curr_alt;
-        if (copter.current_loc.get_alt_cm(target_loc.get_alt_frame(),curr_alt)) {
+        if (blimp.current_loc.get_alt_cm(target_loc.get_alt_frame(),curr_alt)) {
             target_loc.set_alt_cm(curr_alt, target_loc.get_alt_frame());
         } else {
             // default to current altitude as alt-above-home
-            target_loc.set_alt_cm(copter.current_loc.alt,
-                                  copter.current_loc.get_alt_frame());
+            target_loc.set_alt_cm(blimp.current_loc.alt,
+                                  blimp.current_loc.get_alt_frame());
         }
     }
 
@@ -1261,8 +1261,8 @@ void ModeAuto::do_loiter_to_alt(const AP_Mission::Mission_Command& cmd)
     // altitude for current location
     Location target_loc(cmd.content.location);
     if (target_loc.lat == 0 && target_loc.lng == 0) {
-        target_loc.lat = copter.current_loc.lat;
-        target_loc.lng = copter.current_loc.lng;
+        target_loc.lat = blimp.current_loc.lat;
+        target_loc.lng = blimp.current_loc.lng;
     }
 
     if (!target_loc.get_alt_cm(Location::AltFrame::ABOVE_HOME, loiter_to_alt.alt)) {
@@ -1355,7 +1355,7 @@ void ModeAuto::do_nav_guided_enable(const AP_Mission::Mission_Command& cmd)
 // do_guided_limits - pass guided limits to guided controller
 void ModeAuto::do_guided_limits(const AP_Mission::Mission_Command& cmd)
 {
-    copter.mode_guided.limit_set(
+    blimp.mode_guided.limit_set(
         cmd.p1 * 1000, // convert seconds to ms
         cmd.content.guided_limits.alt_min * 100.0f,    // convert meters to cm
         cmd.content.guided_limits.alt_max * 100.0f,    // convert meters to cm
@@ -1412,11 +1412,11 @@ void ModeAuto::do_change_speed(const AP_Mission::Mission_Command& cmd)
 {
     if (cmd.content.speed.target_ms > 0) {
         if (cmd.content.speed.speed_type == 2)  {
-            copter.wp_nav->set_speed_up(cmd.content.speed.target_ms * 100.0f);
+            blimp.wp_nav->set_speed_up(cmd.content.speed.target_ms * 100.0f);
         } else if (cmd.content.speed.speed_type == 3)  {
-            copter.wp_nav->set_speed_down(cmd.content.speed.target_ms * 100.0f);
+            blimp.wp_nav->set_speed_down(cmd.content.speed.target_ms * 100.0f);
         } else {
-            copter.wp_nav->set_speed_xy(cmd.content.speed.target_ms * 100.0f);
+            blimp.wp_nav->set_speed_xy(cmd.content.speed.target_ms * 100.0f);
         }
     }
 }
@@ -1424,11 +1424,11 @@ void ModeAuto::do_change_speed(const AP_Mission::Mission_Command& cmd)
 void ModeAuto::do_set_home(const AP_Mission::Mission_Command& cmd)
 {
     if (cmd.p1 == 1 || (cmd.content.location.lat == 0 && cmd.content.location.lng == 0 && cmd.content.location.alt == 0)) {
-        if (!copter.set_home_to_current_location(false)) {
+        if (!blimp.set_home_to_current_location(false)) {
             // ignore failure
         }
     } else {
-        if (!copter.set_home(cmd.content.location, false)) {
+        if (!blimp.set_home(cmd.content.location, false)) {
             // ignore failure
         }
     }
@@ -1436,7 +1436,7 @@ void ModeAuto::do_set_home(const AP_Mission::Mission_Command& cmd)
 
 // do_roi - starts actions required by MAV_CMD_DO_SET_ROI
 //          this involves either moving the camera to point at the ROI (region of interest)
-//          and possibly rotating the copter to point at the ROI if our mount type does not support a yaw feature
+//          and possibly rotating the blimp to point at the ROI if our mount type does not support a yaw feature
 // TO-DO: add support for other features of MAV_CMD_DO_SET_ROI including pointing at a given waypoint
 void ModeAuto::do_roi(const AP_Mission::Mission_Command& cmd)
 {
@@ -1447,10 +1447,10 @@ void ModeAuto::do_roi(const AP_Mission::Mission_Command& cmd)
 void ModeAuto::do_mount_control(const AP_Mission::Mission_Command& cmd)
 {
 #if HAL_MOUNT_ENABLED
-    if (!copter.camera_mount.has_pan_control()) {
+    if (!blimp.camera_mount.has_pan_control()) {
         auto_yaw.set_fixed_yaw(cmd.content.mount_control.yaw,0.0f,0,0);
     }
-    copter.camera_mount.set_angle_targets(cmd.content.mount_control.roll, cmd.content.mount_control.pitch, cmd.content.mount_control.yaw);
+    blimp.camera_mount.set_angle_targets(cmd.content.mount_control.roll, cmd.content.mount_control.pitch, cmd.content.mount_control.yaw);
 #endif
 }
 
@@ -1511,11 +1511,11 @@ void ModeAuto::do_RTL(void)
 bool ModeAuto::verify_takeoff()
 {
     // have we reached our target altitude?
-    const bool reached_wp_dest = copter.wp_nav->reached_wp_destination();
+    const bool reached_wp_dest = blimp.wp_nav->reached_wp_destination();
 
     // retract the landing gear
     if (reached_wp_dest) {
-        copter.landinggear.retract_after_takeoff();
+        blimp.landinggear.retract_after_takeoff();
     }
 
     return reached_wp_dest;
@@ -1529,9 +1529,9 @@ bool ModeAuto::verify_land()
     switch (state) {
         case State::FlyToLocation:
             // check if we've reached the location
-            if (copter.wp_nav->reached_wp_destination()) {
+            if (blimp.wp_nav->reached_wp_destination()) {
                 // get destination so we can use it for loiter target
-                const Vector3f& dest = copter.wp_nav->get_wp_destination();
+                const Vector3f& dest = blimp.wp_nav->get_wp_destination();
 
                 // initialise landing controller
                 land_start(dest);
@@ -1543,15 +1543,15 @@ bool ModeAuto::verify_land()
 
         case State::Descending:
             // rely on THROTTLE_LAND mode to correctly update landing status
-            retval = copter.ap.land_complete && (motors->get_spool_state() == AP_Motors::SpoolState::GROUND_IDLE);
-            if (retval && !mission.continue_after_land() && copter.motors->armed()) {
+            retval = blimp.ap.land_complete && (motors->get_spool_state() == AP_Motors::SpoolState::GROUND_IDLE);
+            if (retval && !mission.continue_after_land() && blimp.motors->armed()) {
                 /*
                   we want to stop mission processing on land
                   completion. Disarm now, then return false. This
                   leaves mission state machine in the current NAV_LAND
                   mission item. After disarming the mission will reset
                 */
-                copter.arming.disarm(AP_Arming::Method::LANDED);
+                blimp.arming.disarm(AP_Arming::Method::LANDED);
                 retval = false;
             }
             break;
@@ -1589,7 +1589,7 @@ bool ModeAuto::verify_payload_place()
     const uint32_t now = AP_HAL::millis();
 
     // if we discover we've landed then immediately release the load:
-    if (copter.ap.land_complete) {
+    if (blimp.ap.land_complete) {
         switch (nav_payload_place.state) {
         case PayloadPlaceStateType_FlyToLocation:
         case PayloadPlaceStateType_Calibrating_Hover_Start:
@@ -1611,7 +1611,7 @@ bool ModeAuto::verify_payload_place()
 
     switch (nav_payload_place.state) {
     case PayloadPlaceStateType_FlyToLocation:
-        if (!copter.wp_nav->reached_wp_destination()) {
+        if (!blimp.wp_nav->reached_wp_destination()) {
             return false;
         }
         payload_place_start();
@@ -1711,7 +1711,7 @@ bool ModeAuto::verify_payload_place()
         }
         FALLTHROUGH;
     case PayloadPlaceStateType_Ascending:
-        if (!copter.wp_nav->reached_wp_destination()) {
+        if (!blimp.wp_nav->reached_wp_destination()) {
             return false;
         }
         nav_payload_place.state = PayloadPlaceStateType_Done;
@@ -1737,7 +1737,7 @@ bool ModeAuto::verify_loiter_unlimited()
 bool ModeAuto::verify_loiter_time(const AP_Mission::Mission_Command& cmd)
 {
     // return immediately if we haven't reached our destination
-    if (!copter.wp_nav->reached_wp_destination()) {
+    if (!blimp.wp_nav->reached_wp_destination()) {
         return false;
     }
 
@@ -1771,8 +1771,8 @@ bool ModeAuto::verify_loiter_to_alt()
 // returns true with RTL has completed successfully
 bool ModeAuto::verify_RTL()
 {
-    return (copter.mode_rtl.state_complete() && 
-            (copter.mode_rtl.state() == ModeRTL::RTL_FinalDescent || copter.mode_rtl.state() == ModeRTL::RTL_Land) &&
+    return (blimp.mode_rtl.state_complete() && 
+            (blimp.mode_rtl.state() == ModeRTL::RTL_FinalDescent || blimp.mode_rtl.state() == ModeRTL::RTL_Land) &&
             (motors->get_spool_state() == AP_Motors::SpoolState::GROUND_IDLE));
 }
 
@@ -1814,7 +1814,7 @@ bool ModeAuto::verify_yaw()
 bool ModeAuto::verify_nav_wp(const AP_Mission::Mission_Command& cmd)
 {
     // check if we have reached the waypoint
-    if ( !copter.wp_nav->reached_wp_destination() ) {
+    if ( !blimp.wp_nav->reached_wp_destination() ) {
         return false;
     }
 
@@ -1844,7 +1844,7 @@ bool ModeAuto::verify_circle(const AP_Mission::Mission_Command& cmd)
 {
     // check if we've reached the edge
     if (mode() == Auto_CircleMoveToEdge) {
-        if (copter.wp_nav->reached_wp_destination()) {
+        if (blimp.wp_nav->reached_wp_destination()) {
             // start circling
             circle_start();
         }
@@ -1852,14 +1852,14 @@ bool ModeAuto::verify_circle(const AP_Mission::Mission_Command& cmd)
     }
 
     // check if we have completed circling
-    return fabsf(copter.circle_nav->get_angle_total()/M_2PI) >= LOWBYTE(cmd.p1);
+    return fabsf(blimp.circle_nav->get_angle_total()/M_2PI) >= LOWBYTE(cmd.p1);
 }
 
 // verify_spline_wp - check if we have reached the next way point using spline
 bool ModeAuto::verify_spline_wp(const AP_Mission::Mission_Command& cmd)
 {
     // check if we have reached the waypoint
-    if ( !copter.wp_nav->reached_wp_destination() ) {
+    if ( !blimp.wp_nav->reached_wp_destination() ) {
         return false;
     }
 
@@ -1886,7 +1886,7 @@ bool ModeAuto::verify_nav_guided_enable(const AP_Mission::Mission_Command& cmd)
     }
 
     // check time and position limits
-    return copter.mode_guided.limit_check();
+    return blimp.mode_guided.limit_check();
 }
 #endif  // NAV_GUIDED
 

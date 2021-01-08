@@ -1,7 +1,7 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 // return barometric altitude in centimeters
-void Copter::read_barometer(void)
+void Blimp::read_barometer(void)
 {
     barometer.update();
 
@@ -10,7 +10,7 @@ void Copter::read_barometer(void)
     motors->set_air_density_ratio(barometer.get_air_density_ratio());
 }
 
-void Copter::init_rangefinder(void)
+void Blimp::init_rangefinder(void)
 {
 #if RANGEFINDER_ENABLED == ENABLED
    rangefinder.set_log_rfnd_bit(MASK_LOG_CTUN);
@@ -25,7 +25,7 @@ void Copter::init_rangefinder(void)
 }
 
 // return rangefinder altitude in centimeters
-void Copter::read_rangefinder(void)
+void Blimp::read_rangefinder(void)
 {
 #if RANGEFINDER_ENABLED == ENABLED
     rangefinder.update();
@@ -115,13 +115,13 @@ void Copter::read_rangefinder(void)
 }
 
 // return true if rangefinder_alt can be used
-bool Copter::rangefinder_alt_ok()
+bool Blimp::rangefinder_alt_ok()
 {
     return (rangefinder_state.enabled && rangefinder_state.alt_healthy);
 }
 
 // return true if rangefinder_alt can be used
-bool Copter::rangefinder_up_ok()
+bool Blimp::rangefinder_up_ok()
 {
     return (rangefinder_up_state.enabled && rangefinder_up_state.alt_healthy);
 }
@@ -132,7 +132,7 @@ bool Copter::rangefinder_up_ok()
   difference between the inertial height at that time and the current
   inertial height to give us interpolation of height from rangefinder
  */
-bool Copter::get_rangefinder_height_interpolated_cm(int32_t& ret)
+bool Blimp::get_rangefinder_height_interpolated_cm(int32_t& ret)
 {
     if (!rangefinder_alt_ok()) {
         return false;
@@ -147,7 +147,7 @@ bool Copter::get_rangefinder_height_interpolated_cm(int32_t& ret)
 /*
   update RPM sensors
  */
-void Copter::rpm_update(void)
+void Blimp::rpm_update(void)
 {
 #if RPM_ENABLED == ENABLED
     rpm_sensor.update();
@@ -160,7 +160,7 @@ void Copter::rpm_update(void)
 }
 
 // initialise optical flow sensor
-void Copter::init_optflow()
+void Blimp::init_optflow()
 {
 #if OPTFLOW == ENABLED
     // initialise optical flow sensor
@@ -168,7 +168,7 @@ void Copter::init_optflow()
 #endif      // OPTFLOW == ENABLED
 }
 
-void Copter::compass_cal_update()
+void Blimp::compass_cal_update()
 {
     compass.cal_update();
 
@@ -198,7 +198,7 @@ void Copter::compass_cal_update()
     }
 }
 
-void Copter::accel_cal_update()
+void Blimp::accel_cal_update()
 {
     if (hal.util->get_soft_armed()) {
         return;
@@ -219,7 +219,7 @@ void Copter::accel_cal_update()
 }
 
 // initialise proximity sensor
-void Copter::init_proximity(void)
+void Blimp::init_proximity(void)
 {
 #if PROXIMITY_ENABLED == ENABLED
     g2.proximity.init();

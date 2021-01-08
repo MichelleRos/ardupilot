@@ -5,7 +5,7 @@ WAF = python $(WAF_BINARY) $(WAF_FLAGS)
 
 EXPLICIT_COMMANDS = check check-all clean list_boards
 
-VEHICLES = copter plane rover sub heli
+VEHICLES = copter plane rover sub heli blimp
 
 BOARD_LIST := $(shell $(WAF) list_boards | head -1)
 

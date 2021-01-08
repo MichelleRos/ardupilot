@@ -1,4 +1,4 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 #if MODE_DRIFT_ENABLED == ENABLED
 
@@ -43,7 +43,7 @@ void ModeDrift::run()
 
     // convert pilot input to lean angles
     float target_roll, target_pitch;
-    get_pilot_desired_lean_angles(target_roll, target_pitch, copter.aparm.angle_max, copter.aparm.angle_max);
+    get_pilot_desired_lean_angles(target_roll, target_pitch, blimp.aparm.angle_max, blimp.aparm.angle_max);
 
     // Grab inertial velocity
     const Vector3f& vel = inertial_nav.get_velocity();
@@ -81,7 +81,7 @@ void ModeDrift::run()
     if (!motors->armed()) {
         // Motors should be Stopped
         motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::SHUT_DOWN);
-    } else if (copter.ap.throttle_zero) {
+    } else if (blimp.ap.throttle_zero) {
         // Attempting to Land
         motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::GROUND_IDLE);
     } else {

@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Copter.h"
+#include "Blimp.h"
 class Parameters;
 class ParametersG2;
 
-class GCS_Copter;
+class GCS_Blimp;
 
 class Mode {
 
@@ -247,7 +247,7 @@ public:
     void update_simple_mode(void);
     bool set_mode(Mode::Number mode, ModeReason reason);
     void set_land_complete(bool b);
-    GCS_Copter &gcs();
+    GCS_Blimp &gcs();
     void set_throttle_takeoff(void);
     uint16_t get_pilot_speed_dn(void);
 
@@ -1454,7 +1454,7 @@ public:
     void exit();
     void run() override;
 
-    // auto control methods.  copter flies grid pattern
+    // auto control methods.  blimp flies grid pattern
     void run_auto();
     void suspend_auto();
     void init_auto();

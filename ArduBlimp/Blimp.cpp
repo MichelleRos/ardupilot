@@ -15,11 +15,11 @@
 
 /*
  *  ArduCopter (also known as APM, APM:Copter or just Copter)
- *  Wiki:           copter.ardupilot.org
+ *  Wiki:           blimp.ardupilot.org
  *  Creator:        Jason Short
  *  Lead Developer: Randy Mackay
  *  Lead Tester:    Marco Robustini
- *  Based on code and ideas from the Arducopter team: Leonard Hall, Andrew Tridgell, Robert Lefebvre, Pat Hickey, Michael Oborne, Jani Hirvinen,
+ *  Based on code and ideas from the Ardublimp team: Leonard Hall, Andrew Tridgell, Robert Lefebvre, Pat Hickey, Michael Oborne, Jani Hirvinen,
                                                       Olivier Adler, Kevin Hester, Arthur Benemann, Jonathan Challinger, John Arne Birkeland,
                                                       Jean-Louis Naudin, Mike Smith, and more
  *  Thanks to: Chris Anderson, Jordi Munoz, Jason Short, Doug Weibel, Jose Julio
@@ -69,11 +69,11 @@
  *  ..and many more.
  *
  *  Code commit statistics can be found here: https://github.com/ArduPilot/ardupilot/graphs/contributors
- *  Wiki: https://copter.ardupilot.org/
+ *  Wiki: https://blimp.ardupilot.org/
  *
  */
 
-#include "Copter.h"
+#include "Blimp.h"
 
 #define FORCE_VERSION_H_INCLUDE
 #include "version.h"
@@ -81,25 +81,25 @@
 
 const AP_HAL::HAL& hal = AP_HAL::get_HAL();
 
-#define SCHED_TASK(func, rate_hz, max_time_micros) SCHED_TASK_CLASS(Copter, &copter, func, rate_hz, max_time_micros)
+#define SCHED_TASK(func, rate_hz, max_time_micros) SCHED_TASK_CLASS(Blimp, &blimp, func, rate_hz, max_time_micros)
 
 /*
   scheduler table for fast CPUs - all regular tasks apart from the fast_loop()
   should be listed here, along with how often they should be called (in hz)
   and the maximum time they are expected to take (in microseconds)
  */
-const AP_Scheduler::Task Copter::scheduler_tasks[] = {
+const AP_Scheduler::Task Blimp::scheduler_tasks[] = {
     SCHED_TASK(rc_loop,              100,    130),
     SCHED_TASK(throttle_loop,         50,     75),
-    SCHED_TASK_CLASS(AP_GPS, &copter.gps, update, 50, 200),
+    SCHED_TASK_CLASS(AP_GPS, &blimp.gps, update, 50, 200),
 #if OPTFLOW == ENABLED
-    SCHED_TASK_CLASS(OpticalFlow,          &copter.optflow,             update,         200, 160),
+    SCHED_TASK_CLASS(OpticalFlow,          &blimp.optflow,             update,         200, 160),
 #endif
     SCHED_TASK(update_batt_compass,   10,    120),
-    SCHED_TASK_CLASS(RC_Channels,          (RC_Channels*)&copter.g2.rc_channels,      read_aux_all,    10,     50),
+    SCHED_TASK_CLASS(RC_Channels,          (RC_Channels*)&blimp.g2.rc_channels,      read_aux_all,    10,     50),
     SCHED_TASK(arm_motors_check,      10,     50),
 #if TOY_MODE_ENABLED == ENABLED
-    SCHED_TASK_CLASS(ToyMode,              &copter.g2.toy_mode,         update,          10,  50),
+    SCHED_TASK_CLASS(ToyMode,              &blimp.g2.toy_mode,         update,          10,  50),
 #endif
     SCHED_TASK(auto_disarm_check,     10,     50),
     SCHED_TASK(auto_trim,             10,     75),
@@ -107,25 +107,25 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] = {
     SCHED_TASK(read_rangefinder,      20,    100),
 #endif
 #if PROXIMITY_ENABLED == ENABLED
-    SCHED_TASK_CLASS(AP_Proximity,         &copter.g2.proximity,        update,         200,  50),
+    SCHED_TASK_CLASS(AP_Proximity,         &blimp.g2.proximity,        update,         200,  50),
 #endif
 #if BEACON_ENABLED == ENABLED
-    SCHED_TASK_CLASS(AP_Beacon,            &copter.g2.beacon,           update,         400,  50),
+    SCHED_TASK_CLASS(AP_Beacon,            &blimp.g2.beacon,           update,         400,  50),
 #endif
     SCHED_TASK(update_altitude,       10,    100),
     SCHED_TASK(run_nav_updates,       50,    100),
     SCHED_TASK(update_throttle_hover,100,     90),
 #if MODE_SMARTRTL_ENABLED == ENABLED
-    SCHED_TASK_CLASS(ModeSmartRTL, &copter.mode_smartrtl,       save_position,    3, 100),
+    SCHED_TASK_CLASS(ModeSmartRTL, &blimp.mode_smartrtl,       save_position,    3, 100),
 #endif
 #if SPRAYER_ENABLED == ENABLED
-    SCHED_TASK_CLASS(AC_Sprayer,           &copter.sprayer,             update,           3,  90),
+    SCHED_TASK_CLASS(AC_Sprayer,           &blimp.sprayer,             update,           3,  90),
 #endif
     SCHED_TASK(three_hz_loop,          3,     75),
-    SCHED_TASK_CLASS(AP_ServoRelayEvents,  &copter.ServoRelayEvents,      update_events, 50,     75),
-    SCHED_TASK_CLASS(AP_Baro,              &copter.barometer,           accumulate,      50,  90),
+    SCHED_TASK_CLASS(AP_ServoRelayEvents,  &blimp.ServoRelayEvents,      update_events, 50,     75),
+    SCHED_TASK_CLASS(AP_Baro,              &blimp.barometer,           accumulate,      50,  90),
 #if AC_FENCE == ENABLED
-    SCHED_TASK_CLASS(AC_Fence,             &copter.fence,               update,          10, 100),
+    SCHED_TASK_CLASS(AC_Fence,             &blimp.fence,               update,          10, 100),
 #endif
 #if PRECISION_LANDING == ENABLED
     SCHED_TASK(update_precland,      400,     50),
@@ -136,7 +136,7 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] = {
 #if LOGGING_ENABLED == ENABLED
     SCHED_TASK(fourhundred_hz_logging,400,    50),
 #endif
-    SCHED_TASK_CLASS(AP_Notify,            &copter.notify,              update,          50,  90),
+    SCHED_TASK_CLASS(AP_Notify,            &blimp.notify,              update,          50,  90),
     SCHED_TASK(one_hz_loop,            1,    100),
     SCHED_TASK(ekf_check,             10,     75),
     SCHED_TASK(check_vibration,       10,     50),
@@ -144,28 +144,28 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] = {
     SCHED_TASK(landinggear_update,    10,     75),
     SCHED_TASK(standby_update,        100,    75),
     SCHED_TASK(lost_vehicle_check,    10,     50),
-    SCHED_TASK_CLASS(GCS,                  (GCS*)&copter._gcs,          update_receive, 400, 180),
-    SCHED_TASK_CLASS(GCS,                  (GCS*)&copter._gcs,          update_send,    400, 550),
+    SCHED_TASK_CLASS(GCS,                  (GCS*)&blimp._gcs,          update_receive, 400, 180),
+    SCHED_TASK_CLASS(GCS,                  (GCS*)&blimp._gcs,          update_send,    400, 550),
 #if HAL_MOUNT_ENABLED
-    SCHED_TASK_CLASS(AP_Mount,             &copter.camera_mount,        update,          50,  75),
+    SCHED_TASK_CLASS(AP_Mount,             &blimp.camera_mount,        update,          50,  75),
 #endif
 #if CAMERA == ENABLED
-    SCHED_TASK_CLASS(AP_Camera,            &copter.camera,              update,          50,  75),
+    SCHED_TASK_CLASS(AP_Camera,            &blimp.camera,              update,          50,  75),
 #endif
 #if LOGGING_ENABLED == ENABLED
     SCHED_TASK(ten_hz_logging_loop,   10,    350),
     SCHED_TASK(twentyfive_hz_logging, 25,    110),
-    SCHED_TASK_CLASS(AP_Logger,      &copter.logger,           periodic_tasks, 400, 300),
+    SCHED_TASK_CLASS(AP_Logger,      &blimp.logger,           periodic_tasks, 400, 300),
 #endif
-    SCHED_TASK_CLASS(AP_InertialSensor,    &copter.ins,                 periodic,       400,  50),
+    SCHED_TASK_CLASS(AP_InertialSensor,    &blimp.ins,                 periodic,       400,  50),
 
-    SCHED_TASK_CLASS(AP_Scheduler,         &copter.scheduler,           update_logging, 0.1,  75),
+    SCHED_TASK_CLASS(AP_Scheduler,         &blimp.scheduler,           update_logging, 0.1,  75),
 #if RPM_ENABLED == ENABLED
     SCHED_TASK(rpm_update,            40,    200),
 #endif
     SCHED_TASK(compass_cal_update,   100,    100),
     SCHED_TASK(accel_cal_update,      10,    100),
-    SCHED_TASK_CLASS(AP_TempCalibration,   &copter.g2.temp_calibration, update,          10, 100),
+    SCHED_TASK_CLASS(AP_TempCalibration,   &blimp.g2.temp_calibration, update,          10, 100),
 #if HAL_ADSB_ENABLED
     SCHED_TASK(avoidance_adsb_update, 10,    100),
 #endif
@@ -176,10 +176,10 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] = {
     SCHED_TASK(terrain_update,        10,    100),
 #endif
 #if GRIPPER_ENABLED == ENABLED
-    SCHED_TASK_CLASS(AP_Gripper,           &copter.g2.gripper,          update,          10,  75),
+    SCHED_TASK_CLASS(AP_Gripper,           &blimp.g2.gripper,          update,          10,  75),
 #endif
 #if WINCH_ENABLED == ENABLED
-    SCHED_TASK_CLASS(AP_Winch,             &copter.g2.winch,            update,          50,  50),
+    SCHED_TASK_CLASS(AP_Winch,             &blimp.g2.winch,            update,          50,  50),
 #endif
 #ifdef USERHOOK_FASTLOOP
     SCHED_TASK(userhook_FastLoop,    100,     75),
@@ -197,14 +197,14 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] = {
     SCHED_TASK(userhook_SuperSlowLoop, 1,   75),
 #endif
 #if BUTTON_ENABLED == ENABLED
-    SCHED_TASK_CLASS(AP_Button,            &copter.button,           update,           5, 100),
+    SCHED_TASK_CLASS(AP_Button,            &blimp.button,           update,           5, 100),
 #endif
 #if STATS_ENABLED == ENABLED
-    SCHED_TASK_CLASS(AP_Stats,             &copter.g2.stats,            update,           1, 100),
+    SCHED_TASK_CLASS(AP_Stats,             &blimp.g2.stats,            update,           1, 100),
 #endif
 };
 
-void Copter::get_scheduler_tasks(const AP_Scheduler::Task *&tasks,
+void Blimp::get_scheduler_tasks(const AP_Scheduler::Task *&tasks,
                                  uint8_t &task_count,
                                  uint32_t &log_bit)
 {
@@ -213,10 +213,10 @@ void Copter::get_scheduler_tasks(const AP_Scheduler::Task *&tasks,
     log_bit = MASK_LOG_PM;
 }
 
-constexpr int8_t Copter::_failsafe_priorities[7];
+constexpr int8_t Blimp::_failsafe_priorities[7];
 
 // Main loop - 400hz
-void Copter::fast_loop()
+void Blimp::fast_loop()
 {
     // update INS immediately to get current gyro data populated
     ins.update();
@@ -268,7 +268,7 @@ void Copter::fast_loop()
 }
 
 // start takeoff to given altitude (for use by scripting)
-bool Copter::start_takeoff(float alt)
+bool Blimp::start_takeoff(float alt)
 {
     // exit if vehicle is not in Guided mode or Auto-Guided mode
     if (!flightmode->in_guided_mode()) {
@@ -276,14 +276,14 @@ bool Copter::start_takeoff(float alt)
     }
 
     if (mode_guided.do_user_takeoff_start(alt * 100.0f)) {
-        copter.set_auto_armed(true);
+        blimp.set_auto_armed(true);
         return true;
     }
     return false;
 }
 
 // set target location (for use by scripting)
-bool Copter::set_target_location(const Location& target_loc)
+bool Blimp::set_target_location(const Location& target_loc)
 {
     // exit if vehicle is not in Guided mode or Auto-Guided mode
     if (!flightmode->in_guided_mode()) {
@@ -293,7 +293,7 @@ bool Copter::set_target_location(const Location& target_loc)
     return mode_guided.set_destination(target_loc);
 }
 
-bool Copter::set_target_velocity_NED(const Vector3f& vel_ned)
+bool Blimp::set_target_velocity_NED(const Vector3f& vel_ned)
 {
     // exit if vehicle is not in Guided mode or Auto-Guided mode
     if (!flightmode->in_guided_mode()) {
@@ -306,7 +306,7 @@ bool Copter::set_target_velocity_NED(const Vector3f& vel_ned)
     return true;
 }
 
-bool Copter::set_target_angle_and_climbrate(float roll_deg, float pitch_deg, float yaw_deg, float climb_rate_ms, bool use_yaw_rate, float yaw_rate_degs)
+bool Blimp::set_target_angle_and_climbrate(float roll_deg, float pitch_deg, float yaw_deg, float climb_rate_ms, bool use_yaw_rate, float yaw_rate_degs)
 {
     // exit if vehicle is not in Guided mode or Auto-Guided mode
     if (!flightmode->in_guided_mode()) {
@@ -323,7 +323,7 @@ bool Copter::set_target_angle_and_climbrate(float roll_deg, float pitch_deg, flo
 
 // rc_loops - reads user input from transmitter/receiver
 // called at 100hz
-void Copter::rc_loop()
+void Blimp::rc_loop()
 {
     // Read radio and 3-position switch on radio
     // -----------------------------------------
@@ -333,7 +333,7 @@ void Copter::rc_loop()
 
 // throttle_loop - should be run at 50 hz
 // ---------------------------
-void Copter::throttle_loop()
+void Blimp::throttle_loop()
 {
     // update throttle_low_comp value (controls priority of throttle vs attitude control)
     update_throttle_mix();
@@ -356,7 +356,7 @@ void Copter::throttle_loop()
 
 // update_batt_compass - read battery and compass
 // should be called at 10hz
-void Copter::update_batt_compass(void)
+void Blimp::update_batt_compass(void)
 {
     // read battery before compass because it may be used for motor interference compensation
     battery.read();
@@ -371,19 +371,19 @@ void Copter::update_batt_compass(void)
 
 // Full rate logging of attitude, rate and pid loops
 // should be run at 400hz
-void Copter::fourhundred_hz_logging()
+void Blimp::fourhundred_hz_logging()
 {
-    if (should_log(MASK_LOG_ATTITUDE_FAST) && !copter.flightmode->logs_attitude()) {
+    if (should_log(MASK_LOG_ATTITUDE_FAST) && !blimp.flightmode->logs_attitude()) {
         Log_Write_Attitude();
     }
 }
 
 // ten_hz_logging_loop
 // should be run at 10hz
-void Copter::ten_hz_logging_loop()
+void Blimp::ten_hz_logging_loop()
 {
     // log attitude data if we're not already logging at the higher rate
-    if (should_log(MASK_LOG_ATTITUDE_MED) && !should_log(MASK_LOG_ATTITUDE_FAST) && !copter.flightmode->logs_attitude()) {
+    if (should_log(MASK_LOG_ATTITUDE_MED) && !should_log(MASK_LOG_ATTITUDE_FAST) && !blimp.flightmode->logs_attitude()) {
         Log_Write_Attitude();
     }
     // log EKF attitude data
@@ -428,10 +428,10 @@ void Copter::ten_hz_logging_loop()
 }
 
 // twentyfive_hz_logging - should be run at 25hz
-void Copter::twentyfive_hz_logging()
+void Blimp::twentyfive_hz_logging()
 {
 #if HIL_MODE != HIL_MODE_DISABLED
-    // HIL for a copter needs very fast update of the servo values
+    // HIL for a blimp needs very fast update of the servo values
     gcs().send_message(MSG_SERVO_OUTPUT_RAW);
 #endif
 
@@ -459,7 +459,7 @@ void Copter::twentyfive_hz_logging()
 }
 
 // three_hz_loop - 3.3hz loop
-void Copter::three_hz_loop()
+void Blimp::three_hz_loop()
 {
     // check if we've lost contact with the ground station
     failsafe_gcs_check();
@@ -478,7 +478,7 @@ void Copter::three_hz_loop()
 }
 
 // one_hz_loop - runs at 1Hz
-void Copter::one_hz_loop()
+void Blimp::one_hz_loop()
 {
     if (should_log(MASK_LOG_ANY)) {
         Log_Write_Data(LogDataID::AP_STATE, ap.value);
@@ -514,7 +514,7 @@ void Copter::one_hz_loop()
     AP_Notify::flags.flying = !ap.land_complete;
 }
 
-void Copter::init_simple_bearing()
+void Blimp::init_simple_bearing()
 {
     // capture current cos_yaw and sin_yaw values
     simple_cos_yaw = ahrs.cos_yaw();
@@ -532,7 +532,7 @@ void Copter::init_simple_bearing()
 }
 
 // update_simple_mode - rotates pilot input if we are in simple mode
-void Copter::update_simple_mode(void)
+void Blimp::update_simple_mode(void)
 {
     float rollx, pitchx;
 
@@ -561,7 +561,7 @@ void Copter::update_simple_mode(void)
 
 // update_super_simple_bearing - adjusts simple bearing based on location
 // should be called after home_bearing has been updated
-void Copter::update_super_simple_bearing(bool force_update)
+void Blimp::update_super_simple_bearing(bool force_update)
 {
     if (!force_update) {
         if (simple_mode != SimpleMode::SUPERSIMPLE) {
@@ -585,7 +585,7 @@ void Copter::update_super_simple_bearing(bool force_update)
     super_simple_sin_yaw = sinf(angle_rad);
 }
 
-void Copter::read_AHRS(void)
+void Blimp::read_AHRS(void)
 {
     // Perform IMU calculations and get attitude info
     //-----------------------------------------------
@@ -599,7 +599,7 @@ void Copter::read_AHRS(void)
 }
 
 // read baro and log control tuning
-void Copter::update_altitude()
+void Blimp::update_altitude()
 {
     // read in baro altitude
     read_barometer();
@@ -615,33 +615,33 @@ void Copter::update_altitude()
 }
 
 // vehicle specific waypoint info helpers
-bool Copter::get_wp_distance_m(float &distance) const
+bool Blimp::get_wp_distance_m(float &distance) const
 {
-    // see GCS_MAVLINK_Copter::send_nav_controller_output()
+    // see GCS_MAVLINK_Blimp::send_nav_controller_output()
     distance = flightmode->wp_distance() * 0.01;
     return true;
 }
 
 // vehicle specific waypoint info helpers
-bool Copter::get_wp_bearing_deg(float &bearing) const
+bool Blimp::get_wp_bearing_deg(float &bearing) const
 {
-    // see GCS_MAVLINK_Copter::send_nav_controller_output()
+    // see GCS_MAVLINK_Blimp::send_nav_controller_output()
     bearing = flightmode->wp_bearing() * 0.01;
     return true;
 }
 
 // vehicle specific waypoint info helpers
-bool Copter::get_wp_crosstrack_error_m(float &xtrack_error) const
+bool Blimp::get_wp_crosstrack_error_m(float &xtrack_error) const
 {
-    // see GCS_MAVLINK_Copter::send_nav_controller_output()
+    // see GCS_MAVLINK_Blimp::send_nav_controller_output()
     xtrack_error = flightmode->crosstrack_error() * 0.01;
     return true;
 }
 
 /*
-  constructor for main Copter class
+  constructor for main Blimp class
  */
-Copter::Copter(void)
+Blimp::Blimp(void)
     : logger(g.log_bitmask),
     flight_modes(&g.flight_mode1),
     control_mode(Mode::Number::STABILIZE),
@@ -658,7 +658,7 @@ Copter::Copter(void)
     sensor_health.compass = true;
 }
 
-Copter copter;
-AP_Vehicle& vehicle = copter;
+Blimp blimp;
+AP_Vehicle& vehicle = blimp;
 
-AP_HAL_MAIN_CALLBACKS(&copter);
+AP_HAL_MAIN_CALLBACKS(&blimp);

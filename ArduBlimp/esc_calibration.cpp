@@ -1,4 +1,4 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 /*****************************************************************************
 * Functions to check and perform ESC calibration
@@ -7,7 +7,7 @@
 #define ESC_CALIBRATION_HIGH_THROTTLE   950
 
 // check if we should enter esc calibration mode
-void Copter::esc_calibration_startup_check()
+void Blimp::esc_calibration_startup_check()
 {
     if (motors->get_pwm_type() == AP_Motors::PWM_TYPE_BRUSHED) {
         // ESC cal not valid for brushed motors
@@ -75,7 +75,7 @@ void Copter::esc_calibration_startup_check()
 }
 
 // esc_calibration_passthrough - pass through pilot throttle to escs
-void Copter::esc_calibration_passthrough()
+void Blimp::esc_calibration_passthrough()
 {
 #if FRAME_CONFIG != HELI_FRAME
     // send message to GCS
@@ -103,7 +103,7 @@ void Copter::esc_calibration_passthrough()
 }
 
 // esc_calibration_auto - calibrate the ESCs automatically using a timer and no pilot input
-void Copter::esc_calibration_auto()
+void Blimp::esc_calibration_auto()
 {
 #if FRAME_CONFIG != HELI_FRAME
     // send message to GCS
@@ -138,7 +138,7 @@ void Copter::esc_calibration_auto()
 }
 
 // flash LEDs to notify the user that ESC calibration is happening
-void Copter::esc_calibration_notify()
+void Blimp::esc_calibration_notify()
 {
     AP_Notify::flags.esc_calibration = true;
     uint32_t now = AP_HAL::millis();
@@ -148,7 +148,7 @@ void Copter::esc_calibration_notify()
     }
 }
 
-void Copter::esc_calibration_setup()
+void Blimp::esc_calibration_setup()
 {
     // clear esc flag for next time
     g.esc_calibrate.set_and_save(ESCCAL_NONE);

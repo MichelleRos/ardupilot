@@ -4,7 +4,7 @@
 #include <AP_Motors/AP_Motors.h>
 #include "mode.h"
 
-class RC_Channel_Copter : public RC_Channel
+class RC_Channel_Blimp : public RC_Channel
 {
 
 public:
@@ -26,7 +26,7 @@ private:
 
 };
 
-class RC_Channels_Copter : public RC_Channels
+class RC_Channels_Blimp : public RC_Channels
 {
 public:
 
@@ -34,8 +34,8 @@ public:
 
     RC_Channel *get_arming_channel(void) const override;
 
-    RC_Channel_Copter obj_channels[NUM_RC_CHANNELS];
-    RC_Channel_Copter *channel(const uint8_t chan) override {
+    RC_Channel_Blimp obj_channels[NUM_RC_CHANNELS];
+    RC_Channel_Blimp *channel(const uint8_t chan) override {
         if (chan >= NUM_RC_CHANNELS) {
             return nullptr;
         }

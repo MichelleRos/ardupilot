@@ -1,4 +1,4 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 
 /*
@@ -32,7 +32,7 @@ void ModeAltHold::run()
 
     // get pilot desired lean angles
     float target_roll, target_pitch;
-    get_pilot_desired_lean_angles(target_roll, target_pitch, copter.aparm.angle_max, attitude_control->get_althold_lean_angle_max());
+    get_pilot_desired_lean_angles(target_roll, target_pitch, blimp.aparm.angle_max, attitude_control->get_althold_lean_angle_max());
 
     // get pilot's desired yaw rate
     float target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->get_control_in());
@@ -84,11 +84,11 @@ void ModeAltHold::run()
 
 #if AC_AVOID_ENABLED == ENABLED
         // apply avoidance
-        copter.avoid.adjust_roll_pitch(target_roll, target_pitch, copter.aparm.angle_max);
+        blimp.avoid.adjust_roll_pitch(target_roll, target_pitch, blimp.aparm.angle_max);
 #endif
 
         // adjust climb rate using rangefinder
-        target_climb_rate = copter.surface_tracking.adjust_climb_rate(target_climb_rate);
+        target_climb_rate = blimp.surface_tracking.adjust_climb_rate(target_climb_rate);
 
         // get avoidance adjusted climb rate
         target_climb_rate = get_avoidance_adjusted_climbrate(target_climb_rate);

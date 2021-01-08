@@ -1,8 +1,8 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 
 // Run landing gear controller at 10Hz
-void Copter::landinggear_update()
+void Blimp::landinggear_update()
 {
     // exit immediately if no landing gear output has been enabled
     if (!SRV_Channels::function_assigned(SRV_Channel::k_landing_gear_control)) {

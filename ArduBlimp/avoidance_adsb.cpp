@@ -1,8 +1,8 @@
-#include "Copter.h"
+#include "Blimp.h"
 #include <AP_Notify/AP_Notify.h>
 
 #if HAL_ADSB_ENABLED
-void Copter::avoidance_adsb_update(void)
+void Blimp::avoidance_adsb_update(void)
 {
     adsb.update();
     avoidance_adsb.update();
@@ -10,31 +10,31 @@ void Copter::avoidance_adsb_update(void)
 
 #include <stdio.h>
 
-MAV_COLLISION_ACTION AP_Avoidance_Copter::handle_avoidance(const AP_Avoidance::Obstacle *obstacle, MAV_COLLISION_ACTION requested_action)
+MAV_COLLISION_ACTION AP_Avoidance_Blimp::handle_avoidance(const AP_Avoidance::Obstacle *obstacle, MAV_COLLISION_ACTION requested_action)
 {
     MAV_COLLISION_ACTION actual_action = requested_action;
     bool failsafe_state_change = false;
 
     // check for changes in failsafe
-    if (!copter.failsafe.adsb) {
-        copter.failsafe.adsb = true;
+    if (!blimp.failsafe.adsb) {
+        blimp.failsafe.adsb = true;
         failsafe_state_change = true;
         // record flight mode in case it's required for the recovery
-        prev_control_mode = copter.control_mode;
+        prev_control_mode = blimp.control_mode;
     }
 
     // take no action in some flight modes
-    if (copter.control_mode == Mode::Number::LAND ||
+    if (blimp.control_mode == Mode::Number::LAND ||
 #if MODE_THROW_ENABLED == ENABLED
-        copter.control_mode == Mode::Number::THROW ||
+        blimp.control_mode == Mode::Number::THROW ||
 #endif
-        copter.control_mode == Mode::Number::FLIP) {
+        blimp.control_mode == Mode::Number::FLIP) {
         actual_action = MAV_COLLISION_ACTION_NONE;
     }
 
     // if landed and we will take some kind of action, just disarm
-    if ((actual_action > MAV_COLLISION_ACTION_REPORT) && copter.should_disarm_on_failsafe()) {
-        copter.arming.disarm(AP_Arming::Method::ADSBCOLLISIONACTION);
+    if ((actual_action > MAV_COLLISION_ACTION_REPORT) && blimp.should_disarm_on_failsafe()) {
+        blimp.arming.disarm(AP_Arming::Method::ADSBCOLLISIONACTION);
         actual_action = MAV_COLLISION_ACTION_NONE;
     } else {
 
@@ -44,7 +44,7 @@ MAV_COLLISION_ACTION AP_Avoidance_Copter::handle_avoidance(const AP_Avoidance::O
             case MAV_COLLISION_ACTION_RTL:
                 // attempt to switch to RTL, if this fails (i.e. flying in manual mode with bad position) do nothing
                 if (failsafe_state_change) {
-                    if (!copter.set_mode(Mode::Number::RTL, ModeReason::AVOIDANCE)) {
+                    if (!blimp.set_mode(Mode::Number::RTL, ModeReason::AVOIDANCE)) {
                         actual_action = MAV_COLLISION_ACTION_NONE;
                     }
                 }
@@ -53,7 +53,7 @@ MAV_COLLISION_ACTION AP_Avoidance_Copter::handle_avoidance(const AP_Avoidance::O
             case MAV_COLLISION_ACTION_HOVER:
                 // attempt to switch to Loiter, if this fails (i.e. flying in manual mode with bad position) do nothing
                 if (failsafe_state_change) {
-                    if (!copter.set_mode(Mode::Number::LOITER, ModeReason::AVOIDANCE)) {
+                    if (!blimp.set_mode(Mode::Number::LOITER, ModeReason::AVOIDANCE)) {
                         actual_action = MAV_COLLISION_ACTION_NONE;
                     }
                 }
@@ -97,16 +97,16 @@ MAV_COLLISION_ACTION AP_Avoidance_Copter::handle_avoidance(const AP_Avoidance::O
     return actual_action;
 }
 
-void AP_Avoidance_Copter::handle_recovery(RecoveryAction recovery_action)
+void AP_Avoidance_Blimp::handle_recovery(RecoveryAction recovery_action)
 {
     // check we are coming out of failsafe
-    if (copter.failsafe.adsb) {
-        copter.failsafe.adsb = false;
+    if (blimp.failsafe.adsb) {
+        blimp.failsafe.adsb = false;
         AP::logger().Write_Error(LogErrorSubsystem::FAILSAFE_ADSB,
                                  LogErrorCode::ERROR_RESOLVED);
 
         // restore flight mode if requested and user has not changed mode since
-        if (copter.control_mode_reason == ModeReason::AVOIDANCE) {
+        if (blimp.control_mode_reason == ModeReason::AVOIDANCE) {
             switch (recovery_action) {
 
             case RecoveryAction::REMAIN_IN_AVOID_ADSB:
@@ -134,34 +134,34 @@ void AP_Avoidance_Copter::handle_recovery(RecoveryAction recovery_action)
     }
 }
 
-void AP_Avoidance_Copter::set_mode_else_try_RTL_else_LAND(Mode::Number mode)
+void AP_Avoidance_Blimp::set_mode_else_try_RTL_else_LAND(Mode::Number mode)
 {
-    if (!copter.set_mode(mode, ModeReason::AVOIDANCE_RECOVERY)) {
+    if (!blimp.set_mode(mode, ModeReason::AVOIDANCE_RECOVERY)) {
         // on failure RTL or LAND
-        if (!copter.set_mode(Mode::Number::RTL, ModeReason::AVOIDANCE_RECOVERY)) {
-            copter.set_mode(Mode::Number::LAND, ModeReason::AVOIDANCE_RECOVERY);
+        if (!blimp.set_mode(Mode::Number::RTL, ModeReason::AVOIDANCE_RECOVERY)) {
+            blimp.set_mode(Mode::Number::LAND, ModeReason::AVOIDANCE_RECOVERY);
         }
     }
 }
 
 // check flight mode is avoid_adsb
-bool AP_Avoidance_Copter::check_flightmode(bool allow_mode_change)
+bool AP_Avoidance_Blimp::check_flightmode(bool allow_mode_change)
 {
-    // ensure copter is in avoid_adsb mode
-    if (allow_mode_change && copter.control_mode != Mode::Number::AVOID_ADSB) {
-        if (!copter.set_mode(Mode::Number::AVOID_ADSB, ModeReason::AVOIDANCE)) {
+    // ensure blimp is in avoid_adsb mode
+    if (allow_mode_change && blimp.control_mode != Mode::Number::AVOID_ADSB) {
+        if (!blimp.set_mode(Mode::Number::AVOID_ADSB, ModeReason::AVOIDANCE)) {
             // failed to set mode so exit immediately
             return false;
         }
     }
 
     // check flight mode
-    return (copter.control_mode == Mode::Number::AVOID_ADSB);
+    return (blimp.control_mode == Mode::Number::AVOID_ADSB);
 }
 
-bool AP_Avoidance_Copter::handle_avoidance_vertical(const AP_Avoidance::Obstacle *obstacle, bool allow_mode_change)
+bool AP_Avoidance_Blimp::handle_avoidance_vertical(const AP_Avoidance::Obstacle *obstacle, bool allow_mode_change)
 {
-    // ensure copter is in avoid_adsb mode
+    // ensure blimp is in avoid_adsb mode
     if (!check_flightmode(allow_mode_change)) {
         return false;
     }
@@ -176,23 +176,23 @@ bool AP_Avoidance_Copter::handle_avoidance_vertical(const AP_Avoidance::Obstacle
     // get best vector away from obstacle
     Vector3f velocity_neu;
     if (should_climb) {
-        velocity_neu.z = copter.wp_nav->get_default_speed_up();
+        velocity_neu.z = blimp.wp_nav->get_default_speed_up();
     } else {
-        velocity_neu.z = -copter.wp_nav->get_default_speed_down();
+        velocity_neu.z = -blimp.wp_nav->get_default_speed_down();
         // do not descend if below RTL alt
-        if (copter.current_loc.alt < copter.g.rtl_altitude) {
+        if (blimp.current_loc.alt < blimp.g.rtl_altitude) {
             velocity_neu.z = 0.0f;
         }
     }
 
     // send target velocity
-    copter.mode_avoid_adsb.set_velocity(velocity_neu);
+    blimp.mode_avoid_adsb.set_velocity(velocity_neu);
     return true;
 }
 
-bool AP_Avoidance_Copter::handle_avoidance_horizontal(const AP_Avoidance::Obstacle *obstacle, bool allow_mode_change)
+bool AP_Avoidance_Blimp::handle_avoidance_horizontal(const AP_Avoidance::Obstacle *obstacle, bool allow_mode_change)
 {
-    // ensure copter is in avoid_adsb mode
+    // ensure blimp is in avoid_adsb mode
     if (!check_flightmode(allow_mode_change)) {
         return false;
     }
@@ -209,10 +209,10 @@ bool AP_Avoidance_Copter::handle_avoidance_horizontal(const AP_Avoidance::Obstac
         // re-normalise
         velocity_neu.normalize();
         // convert horizontal components to velocities
-        velocity_neu.x *= copter.wp_nav->get_default_speed_xy();
-        velocity_neu.y *= copter.wp_nav->get_default_speed_xy();
+        velocity_neu.x *= blimp.wp_nav->get_default_speed_xy();
+        velocity_neu.y *= blimp.wp_nav->get_default_speed_xy();
         // send target velocity
-        copter.mode_avoid_adsb.set_velocity(velocity_neu);
+        blimp.mode_avoid_adsb.set_velocity(velocity_neu);
         return true;
     }
 
@@ -220,9 +220,9 @@ bool AP_Avoidance_Copter::handle_avoidance_horizontal(const AP_Avoidance::Obstac
     return false;
 }
 
-bool AP_Avoidance_Copter::handle_avoidance_perpendicular(const AP_Avoidance::Obstacle *obstacle, bool allow_mode_change)
+bool AP_Avoidance_Blimp::handle_avoidance_perpendicular(const AP_Avoidance::Obstacle *obstacle, bool allow_mode_change)
 {
-    // ensure copter is in avoid_adsb mode
+    // ensure blimp is in avoid_adsb mode
     if (!check_flightmode(allow_mode_change)) {
         return false;
     }
@@ -231,20 +231,20 @@ bool AP_Avoidance_Copter::handle_avoidance_perpendicular(const AP_Avoidance::Obs
     Vector3f velocity_neu;
     if (get_vector_perpendicular(obstacle, velocity_neu)) {
         // convert horizontal components to velocities
-        velocity_neu.x *= copter.wp_nav->get_default_speed_xy();
-        velocity_neu.y *= copter.wp_nav->get_default_speed_xy();
+        velocity_neu.x *= blimp.wp_nav->get_default_speed_xy();
+        velocity_neu.y *= blimp.wp_nav->get_default_speed_xy();
         // use up and down waypoint speeds
         if (velocity_neu.z > 0.0f) {
-            velocity_neu.z *= copter.wp_nav->get_default_speed_up();
+            velocity_neu.z *= blimp.wp_nav->get_default_speed_up();
         } else {
-            velocity_neu.z *= copter.wp_nav->get_default_speed_down();
+            velocity_neu.z *= blimp.wp_nav->get_default_speed_down();
             // do not descend if below RTL alt
-            if (copter.current_loc.alt < copter.g.rtl_altitude) {
+            if (blimp.current_loc.alt < blimp.g.rtl_altitude) {
                 velocity_neu.z = 0.0f;
             }
         }
         // send target velocity
-        copter.mode_avoid_adsb.set_velocity(velocity_neu);
+        blimp.mode_avoid_adsb.set_velocity(velocity_neu);
         return true;
     }
 

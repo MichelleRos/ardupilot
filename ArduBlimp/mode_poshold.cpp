@@ -1,4 +1,4 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 #if MODE_POSHOLD_ENABLED == ENABLED
 
@@ -44,7 +44,7 @@ bool ModePosHold::init(bool ignore_checks)
     // compute brake_gain
     brake_gain = (15.0f * (float)g.poshold_brake_rate + 95.0f) / 100.0f;
 
-    if (copter.ap.land_complete) {
+    if (blimp.ap.land_complete) {
         // if landed begin in loiter mode
         roll_mode = RPMode::LOITER;
         pitch_mode = RPMode::LOITER;
@@ -84,7 +84,7 @@ void ModePosHold::run()
 
     // convert pilot input to lean angles
     float target_roll, target_pitch;
-    get_pilot_desired_lean_angles(target_roll, target_pitch, copter.aparm.angle_max, attitude_control->get_althold_lean_angle_max());
+    get_pilot_desired_lean_angles(target_roll, target_pitch, blimp.aparm.angle_max, attitude_control->get_althold_lean_angle_max());
 
     // get pilot's desired yaw rate
     float target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->get_control_in());
@@ -94,7 +94,7 @@ void ModePosHold::run()
     target_climb_rate = constrain_float(target_climb_rate, -get_pilot_speed_dn(), g.pilot_speed_up);
 
     // relax loiter target if we might be landed
-    if (copter.ap.land_complete_maybe) {
+    if (blimp.ap.land_complete_maybe) {
         loiter_nav->soften_for_landing();
     }
 
@@ -168,13 +168,13 @@ void ModePosHold::run()
 
 #if AC_AVOID_ENABLED == ENABLED
         // apply avoidance
-        copter.avoid.adjust_roll_pitch(target_roll, target_pitch, copter.aparm.angle_max);
+        blimp.avoid.adjust_roll_pitch(target_roll, target_pitch, blimp.aparm.angle_max);
 #endif
 
         // adjust climb rate using rangefinder
-        if (copter.rangefinder_alt_ok()) {
+        if (blimp.rangefinder_alt_ok()) {
             // if rangefinder is ok, use surface tracking
-            target_climb_rate = copter.surface_tracking.adjust_climb_rate(target_climb_rate);
+            target_climb_rate = blimp.surface_tracking.adjust_climb_rate(target_climb_rate);
         }
 
         // get avoidance adjusted climb rate
@@ -496,7 +496,7 @@ void ModePosHold::run()
     }
 
     // constrain target pitch/roll angles
-    float angle_max = copter.aparm.angle_max;
+    float angle_max = blimp.aparm.angle_max;
     roll = constrain_float(roll, -angle_max, angle_max);
     pitch = constrain_float(pitch, -angle_max, angle_max);
 
@@ -608,7 +608,7 @@ void ModePosHold::update_wind_comp_estimate()
     }
 
     // limit acceleration
-    const float accel_lim_cmss = tanf(radians(POSHOLD_WIND_COMP_LEAN_PCT_MAX * copter.aparm.angle_max * 0.01f)) * 981.0f;
+    const float accel_lim_cmss = tanf(radians(POSHOLD_WIND_COMP_LEAN_PCT_MAX * blimp.aparm.angle_max * 0.01f)) * 981.0f;
     const float wind_comp_ef_len = wind_comp_ef.length();
     if (!is_zero(accel_lim_cmss) && (wind_comp_ef_len > accel_lim_cmss)) {
         wind_comp_ef *= accel_lim_cmss / wind_comp_ef_len;

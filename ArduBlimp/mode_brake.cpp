@@ -1,4 +1,4 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 #if MODE_BRAKE_ENABLED == ENABLED
 
@@ -42,7 +42,7 @@ void ModeBrake::run()
     motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::THROTTLE_UNLIMITED);
 
     // relax stop target if we might be landed
-    if (copter.ap.land_complete_maybe) {
+    if (blimp.ap.land_complete_maybe) {
         loiter_nav->soften_for_landing();
     }
 
@@ -55,7 +55,7 @@ void ModeBrake::run()
 
     // update altitude target and call position controller
     // protects heli's from inflight motor interlock disable
-    if (motors->get_desired_spool_state() == AP_Motors::DesiredSpoolState::GROUND_IDLE && !copter.ap.land_complete) {
+    if (motors->get_desired_spool_state() == AP_Motors::DesiredSpoolState::GROUND_IDLE && !blimp.ap.land_complete) {
         pos_control->set_alt_target_from_climb_rate(-abs(g.land_speed), G_Dt, false);
     } else {
         pos_control->set_alt_target_from_climb_rate_ff(0.0f, G_Dt, false);
@@ -63,8 +63,8 @@ void ModeBrake::run()
     pos_control->update_z_controller();
 
     if (_timeout_ms != 0 && millis()-_timeout_start >= _timeout_ms) {
-        if (!copter.set_mode(Mode::Number::LOITER, ModeReason::BRAKE_TIMEOUT)) {
-            copter.set_mode(Mode::Number::ALT_HOLD, ModeReason::BRAKE_TIMEOUT);
+        if (!blimp.set_mode(Mode::Number::LOITER, ModeReason::BRAKE_TIMEOUT)) {
+            blimp.set_mode(Mode::Number::ALT_HOLD, ModeReason::BRAKE_TIMEOUT);
         }
     }
 }

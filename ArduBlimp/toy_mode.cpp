@@ -1,4 +1,4 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 #if TOY_MODE_ENABLED == ENABLED
 
@@ -192,21 +192,21 @@ void ToyMode::update()
     }
 
 #if ENABLE_LOAD_TEST
-    if (!copter.motors->armed()) {
+    if (!blimp.motors->armed()) {
         load_test.running = false;
     }
 #endif
 
     // keep filtered battery voltage for thrust limiting
-    filtered_voltage = 0.99 * filtered_voltage + 0.01 * copter.battery.voltage();
+    filtered_voltage = 0.99 * filtered_voltage + 0.01 * blimp.battery.voltage();
     
     // update LEDs
     blink_update();
     
     if (!done_first_update) {
         done_first_update = true;
-        copter.set_mode(Mode::Number(primary_mode[0].get()), ModeReason::TOY_MODE);
-        copter.motors->set_thrust_compensation_callback(FUNCTOR_BIND_MEMBER(&ToyMode::thrust_limiting, void, float *, uint8_t));
+        blimp.set_mode(Mode::Number(primary_mode[0].get()), ModeReason::TOY_MODE);
+        blimp.motors->set_thrust_compensation_callback(FUNCTOR_BIND_MEMBER(&ToyMode::thrust_limiting, void, float *, uint8_t));
     }
 
     // check if we should auto-trim
@@ -216,7 +216,7 @@ void ToyMode::update()
             
     // set ALT_HOLD as indoors for the EKF (disables GPS vertical velocity fusion)
 #if 0
-    copter.ahrs.set_indoor_mode(copter.control_mode == ALT_HOLD || copter.control_mode == FLOWHOLD);
+    blimp.ahrs.set_indoor_mode(blimp.control_mode == ALT_HOLD || blimp.control_mode == FLOWHOLD);
 #endif
     
     bool left_button = false;
@@ -230,7 +230,7 @@ void ToyMode::update()
     uint16_t ch6_in = RC_Channels::get_radio_in(CH_6);
     uint16_t ch7_in = RC_Channels::get_radio_in(CH_7);
 
-    if (copter.failsafe.radio || ch5_in < 900) {
+    if (blimp.failsafe.radio || ch5_in < 900) {
         // failsafe handling is outside the scope of toy mode, it does
         // normal failsafe actions, just setup a blink pattern
         green_blink_pattern = BLINK_NO_RX;
@@ -291,7 +291,7 @@ void ToyMode::update()
     }
 
     bool reset_combination = left_action_button && right_action_button;
-    if (reset_combination && abs(copter.ahrs.roll_sensor) > 160) {
+    if (reset_combination && abs(blimp.ahrs.roll_sensor) > 160) {
         /*
           if both shoulder buttons are pressed at the same time for 5
           seconds while the vehicle is inverted then we send a
@@ -396,21 +396,21 @@ void ToyMode::update()
 
     // we use 150 for throttle_at_min to cope with varying stick throws
     bool throttle_at_min =
-        copter.channel_throttle->get_control_in() < 150;
+        blimp.channel_throttle->get_control_in() < 150;
 
     // throttle threshold for throttle arming
     bool throttle_near_max =
-        copter.channel_throttle->get_control_in() > 700;
+        blimp.channel_throttle->get_control_in() > 700;
     
     /*
       disarm if throttle is low for 1 second when landed
      */
-    if ((flags & FLAG_THR_DISARM) && throttle_at_min && copter.motors->armed() && copter.ap.land_complete) {
+    if ((flags & FLAG_THR_DISARM) && throttle_at_min && blimp.motors->armed() && blimp.ap.land_complete) {
         throttle_low_counter++;
-        const uint8_t disarm_limit = copter.flightmode->has_manual_throttle()?TOY_LAND_MANUAL_DISARM_COUNT:TOY_LAND_DISARM_COUNT;
+        const uint8_t disarm_limit = blimp.flightmode->has_manual_throttle()?TOY_LAND_MANUAL_DISARM_COUNT:TOY_LAND_DISARM_COUNT;
         if (throttle_low_counter >= disarm_limit) {
             gcs().send_text(MAV_SEVERITY_INFO, "Tmode: throttle disarm");
-            copter.arming.disarm(AP_Arming::Method::TOYMODELANDTHROTTLE);
+            blimp.arming.disarm(AP_Arming::Method::TOYMODELANDTHROTTLE);
         }
     } else {
         throttle_low_counter = 0;
@@ -419,21 +419,21 @@ void ToyMode::update()
     /*
       arm if throttle is high for 1 second when landed
      */
-    if ((flags & FLAG_THR_ARM) && throttle_near_max && !copter.motors->armed()) {
+    if ((flags & FLAG_THR_ARM) && throttle_near_max && !blimp.motors->armed()) {
         throttle_high_counter++;
         if (throttle_high_counter >= TOY_LAND_ARM_COUNT) {
             gcs().send_text(MAV_SEVERITY_INFO, "Tmode: throttle arm");
             arm_check_compass();
-            if (!copter.arming.arm(AP_Arming::Method::MAVLINK) && (flags & FLAG_UPGRADE_LOITER) && copter.control_mode == Mode::Number::LOITER) {
+            if (!blimp.arming.arm(AP_Arming::Method::MAVLINK) && (flags & FLAG_UPGRADE_LOITER) && blimp.control_mode == Mode::Number::LOITER) {
                 /*
                   support auto-switching to ALT_HOLD, then upgrade to LOITER once GPS available
                  */
                 if (set_and_remember_mode(Mode::Number::ALT_HOLD, ModeReason::TOY_MODE)) {
                     gcs().send_text(MAV_SEVERITY_INFO, "Tmode: ALT_HOLD update arm");
 #if AC_FENCE == ENABLED
-                    copter.fence.enable(false);
+                    blimp.fence.enable(false);
 #endif
-                    if (!copter.arming.arm(AP_Arming::Method::MAVLINK)) {
+                    if (!blimp.arming.arm(AP_Arming::Method::MAVLINK)) {
                         // go back to LOITER
                         gcs().send_text(MAV_SEVERITY_ERROR, "Tmode: ALT_HOLD arm failed");
                         set_and_remember_mode(Mode::Number::LOITER, ModeReason::TOY_MODE);
@@ -453,25 +453,25 @@ void ToyMode::update()
     }
 
     if (upgrade_to_loiter) {
-        if (!copter.motors->armed() || copter.control_mode != Mode::Number::ALT_HOLD) {
+        if (!blimp.motors->armed() || blimp.control_mode != Mode::Number::ALT_HOLD) {
             upgrade_to_loiter = false;
 #if 0
             AP_Notify::flags.hybrid_loiter = false;
 #endif
-        } else if (copter.position_ok() && set_and_remember_mode(Mode::Number::LOITER, ModeReason::TOY_MODE)) {
+        } else if (blimp.position_ok() && set_and_remember_mode(Mode::Number::LOITER, ModeReason::TOY_MODE)) {
 #if AC_FENCE == ENABLED
-            copter.fence.enable(true);
+            blimp.fence.enable(true);
 #endif
             gcs().send_text(MAV_SEVERITY_INFO, "Tmode: LOITER update");            
         }
     }
 
-    if (copter.control_mode == Mode::Number::RTL && (flags & FLAG_RTL_CANCEL) && throttle_near_max) {
+    if (blimp.control_mode == Mode::Number::RTL && (flags & FLAG_RTL_CANCEL) && throttle_near_max) {
         gcs().send_text(MAV_SEVERITY_INFO, "Tmode: RTL cancel");        
         set_and_remember_mode(Mode::Number::LOITER, ModeReason::TOY_MODE);
     }
     
-    enum Mode::Number old_mode = copter.control_mode;
+    enum Mode::Number old_mode = blimp.control_mode;
     enum Mode::Number new_mode = old_mode;
 
     /*
@@ -567,9 +567,9 @@ void ToyMode::update()
         break;
         
     case ACTION_DISARM:
-        if (copter.motors->armed()) {
+        if (blimp.motors->armed()) {
             gcs().send_text(MAV_SEVERITY_ERROR, "Tmode: Force disarm");
-            copter.arming.disarm(AP_Arming::Method::TOYMODELANDFORCE);
+            blimp.arming.disarm(AP_Arming::Method::TOYMODELANDFORCE);
         }
         break;
 
@@ -579,29 +579,29 @@ void ToyMode::update()
         break;
 
     case ACTION_TOGGLE_SIMPLE:
-        copter.set_simple_mode(bool(copter.simple_mode)?Copter::SimpleMode::NONE:Copter::SimpleMode::SIMPLE);
+        blimp.set_simple_mode(bool(blimp.simple_mode)?Blimp::SimpleMode::NONE:Blimp::SimpleMode::SIMPLE);
         break;
 
     case ACTION_TOGGLE_SSIMPLE:
-        copter.set_simple_mode(bool(copter.simple_mode)?Copter::SimpleMode::NONE:Copter::SimpleMode::SUPERSIMPLE);
+        blimp.set_simple_mode(bool(blimp.simple_mode)?Blimp::SimpleMode::NONE:Blimp::SimpleMode::SUPERSIMPLE);
         break;
         
     case ACTION_ARM_LAND_RTL:
-        if (!copter.motors->armed()) {
+        if (!blimp.motors->armed()) {
             action_arm();
         } else if (old_mode == Mode::Number::RTL) {
             // switch between RTL and LOITER when in GPS modes
             new_mode = Mode::Number::LOITER;
         } else if (old_mode == Mode::Number::LAND) {
-            if (last_set_mode == Mode::Number::LAND || !copter.position_ok()) {
+            if (last_set_mode == Mode::Number::LAND || !blimp.position_ok()) {
                 // this is a land that we asked for, or we don't have good positioning
                 new_mode = Mode::Number::ALT_HOLD;
-            } else if (copter.landing_with_GPS()) {
+            } else if (blimp.landing_with_GPS()) {
                 new_mode = Mode::Number::LOITER;
             } else {
                 new_mode = Mode::Number::ALT_HOLD;
             }
-        } else if (copter.flightmode->requires_GPS()) {
+        } else if (blimp.flightmode->requires_GPS()) {
             // if we're in a GPS mode, then RTL
             new_mode = Mode::Number::RTL;
         } else {
@@ -612,20 +612,20 @@ void ToyMode::update()
 
     case ACTION_LOAD_TEST:
 #if ENABLE_LOAD_TEST
-        if (copter.motors->armed() && !load_test.running) {
+        if (blimp.motors->armed() && !load_test.running) {
             break;
         }
         if (load_test.running) {
             load_test.running = false;
             gcs().send_text(MAV_SEVERITY_INFO, "Tmode: load_test off");
-            copter.init_disarm_motors();
-            copter.set_mode(Mode::Number::ALT_HOLD, ModeReason::TOY_MODE);
+            blimp.init_disarm_motors();
+            blimp.set_mode(Mode::Number::ALT_HOLD, ModeReason::TOY_MODE);
         } else {
-            copter.set_mode(Mode::Number::ALT_HOLD, ModeReason::TOY_MODE);
+            blimp.set_mode(Mode::Number::ALT_HOLD, ModeReason::TOY_MODE);
 #if AC_FENCE == ENABLED
-            copter.fence.enable(false);
+            blimp.fence.enable(false);
 #endif
-            if (copter.arming.arm(AP_Arming::Method::MAVLINK)) {
+            if (blimp.arming.arm(AP_Arming::Method::MAVLINK)) {
                 load_test.running = true;
                 gcs().send_text(MAV_SEVERITY_INFO, "Tmode: load_test on");
             } else {
@@ -636,22 +636,22 @@ void ToyMode::update()
         break;
     }
 
-    if (!copter.motors->armed() && (copter.control_mode == Mode::Number::LAND || copter.control_mode == Mode::Number::RTL)) {
+    if (!blimp.motors->armed() && (blimp.control_mode == Mode::Number::LAND || blimp.control_mode == Mode::Number::RTL)) {
         // revert back to last primary flight mode if disarmed after landing
         new_mode = Mode::Number(primary_mode[last_mode_choice].get());
     }
     
-    if (new_mode != copter.control_mode) {
+    if (new_mode != blimp.control_mode) {
         load_test.running = false;
 #if AC_FENCE == ENABLED
-        copter.fence.enable(false);
+        blimp.fence.enable(false);
 #endif
         if (set_and_remember_mode(new_mode, ModeReason::TOY_MODE)) {
-            gcs().send_text(MAV_SEVERITY_INFO, "Tmode: mode %s", copter.flightmode->name4());
+            gcs().send_text(MAV_SEVERITY_INFO, "Tmode: mode %s", blimp.flightmode->name4());
             // force fence on in all GPS flight modes
 #if AC_FENCE == ENABLED
-            if (copter.flightmode->requires_GPS()) {
-                copter.fence.enable(true);
+            if (blimp.flightmode->requires_GPS()) {
+                blimp.fence.enable(true);
             }
 #endif
         } else {
@@ -661,8 +661,8 @@ void ToyMode::update()
                 gcs().send_text(MAV_SEVERITY_ERROR, "Tmode: LANDING");
                 set_and_remember_mode(Mode::Number::LAND, ModeReason::TOY_MODE);
 #if AC_FENCE == ENABLED
-                if (copter.landing_with_GPS()) {
-                    copter.fence.enable(true);
+                if (blimp.landing_with_GPS()) {
+                    blimp.fence.enable(true);
                 }
 #endif
             }
@@ -676,10 +676,10 @@ void ToyMode::update()
  */
 bool ToyMode::set_and_remember_mode(Mode::Number mode, ModeReason reason)
 {
-    if (copter.control_mode == mode) {
+    if (blimp.control_mode == mode) {
         return true;
     }
-    if (!copter.set_mode(mode, reason)) {
+    if (!blimp.set_mode(mode, reason)) {
         return false;
     }
     last_set_mode = mode;
@@ -693,16 +693,16 @@ bool ToyMode::set_and_remember_mode(Mode::Number mode, ModeReason reason)
  */
 void ToyMode::trim_update(void)
 {
-    if (hal.util->get_soft_armed() || copter.failsafe.radio) {
+    if (hal.util->get_soft_armed() || blimp.failsafe.radio) {
         // only when disarmed and with RC link
         trim.start_ms = 0;
         return;
     }
 
     // get throttle mid from channel trim
-    uint16_t throttle_trim = copter.channel_throttle->get_radio_trim();
+    uint16_t throttle_trim = blimp.channel_throttle->get_radio_trim();
     if (abs(throttle_trim - 1500) <= trim_auto) {
-        RC_Channel *c = copter.channel_throttle;
+        RC_Channel *c = blimp.channel_throttle;
         uint16_t ch_min = c->get_radio_min();
         uint16_t ch_max = c->get_radio_max();
         // remember the throttle midpoint
@@ -782,14 +782,14 @@ void ToyMode::trim_update(void)
  */
 void ToyMode::action_arm(void)
 {
-    bool needs_gps = copter.flightmode->requires_GPS();
+    bool needs_gps = blimp.flightmode->requires_GPS();
 
     // don't arm if sticks aren't in deadzone, to prevent pot problems
     // on TX causing flight control issues
     bool sticks_centered =
-        copter.channel_roll->get_control_in() == 0 &&
-        copter.channel_pitch->get_control_in() == 0 &&
-        copter.channel_yaw->get_control_in() == 0;
+        blimp.channel_roll->get_control_in() == 0 &&
+        blimp.channel_pitch->get_control_in() == 0 &&
+        blimp.channel_yaw->get_control_in() == 0;
 
     if (!sticks_centered) {
         gcs().send_text(MAV_SEVERITY_ERROR, "Tmode: sticks not centered");
@@ -798,13 +798,13 @@ void ToyMode::action_arm(void)
 
     arm_check_compass();
     
-    if (needs_gps && copter.arming.gps_checks(false)) {
+    if (needs_gps && blimp.arming.gps_checks(false)) {
 #if AC_FENCE == ENABLED
         // we want GPS and checks are passing, arm and enable fence
-        copter.fence.enable(true);
+        blimp.fence.enable(true);
 #endif
-        copter.arming.arm(AP_Arming::Method::RUDDER);
-        if (!copter.motors->armed()) {
+        blimp.arming.arm(AP_Arming::Method::RUDDER);
+        if (!blimp.motors->armed()) {
             AP_Notify::events.arming_failed = true;
             gcs().send_text(MAV_SEVERITY_ERROR, "Tmode: GPS arming failed");
         } else {
@@ -817,10 +817,10 @@ void ToyMode::action_arm(void)
     } else {
 #if AC_FENCE == ENABLED
         // non-GPS mode
-        copter.fence.enable(false);
+        blimp.fence.enable(false);
 #endif
-        copter.arming.arm(AP_Arming::Method::RUDDER);
-        if (!copter.motors->armed()) {
+        blimp.arming.arm(AP_Arming::Method::RUDDER);
+        if (!blimp.motors->armed()) {
             AP_Notify::events.arming_failed = true;
             gcs().send_text(MAV_SEVERITY_ERROR, "Tmode: non-GPS arming failed");
         } else {
@@ -837,8 +837,8 @@ void ToyMode::throttle_adjust(float &throttle_control)
 {
     uint32_t now = AP_HAL::millis();
     const uint32_t soft_start_ms = 5000;
-    const uint16_t throttle_start = 600 + copter.g.throttle_deadzone;
-    if (!copter.motors->armed() && (flags & FLAG_THR_ARM)) {
+    const uint16_t throttle_start = 600 + blimp.g.throttle_deadzone;
+    if (!blimp.motors->armed() && (flags & FLAG_THR_ARM)) {
         throttle_control = MIN(throttle_control, 500);
     } else if (now - throttle_arm_ms < soft_start_ms) {
         float p = (now - throttle_arm_ms) / float(soft_start_ms);
@@ -846,10 +846,10 @@ void ToyMode::throttle_adjust(float &throttle_control)
     }
 
     // limit descent rate close to the ground
-    float height = copter.inertial_nav.get_altitude() * 0.01 - copter.arming_altitude_m;
+    float height = blimp.inertial_nav.get_altitude() * 0.01 - blimp.arming_altitude_m;
     if (throttle_control < 500 &&
         height < TOY_DESCENT_SLOW_HEIGHT + TOY_DESCENT_SLOW_RAMP &&
-        copter.motors->armed() && !copter.ap.land_complete) {
+        blimp.motors->armed() && !blimp.ap.land_complete) {
         float limit = linear_interpolate(TOY_DESCENT_SLOW_MIN, 0, height,
                                          TOY_DESCENT_SLOW_HEIGHT, TOY_DESCENT_SLOW_HEIGHT+TOY_DESCENT_SLOW_RAMP);
         if (throttle_control < limit) {
@@ -869,14 +869,14 @@ void ToyMode::throttle_adjust(float &throttle_control)
 void ToyMode::blink_update(void)
 {
     if (red_blink_pattern & (1U<<red_blink_index)) {
-        copter.relay.on(1);
+        blimp.relay.on(1);
     } else {
-        copter.relay.off(1);
+        blimp.relay.off(1);
     }
     if (green_blink_pattern & (1U<<green_blink_index)) {
-        copter.relay.on(0);
+        blimp.relay.on(0);
     } else {
-        copter.relay.off(0);
+        blimp.relay.off(0);
     }
     green_blink_index = (green_blink_index+1) % 16;
     red_blink_index = (red_blink_index+1) % 16;
@@ -904,16 +904,16 @@ void ToyMode::blink_update(void)
 
     // full on when we can see the TX, except for battery failsafe,
     // when we blink rapidly
-    if (copter.motors->armed() && AP_Notify::flags.failsafe_battery) {
+    if (blimp.motors->armed() && AP_Notify::flags.failsafe_battery) {
         pattern = BLINK_8;
-    } else if (!copter.motors->armed() && (blink_disarm > 0)) {
+    } else if (!blimp.motors->armed() && (blink_disarm > 0)) {
         pattern = BLINK_8;
         blink_disarm--;
     } else {
         pattern = BLINK_FULL;
     }
     
-    if (copter.motors->armed()) {
+    if (blimp.motors->armed()) {
         blink_disarm = 4;
     }
     
@@ -1056,9 +1056,9 @@ void ToyMode::load_test_run(void)
         hal.rcout->write(i, 1000 + pwm[i]*2);
     }
 
-    if (copter.failsafe.battery) {
+    if (blimp.failsafe.battery) {
         gcs().send_text(MAV_SEVERITY_INFO, "Tmode: load_test off (battery)");
-        copter.init_disarm_motors();
+        blimp.init_disarm_motors();
         load_test.running = false;
     }    
 }
@@ -1071,16 +1071,16 @@ void ToyMode::load_test_run(void)
 void ToyMode::arm_check_compass(void)
 {
     // check for unreasonable compass offsets
-    Vector3f offsets = copter.compass.get_offsets();
-    float field = copter.compass.get_field().length();
+    Vector3f offsets = blimp.compass.get_offsets();
+    float field = blimp.compass.get_field().length();
     
     char unused_compass_configured_error_message[20];
-    if (offsets.length() > copter.compass.get_offsets_max() ||
+    if (offsets.length() > blimp.compass.get_offsets_max() ||
         field < 200 || field > 800 ||
-        !copter.compass.configured(unused_compass_configured_error_message, ARRAY_SIZE(unused_compass_configured_error_message))) {
-        if (copter.compass.get_learn_type() != Compass::LEARN_INFLIGHT) {
+        !blimp.compass.configured(unused_compass_configured_error_message, ARRAY_SIZE(unused_compass_configured_error_message))) {
+        if (blimp.compass.get_learn_type() != Compass::LEARN_INFLIGHT) {
             gcs().send_text(MAV_SEVERITY_INFO, "Tmode: enable compass learning");
-            copter.compass.set_learn_type(Compass::LEARN_INFLIGHT, false);
+            blimp.compass.set_learn_type(Compass::LEARN_INFLIGHT, false);
         }
     }
 }

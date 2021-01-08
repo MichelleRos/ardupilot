@@ -1,10 +1,10 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 
 // Function that will read the radio data, limit servos and trigger a failsafe
 // ----------------------------------------------------------------------------
 
-void Copter::default_dead_zones()
+void Blimp::default_dead_zones()
 {
     channel_roll->set_default_dead_zone(20);
     channel_pitch->set_default_dead_zone(20);
@@ -18,7 +18,7 @@ void Copter::default_dead_zones()
     rc().channel(CH_6)->set_default_dead_zone(0);
 }
 
-void Copter::init_rc_in()
+void Blimp::init_rc_in()
 {
     channel_roll     = rc().channel(rcmap.roll()-1);
     channel_pitch    = rc().channel(rcmap.pitch()-1);
@@ -39,7 +39,7 @@ void Copter::init_rc_in()
 }
 
  // init_rc_out -- initialise motors
-void Copter::init_rc_out()
+void Blimp::init_rc_out()
 {
     motors->set_loop_rate(scheduler.get_loop_rate_hz());
     motors->init((AP_Motors::motor_frame_class)g2.frame_class.get(), (AP_Motors::motor_frame_type)g.frame_type.get());
@@ -65,20 +65,20 @@ void Copter::init_rc_out()
     /*
       setup a default safety ignore mask, so that servo gimbals can be active while safety is on
      */
-    uint16_t safety_ignore_mask = (~copter.motors->get_motor_mask()) & 0x3FFF;
+    uint16_t safety_ignore_mask = (~blimp.motors->get_motor_mask()) & 0x3FFF;
     BoardConfig.set_default_safety_ignore_mask(safety_ignore_mask);
 #endif
 }
 
 
 // enable_motor_output() - enable and output lowest possible value to motors
-void Copter::enable_motor_output()
+void Blimp::enable_motor_output()
 {
     // enable motors
     motors->output_min();
 }
 
-void Copter::read_radio()
+void Blimp::read_radio()
 {
     const uint32_t tnow_ms = millis();
 
@@ -91,7 +91,7 @@ void Copter::read_radio()
         // RC receiver must be attached if we've just got input
         ap.rc_receiver_present = true;
 
-        // pass pilot input through to motors (used to allow wiggling servos while disarmed on heli, single, coax copters)
+        // pass pilot input through to motors (used to allow wiggling servos while disarmed on heli, single, coax blimps)
         radio_passthrough_to_motors();
 
         const float dt = (tnow_ms - last_radio_update_ms)*1.0e-3f;
@@ -128,7 +128,7 @@ void Copter::read_radio()
 }
 
 #define FS_COUNTER 3        // radio failsafe kicks in after 3 consecutive throttle values below failsafe_throttle_value
-void Copter::set_throttle_and_failsafe(uint16_t throttle_pwm)
+void Blimp::set_throttle_and_failsafe(uint16_t throttle_pwm)
 {
     // if failsafe not enabled pass through throttle and exit
     if(g.failsafe_throttle == FS_THR_DISABLED) {
@@ -169,8 +169,8 @@ void Copter::set_throttle_and_failsafe(uint16_t throttle_pwm)
 // set_throttle_zero_flag - set throttle_zero flag from debounced throttle control
 // throttle_zero is used to determine if the pilot intends to shut down the motors
 // Basically, this signals when we are not flying.  We are either on the ground
-// or the pilot has shut down the copter in the air and it is free-falling
-void Copter::set_throttle_zero_flag(int16_t throttle_control)
+// or the pilot has shut down the blimp in the air and it is free-falling
+void Blimp::set_throttle_zero_flag(int16_t throttle_control)
 {
     static uint32_t last_nonzero_throttle_ms = 0;
     uint32_t tnow_ms = millis();
@@ -188,8 +188,8 @@ void Copter::set_throttle_zero_flag(int16_t throttle_control)
     }
 }
 
-// pass pilot's inputs to motors library (used to allow wiggling servos while disarmed on heli, single, coax copters)
-void Copter::radio_passthrough_to_motors()
+// pass pilot's inputs to motors library (used to allow wiggling servos while disarmed on heli, single, coax blimps)
+void Blimp::radio_passthrough_to_motors()
 {
     motors->set_radio_passthrough(channel_roll->norm_input(),
                                   channel_pitch->norm_input(),
@@ -200,7 +200,7 @@ void Copter::radio_passthrough_to_motors()
 /*
   return the throttle input for mid-stick as a control-in value
  */
-int16_t Copter::get_throttle_mid(void)
+int16_t Blimp::get_throttle_mid(void)
 {
 #if TOY_MODE_ENABLED == ENABLED
     if (g2.toy_mode.enabled()) {

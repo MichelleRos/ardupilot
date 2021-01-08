@@ -1,6 +1,6 @@
-#include "Copter.h"
+#include "Blimp.h"
 
-void Copter::update_ground_effect_detector(void)
+void Blimp::update_ground_effect_detector(void)
 {
     if(!g2.gndeffect_comp_enabled || !motors->armed()) {
         // disarmed - disable ground effect and return
@@ -71,7 +71,7 @@ void Copter::update_ground_effect_detector(void)
 // update ekf terrain height stable setting
 // when set to true, this allows the EKF to stabilize the normally barometer based altitude using a rangefinder
 // this is not related to terrain following
-void Copter::update_ekf_terrain_height_stable()
+void Blimp::update_ekf_terrain_height_stable()
 {
     // set to false if no position estimate
     if (!position_ok() && !ekf_has_relative_position()) {

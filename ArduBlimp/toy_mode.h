@@ -8,7 +8,7 @@
 class ToyMode
 {
 public:
-    friend class Copter;
+    friend class Blimp;
 
     ToyMode();
     bool enabled(void) const {

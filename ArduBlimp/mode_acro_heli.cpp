@@ -1,4 +1,4 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 #if MODE_ACRO_ENABLED == ENABLED
 
@@ -16,7 +16,7 @@ bool ModeAcro_Heli::init(bool ignore_checks)
     motors->set_acro_tail(true);
     
     // set stab collective false to use full collective pitch range
-    copter.input_manager.set_use_stab_col(false);
+    blimp.input_manager.set_use_stab_col(false);
 
     // always successfully enter acro
     return true;
@@ -57,7 +57,7 @@ void ModeAcro_Heli::run()
         }
         break;
     case AP_Motors::SpoolState::THROTTLE_UNLIMITED:
-        if (copter.ap.land_complete && !motors->using_leaky_integrator()) {
+        if (blimp.ap.land_complete && !motors->using_leaky_integrator()) {
             attitude_control->reset_rate_controller_I_terms_smoothly();
         }
         break;
@@ -73,7 +73,7 @@ void ModeAcro_Heli::run()
         // only mimic flybar response when trainer mode is disabled
         if ((Trainer)g.acro_trainer.get() == Trainer::OFF) {
             // while landed always leak off target attitude to current attitude
-            if (copter.ap.land_complete) {
+            if (blimp.ap.land_complete) {
                 virtual_flybar(target_roll, target_pitch, target_yaw, 3.0f, 3.0f);
             // while flying use acro balance parameters for leak rate
             } else {
@@ -119,7 +119,7 @@ void ModeAcro_Heli::run()
     }
 
     // get pilot's desired throttle
-    pilot_throttle_scaled = copter.input_manager.get_pilot_desired_collective(channel_throttle->get_control_in());
+    pilot_throttle_scaled = blimp.input_manager.get_pilot_desired_collective(channel_throttle->get_control_in());
 
     // output pilot's throttle without angle boost
     attitude_control->set_throttle_out(pilot_throttle_scaled, false, g.throttle_filt);

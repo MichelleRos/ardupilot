@@ -1,4 +1,4 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 #if MODE_GUIDED_ENABLED == ENABLED
 
@@ -89,7 +89,7 @@ bool ModeGuided::allows_arming(bool from_gcs) const
     }
 
     // optionally allow arming from the transmitter
-    return (copter.g2.guided_options & (uint32_t)Options::AllowArmingFromTX) != 0;
+    return (blimp.g2.guided_options & (uint32_t)Options::AllowArmingFromTX) != 0;
 };
 
 // do_user_takeoff_start - initialises waypoint controller to implement take-off
@@ -98,13 +98,13 @@ bool ModeGuided::do_user_takeoff_start(float takeoff_alt_cm)
     guided_mode = Guided_TakeOff;
 
     // initialise wpnav destination
-    Location target_loc = copter.current_loc;
+    Location target_loc = blimp.current_loc;
     Location::AltFrame frame = Location::AltFrame::ABOVE_HOME;
     if (wp_nav->rangefinder_used_and_healthy() &&
             wp_nav->get_terrain_source() == AC_WPNav::TerrainSource::TERRAIN_FROM_RANGEFINDER &&
-            takeoff_alt_cm < copter.rangefinder.max_distance_cm_orient(ROTATION_PITCH_270)) {
+            takeoff_alt_cm < blimp.rangefinder.max_distance_cm_orient(ROTATION_PITCH_270)) {
         // can't takeoff downwards
-        if (takeoff_alt_cm <= copter.rangefinder_state.alt_cm) {
+        if (takeoff_alt_cm <= blimp.rangefinder_state.alt_cm) {
             return false;
         }
         frame = Location::AltFrame::ABOVE_TERRAIN;
@@ -237,7 +237,7 @@ bool ModeGuided::set_destination(const Vector3f& destination, bool use_yaw, floa
 #if AC_FENCE == ENABLED
     // reject destination if outside the fence
     const Location dest_loc(destination);
-    if (!copter.fence.check_destination_within_fence(dest_loc)) {
+    if (!blimp.fence.check_destination_within_fence(dest_loc)) {
         AP::logger().Write_Error(LogErrorSubsystem::NAVIGATION, LogErrorCode::DEST_OUTSIDE_FENCE);
         // failure is propagated to GCS with NAK
         return false;
@@ -256,7 +256,7 @@ bool ModeGuided::set_destination(const Vector3f& destination, bool use_yaw, floa
     wp_nav->set_wp_destination(destination, terrain_alt);
 
     // log target
-    copter.Log_Write_GuidedTarget(guided_mode, destination, Vector3f());
+    blimp.Log_Write_GuidedTarget(guided_mode, destination, Vector3f());
     return true;
 }
 
@@ -276,7 +276,7 @@ bool ModeGuided::set_destination(const Location& dest_loc, bool use_yaw, float y
 #if AC_FENCE == ENABLED
     // reject destination outside the fence.
     // Note: there is a danger that a target specified as a terrain altitude might not be checked if the conversion to alt-above-home fails
-    if (!copter.fence.check_destination_within_fence(dest_loc)) {
+    if (!blimp.fence.check_destination_within_fence(dest_loc)) {
         AP::logger().Write_Error(LogErrorSubsystem::NAVIGATION, LogErrorCode::DEST_OUTSIDE_FENCE);
         // failure is propagated to GCS with NAK
         return false;
@@ -299,7 +299,7 @@ bool ModeGuided::set_destination(const Location& dest_loc, bool use_yaw, float y
     set_yaw_state(use_yaw, yaw_cd, use_yaw_rate, yaw_rate_cds, relative_yaw);
 
     // log target
-    copter.Log_Write_GuidedTarget(guided_mode, Vector3f(dest_loc.lat, dest_loc.lng, dest_loc.alt),Vector3f());
+    blimp.Log_Write_GuidedTarget(guided_mode, Vector3f(dest_loc.lat, dest_loc.lng, dest_loc.alt),Vector3f());
     return true;
 }
 
@@ -320,7 +320,7 @@ void ModeGuided::set_velocity(const Vector3f& velocity, bool use_yaw, float yaw_
 
     // log target
     if (log_request) {
-        copter.Log_Write_GuidedTarget(guided_mode, Vector3f(), velocity);
+        blimp.Log_Write_GuidedTarget(guided_mode, Vector3f(), velocity);
     }
 }
 
@@ -330,7 +330,7 @@ bool ModeGuided::set_destination_posvel(const Vector3f& destination, const Vecto
 #if AC_FENCE == ENABLED
     // reject destination if outside the fence
     const Location dest_loc(destination);
-    if (!copter.fence.check_destination_within_fence(dest_loc)) {
+    if (!blimp.fence.check_destination_within_fence(dest_loc)) {
         AP::logger().Write_Error(LogErrorSubsystem::NAVIGATION, LogErrorCode::DEST_OUTSIDE_FENCE);
         // failure is propagated to GCS with NAK
         return false;
@@ -349,10 +349,10 @@ bool ModeGuided::set_destination_posvel(const Vector3f& destination, const Vecto
     guided_pos_target_cm = destination;
     guided_vel_target_cms = velocity;
 
-    copter.pos_control->set_pos_target(guided_pos_target_cm);
+    blimp.pos_control->set_pos_target(guided_pos_target_cm);
 
     // log target
-    copter.Log_Write_GuidedTarget(guided_mode, destination, velocity);
+    blimp.Log_Write_GuidedTarget(guided_mode, destination, velocity);
     return true;
 }
 
@@ -384,7 +384,7 @@ void ModeGuided::set_angle(const Quaternion &q, float climb_rate_cms_or_thrust, 
     guided_angle_state.update_time_ms = millis();
 
     // log target
-    copter.Log_Write_GuidedTarget(guided_mode,
+    blimp.Log_Write_GuidedTarget(guided_mode,
                            Vector3f(guided_angle_state.roll_cd, guided_angle_state.pitch_cd, guided_angle_state.yaw_cd),
                            Vector3f(0.0f, 0.0f, climb_rate_cms_or_thrust));
 }
@@ -396,7 +396,7 @@ void ModeGuided::takeoff_run()
     auto_takeoff_run();
     if (wp_nav->reached_wp_destination()) {
         // optionally retract landing gear
-        copter.landinggear.retract_after_takeoff();
+        blimp.landinggear.retract_after_takeoff();
 
         // switch to position control mode but maintain current target
         const Vector3f target = wp_nav->get_wp_destination();
@@ -410,7 +410,7 @@ void ModeGuided::pos_control_run()
 {
     // process pilot's yaw input
     float target_yaw_rate = 0;
-    if (!copter.failsafe.radio && use_pilot_yaw()) {
+    if (!blimp.failsafe.radio && use_pilot_yaw()) {
         // get pilot's desired yaw rate
         target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->get_control_in());
         if (!is_zero(target_yaw_rate)) {
@@ -428,7 +428,7 @@ void ModeGuided::pos_control_run()
     motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::THROTTLE_UNLIMITED);
 
     // run waypoint controller
-    copter.failsafe_terrain_set_status(wp_nav->update_wpnav());
+    blimp.failsafe_terrain_set_status(wp_nav->update_wpnav());
 
     // call z-axis position controller (wpnav should have already updated it's alt target)
     pos_control->update_z_controller();
@@ -452,7 +452,7 @@ void ModeGuided::vel_control_run()
 {
     // process pilot's yaw input
     float target_yaw_rate = 0;
-    if (!copter.failsafe.radio && use_pilot_yaw()) {
+    if (!blimp.failsafe.radio && use_pilot_yaw()) {
         // get pilot's desired yaw rate
         target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->get_control_in());
         if (!is_zero(target_yaw_rate)) {
@@ -461,7 +461,7 @@ void ModeGuided::vel_control_run()
     }
 
     // landed with positive desired climb rate, initiate takeoff
-    if (motors->armed() && copter.ap.auto_armed && copter.ap.land_complete && is_positive(guided_vel_target_cms.z)) {
+    if (motors->armed() && blimp.ap.auto_armed && blimp.ap.land_complete && is_positive(guided_vel_target_cms.z)) {
         zero_throttle_and_relax_ac();
         motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::THROTTLE_UNLIMITED);
         if (motors->get_spool_state() == AP_Motors::SpoolState::THROTTLE_UNLIMITED) {
@@ -516,7 +516,7 @@ void ModeGuided::posvel_control_run()
     // process pilot's yaw input
     float target_yaw_rate = 0;
 
-    if (!copter.failsafe.radio && ((copter.g2.auto_options & (uint32_t)Options::IgnorePilotYaw) == 0)) {
+    if (!blimp.failsafe.radio && ((blimp.g2.auto_options & (uint32_t)Options::IgnorePilotYaw) == 0)) {
         // get pilot's desired yaw rate
         target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->get_control_in());
         if (!is_zero(target_yaw_rate)) {
@@ -582,7 +582,7 @@ void ModeGuided::angle_control_run()
     float roll_in = guided_angle_state.roll_cd;
     float pitch_in = guided_angle_state.pitch_cd;
     float total_in = norm(roll_in, pitch_in);
-    float angle_max = MIN(attitude_control->get_althold_lean_angle_max(), copter.aparm.angle_max);
+    float angle_max = MIN(attitude_control->get_althold_lean_angle_max(), blimp.aparm.angle_max);
     if (total_in > angle_max) {
         float ratio = angle_max / total_in;
         roll_in *= ratio;
@@ -615,18 +615,18 @@ void ModeGuided::angle_control_run()
     // interpret positive climb rate or thrust as triggering take-off
     const bool positive_thrust_or_climbrate = is_positive(guided_angle_state.use_thrust ? guided_angle_state.thrust : climb_rate_cms);
     if (motors->armed() && positive_thrust_or_climbrate) {
-        copter.set_auto_armed(true);
+        blimp.set_auto_armed(true);
     }
 
     // if not armed set throttle to zero and exit immediately
-    if (!motors->armed() || !copter.ap.auto_armed || (copter.ap.land_complete && !positive_thrust_or_climbrate)) {
+    if (!motors->armed() || !blimp.ap.auto_armed || (blimp.ap.land_complete && !positive_thrust_or_climbrate)) {
         make_safe_spool_down();
         return;
     }
 
     // TODO: use get_alt_hold_state
     // landed with positive desired climb rate, takeoff
-    if (copter.ap.land_complete && (guided_angle_state.climb_rate_cms > 0.0f)) {
+    if (blimp.ap.land_complete && (guided_angle_state.climb_rate_cms > 0.0f)) {
         zero_throttle_and_relax_ac();
         motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::THROTTLE_UNLIMITED);
         if (motors->get_spool_state() == AP_Motors::SpoolState::THROTTLE_UNLIMITED) {
@@ -648,7 +648,7 @@ void ModeGuided::angle_control_run()
 
     // call position controller
     if (guided_angle_state.use_thrust) {
-        attitude_control->set_throttle_out(guided_angle_state.thrust, true, copter.g.throttle_filt);
+        attitude_control->set_throttle_out(guided_angle_state.thrust, true, blimp.g.throttle_filt);
     } else {
         pos_control->set_alt_target_from_climb_rate_ff(climb_rate_cms, G_Dt, false);
         pos_control->update_z_controller();
@@ -680,7 +680,7 @@ void ModeGuided::set_desired_velocity_with_accel_and_fence_limits(const Vector3f
 
 #if AC_AVOID_ENABLED
     // limit the velocity to prevent fence violations
-    copter.avoid.adjust_velocity(pos_control->get_pos_xy_p().kP(), pos_control->get_max_accel_xy(), curr_vel_des, G_Dt);
+    blimp.avoid.adjust_velocity(pos_control->get_pos_xy_p().kP(), pos_control->get_max_accel_xy(), curr_vel_des, G_Dt);
     // get avoidance adjusted climb rate
     curr_vel_des.z = get_avoidance_adjusted_climbrate(curr_vel_des.z);
 #endif
@@ -702,7 +702,7 @@ void ModeGuided::set_yaw_state(bool use_yaw, float yaw_cd, bool use_yaw_rate, fl
 // returns true if pilot's yaw input should be used to adjust vehicle's heading
 bool ModeGuided::use_pilot_yaw(void) const
 {
-    return (copter.g2.guided_options.get() & uint32_t(Options::IgnorePilotYaw)) == 0;
+    return (blimp.g2.guided_options.get() & uint32_t(Options::IgnorePilotYaw)) == 0;
 }
 
 // Guided Limit code

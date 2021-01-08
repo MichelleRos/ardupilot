@@ -1,4 +1,4 @@
-#include "Copter.h"
+#include "Blimp.h"
 #include <AP_BLHeli/AP_BLHeli.h>
 
 /*****************************************************************************
@@ -10,10 +10,10 @@
 
 static void failsafe_check_static()
 {
-    copter.failsafe_check();
+    blimp.failsafe_check();
 }
 
-void Copter::init_ardupilot()
+void Blimp::init_ardupilot()
 {
 
 #if STATS_ENABLED == ENABLED
@@ -189,7 +189,7 @@ void Copter::init_ardupilot()
 #endif
 
     // initialise AP_Logger library
-    logger.setVehicle_Startup_Writer(FUNCTOR_BIND(&copter, &Copter::Log_Write_Vehicle_Startup_Messages, void));
+    logger.setVehicle_Startup_Writer(FUNCTOR_BIND(&blimp, &Blimp::Log_Write_Vehicle_Startup_Messages, void));
 
     startup_INS_ground();
 
@@ -233,7 +233,7 @@ void Copter::init_ardupilot()
 //******************************************************************************
 //This function does all the calibrations, etc. that we need during a ground start
 //******************************************************************************
-void Copter::startup_INS_ground()
+void Blimp::startup_INS_ground()
 {
     // initialise ahrs (may push imu calibration into the mpu6000 if using that device).
     ahrs.init();
@@ -247,7 +247,7 @@ void Copter::startup_INS_ground()
 }
 
 // update the harmonic notch filter center frequency dynamically
-void Copter::update_dynamic_notch()
+void Blimp::update_dynamic_notch()
 {
     if (!ins.gyro_harmonic_notch_enabled()) {
         return;
@@ -319,7 +319,7 @@ void Copter::update_dynamic_notch()
 }
 
 // position_ok - returns true if the horizontal absolute position is ok and home position is set
-bool Copter::position_ok() const
+bool Blimp::position_ok() const
 {
     // return false if ekf failsafe has triggered
     if (failsafe.ekf) {
@@ -331,7 +331,7 @@ bool Copter::position_ok() const
 }
 
 // ekf_has_absolute_position - returns true if the EKF can provide an absolute WGS-84 position estimate
-bool Copter::ekf_has_absolute_position() const
+bool Blimp::ekf_has_absolute_position() const
 {
     if (!ahrs.have_inertial_nav()) {
         // do not allow navigation with dcm position
@@ -351,7 +351,7 @@ bool Copter::ekf_has_absolute_position() const
 }
 
 // ekf_has_relative_position - returns true if the EKF can provide a position estimate relative to it's starting position
-bool Copter::ekf_has_relative_position() const
+bool Blimp::ekf_has_relative_position() const
 {
     // return immediately if EKF not used
     if (!ahrs.have_inertial_nav()) {
@@ -386,7 +386,7 @@ bool Copter::ekf_has_relative_position() const
 }
 
 // returns true if the ekf has a good altitude estimate (required for modes which do AltHold)
-bool Copter::ekf_alt_ok() const
+bool Blimp::ekf_alt_ok() const
 {
     if (!ahrs.have_inertial_nav()) {
         // do not allow alt control with only dcm
@@ -401,7 +401,7 @@ bool Copter::ekf_alt_ok() const
 }
 
 // update_auto_armed - update status of auto_armed flag
-void Copter::update_auto_armed()
+void Blimp::update_auto_armed()
 {
     // disarm checks
     if(ap.auto_armed){
@@ -414,7 +414,7 @@ void Copter::update_auto_armed()
         if(flightmode->has_manual_throttle() && ap.throttle_zero && !failsafe.radio) {
             set_auto_armed(false);
         }
-        // if helicopters are on the ground, and the motor is switched off, auto-armed should be false
+        // if heliblimps are on the ground, and the motor is switched off, auto-armed should be false
         // so that rotor runup is checked again before attempting to take-off
         if(ap.land_complete && motors->get_spool_state() != AP_Motors::SpoolState::THROTTLE_UNLIMITED && ap.using_interlock) {
             set_auto_armed(false);
@@ -440,7 +440,7 @@ void Copter::update_auto_armed()
 /*
   should we log a message type now?
  */
-bool Copter::should_log(uint32_t mask)
+bool Blimp::should_log(uint32_t mask)
 {
 #if LOGGING_ENABLED == ENABLED
     ap.logging_started = logger.logging_started();
@@ -451,7 +451,7 @@ bool Copter::should_log(uint32_t mask)
 }
 
 // return MAV_TYPE corresponding to frame class
-MAV_TYPE Copter::get_frame_mav_type()
+MAV_TYPE Blimp::get_frame_mav_type()
 {
     switch ((AP_Motors::motor_frame_class)g2.frame_class.get()) {
         case AP_Motors::MOTOR_FRAME_QUAD:
@@ -483,7 +483,7 @@ MAV_TYPE Copter::get_frame_mav_type()
 }
 
 // return string corresponding to frame_class
-const char* Copter::get_frame_string()
+const char* Blimp::get_frame_string()
 {
     switch ((AP_Motors::motor_frame_class)g2.frame_class.get()) {
         case AP_Motors::MOTOR_FRAME_QUAD:
@@ -523,7 +523,7 @@ const char* Copter::get_frame_string()
 /*
   allocate the motors class
  */
-void Copter::allocate_motors(void)
+void Blimp::allocate_motors(void)
 {
     switch ((AP_Motors::motor_frame_class)g2.frame_class.get()) {
 #if FRAME_CONFIG != HELI_FRAME
@@ -535,42 +535,42 @@ void Copter::allocate_motors(void)
         case AP_Motors::MOTOR_FRAME_DODECAHEXA:
         case AP_Motors::MOTOR_FRAME_DECA:
         default:
-            motors = new AP_MotorsMatrix(copter.scheduler.get_loop_rate_hz());
+            motors = new AP_MotorsMatrix(blimp.scheduler.get_loop_rate_hz());
             motors_var_info = AP_MotorsMatrix::var_info;
             break;
         case AP_Motors::MOTOR_FRAME_TRI:
-            motors = new AP_MotorsTri(copter.scheduler.get_loop_rate_hz());
+            motors = new AP_MotorsTri(blimp.scheduler.get_loop_rate_hz());
             motors_var_info = AP_MotorsTri::var_info;
             AP_Param::set_frame_type_flags(AP_PARAM_FRAME_TRICOPTER);
             break;
         case AP_Motors::MOTOR_FRAME_SINGLE:
-            motors = new AP_MotorsSingle(copter.scheduler.get_loop_rate_hz());
+            motors = new AP_MotorsSingle(blimp.scheduler.get_loop_rate_hz());
             motors_var_info = AP_MotorsSingle::var_info;
             break;
         case AP_Motors::MOTOR_FRAME_COAX:
-            motors = new AP_MotorsCoax(copter.scheduler.get_loop_rate_hz());
+            motors = new AP_MotorsCoax(blimp.scheduler.get_loop_rate_hz());
             motors_var_info = AP_MotorsCoax::var_info;
             break;
         case AP_Motors::MOTOR_FRAME_TAILSITTER:
-            motors = new AP_MotorsTailsitter(copter.scheduler.get_loop_rate_hz());
+            motors = new AP_MotorsTailsitter(blimp.scheduler.get_loop_rate_hz());
             motors_var_info = AP_MotorsTailsitter::var_info;
             break;
 #else // FRAME_CONFIG == HELI_FRAME
         case AP_Motors::MOTOR_FRAME_HELI_DUAL:
-            motors = new AP_MotorsHeli_Dual(copter.scheduler.get_loop_rate_hz());
+            motors = new AP_MotorsHeli_Dual(blimp.scheduler.get_loop_rate_hz());
             motors_var_info = AP_MotorsHeli_Dual::var_info;
             AP_Param::set_frame_type_flags(AP_PARAM_FRAME_HELI);
             break;
 
         case AP_Motors::MOTOR_FRAME_HELI_QUAD:
-            motors = new AP_MotorsHeli_Quad(copter.scheduler.get_loop_rate_hz());
+            motors = new AP_MotorsHeli_Quad(blimp.scheduler.get_loop_rate_hz());
             motors_var_info = AP_MotorsHeli_Quad::var_info;
             AP_Param::set_frame_type_flags(AP_PARAM_FRAME_HELI);
             break;
             
         case AP_Motors::MOTOR_FRAME_HELI:
         default:
-            motors = new AP_MotorsHeli_Single(copter.scheduler.get_loop_rate_hz());
+            motors = new AP_MotorsHeli_Single(blimp.scheduler.get_loop_rate_hz());
             motors_var_info = AP_MotorsHeli_Single::var_info;
             AP_Param::set_frame_type_flags(AP_PARAM_FRAME_HELI);
             break;
@@ -665,7 +665,7 @@ void Copter::allocate_motors(void)
     AP_Param::invalidate_count();
 }
 
-bool Copter::is_tradheli() const
+bool Blimp::is_tradheli() const
 {
 #if FRAME_CONFIG == HELI_FRAME
     return true;

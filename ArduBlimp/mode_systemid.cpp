@@ -1,4 +1,4 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 #if MODE_SYSTEMID_ENABLED == ENABLED
 
@@ -81,12 +81,12 @@ bool ModeSystemId::init(bool ignore_checks)
     }
 
     // if landed and the mode we're switching from does not have manual throttle and the throttle stick is too high
-    if (motors->armed() && copter.ap.land_complete && !copter.flightmode->has_manual_throttle()) {
+    if (motors->armed() && blimp.ap.land_complete && !blimp.flightmode->has_manual_throttle()) {
         return false;
     }
 
 #if FRAME_CONFIG == HELI_FRAME
-    copter.input_manager.set_use_stab_col(true);
+    blimp.input_manager.set_use_stab_col(true);
 #endif
 
     att_bf_feedforward = attitude_control->get_bf_feedforward();
@@ -97,7 +97,7 @@ bool ModeSystemId::init(bool ignore_checks)
 
     gcs().send_text(MAV_SEVERITY_INFO, "SystemID Starting: axis=%d", (unsigned)axis);
 
-    copter.Log_Write_SysID_Setup(axis, waveform_magnitude, frequency_start, frequency_stop, time_fade_in, time_const_freq, time_record, time_fade_out);
+    blimp.Log_Write_SysID_Setup(axis, waveform_magnitude, frequency_start, frequency_stop, time_fade_in, time_const_freq, time_record, time_fade_out);
 
     return true;
 }
@@ -111,7 +111,7 @@ void ModeSystemId::run()
 
     // convert pilot input to lean angles
     float target_roll, target_pitch;
-    get_pilot_desired_lean_angles(target_roll, target_pitch, copter.aparm.angle_max, copter.aparm.angle_max);
+    get_pilot_desired_lean_angles(target_roll, target_pitch, blimp.aparm.angle_max, blimp.aparm.angle_max);
 
     // get pilot's desired yaw rate
     float target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->get_control_in());
@@ -121,7 +121,7 @@ void ModeSystemId::run()
         motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::SHUT_DOWN);
     // Tradheli doesn't set spool state to ground idle when throttle stick is zero.  Ground idle only set when
     // motor interlock is disabled.
-    } else if (copter.ap.throttle_zero && !copter.is_tradheli()) {
+    } else if (blimp.ap.throttle_zero && !blimp.is_tradheli()) {
         // Attempting to Land
         motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::GROUND_IDLE);
     } else {
@@ -138,7 +138,7 @@ void ModeSystemId::run()
     case AP_Motors::SpoolState::GROUND_IDLE:
         // Landed
         // Tradheli initializes targets when going from disarmed to armed state. 
-        // init_targets_on_arming is always set true for multicopter.
+        // init_targets_on_arming is always set true for multiblimp.
         if (motors->init_targets_on_arming()) {
             attitude_control->set_yaw_target_to_current_heading();
             attitude_control->reset_rate_controller_I_terms_smoothly();
@@ -160,7 +160,7 @@ void ModeSystemId::run()
 
     // get pilot's desired throttle
 #if FRAME_CONFIG == HELI_FRAME
-    float pilot_throttle_scaled = copter.input_manager.get_pilot_desired_collective(channel_throttle->get_control_in());
+    float pilot_throttle_scaled = blimp.input_manager.get_pilot_desired_collective(channel_throttle->get_control_in());
 #else
     float pilot_throttle_scaled = get_pilot_desired_throttle();
 #endif
@@ -180,7 +180,7 @@ void ModeSystemId::run()
         case SystemIDModeState::SYSTEMID_STATE_TESTING:
             attitude_control->bf_feedforward(att_bf_feedforward);
 
-            if (copter.ap.land_complete) {
+            if (blimp.ap.land_complete) {
                 systemid_state = SystemIDModeState::SYSTEMID_STATE_STOPPED;
                 gcs().send_text(MAV_SEVERITY_INFO, "SystemID Stopped: Landed");
                 break;
@@ -251,7 +251,7 @@ void ModeSystemId::run()
     attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(target_roll, target_pitch, target_yaw_rate);
 
     // output pilot's throttle
-    if (copter.is_tradheli()) {
+    if (blimp.is_tradheli()) {
         attitude_control->set_throttle_out(pilot_throttle_scaled, false, g.throttle_filt);
     } else {
         attitude_control->set_throttle_out(pilot_throttle_scaled, true, g.throttle_filt);
@@ -259,11 +259,11 @@ void ModeSystemId::run()
 
     if (log_subsample <= 0) {
         log_data();
-        if (copter.should_log(MASK_LOG_ATTITUDE_FAST) && copter.should_log(MASK_LOG_ATTITUDE_MED)) {
+        if (blimp.should_log(MASK_LOG_ATTITUDE_FAST) && blimp.should_log(MASK_LOG_ATTITUDE_MED)) {
             log_subsample = 1;
-        } else if (copter.should_log(MASK_LOG_ATTITUDE_FAST)) {
+        } else if (blimp.should_log(MASK_LOG_ATTITUDE_FAST)) {
             log_subsample = 2;
-        } else if (copter.should_log(MASK_LOG_ATTITUDE_MED)) {
+        } else if (blimp.should_log(MASK_LOG_ATTITUDE_MED)) {
             log_subsample = 4;
         } else {
             log_subsample = 8;
@@ -275,22 +275,22 @@ void ModeSystemId::run()
 // log system id and attitude
 void ModeSystemId::log_data()
 {
-    uint8_t index = copter.ahrs.get_primary_gyro_index();
+    uint8_t index = blimp.ahrs.get_primary_gyro_index();
     Vector3f delta_angle;
-    copter.ins.get_delta_angle(index, delta_angle);
-    float delta_angle_dt = copter.ins.get_delta_angle_dt(index);
+    blimp.ins.get_delta_angle(index, delta_angle);
+    float delta_angle_dt = blimp.ins.get_delta_angle_dt(index);
 
-    index = copter.ahrs.get_primary_accel_index();
+    index = blimp.ahrs.get_primary_accel_index();
     Vector3f delta_velocity;
-    copter.ins.get_delta_velocity(index, delta_velocity);
-    float delta_velocity_dt = copter.ins.get_delta_velocity_dt(index);
+    blimp.ins.get_delta_velocity(index, delta_velocity);
+    float delta_velocity_dt = blimp.ins.get_delta_velocity_dt(index);
 
     if (is_positive(delta_angle_dt) && is_positive(delta_velocity_dt)) {
-        copter.Log_Write_SysID_Data(waveform_time, waveform_sample, waveform_freq_rads / (2 * M_PI), degrees(delta_angle.x / delta_angle_dt), degrees(delta_angle.y / delta_angle_dt), degrees(delta_angle.z / delta_angle_dt), delta_velocity.x / delta_velocity_dt, delta_velocity.y / delta_velocity_dt, delta_velocity.z / delta_velocity_dt);
+        blimp.Log_Write_SysID_Data(waveform_time, waveform_sample, waveform_freq_rads / (2 * M_PI), degrees(delta_angle.x / delta_angle_dt), degrees(delta_angle.y / delta_angle_dt), degrees(delta_angle.z / delta_angle_dt), delta_velocity.x / delta_velocity_dt, delta_velocity.y / delta_velocity_dt, delta_velocity.z / delta_velocity_dt);
     }
 
     // Full rate logging of attitude, rate and pid loops
-    copter.Log_Write_Attitude();
+    blimp.Log_Write_Attitude();
 }
 
 // init_test - initialises the test

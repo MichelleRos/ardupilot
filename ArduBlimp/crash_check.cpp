@@ -1,13 +1,13 @@
-#include "Copter.h"
+#include "Blimp.h"
 
-// Code to detect a crash main ArduCopter code
+// Code to detect a crash main ArduBlimp code
 #define CRASH_CHECK_TRIGGER_SEC         2       // 2 seconds inverted indicates a crash
 #define CRASH_CHECK_ANGLE_DEVIATION_DEG 30.0f   // 30 degrees beyond target angle is signal we are out of control
 #define CRASH_CHECK_ANGLE_MIN_DEG       15.0f   // vehicle must be leaning at least 15deg to trigger crash check
 #define CRASH_CHECK_SPEED_MAX           10.0f   // vehicle must be moving at less than 10m/s to trigger crash check
 #define CRASH_CHECK_ACCEL_MAX           3.0f    // vehicle must be accelerating less than 3m/s/s to be considered crashed
 
-// Code to detect a thrust loss main ArduCopter code
+// Code to detect a thrust loss main ArduBlimp code
 #define THRUST_LOSS_CHECK_TRIGGER_SEC         1     // 1 second descent while level and high throttle indicates thrust loss
 #define THRUST_LOSS_CHECK_ANGLE_DEVIATION_CD  1500  // we can't expect to maintain altitude beyond 15 degrees on all aircraft
 #define THRUST_LOSS_CHECK_MINIMUM_THROTTLE    0.9f  // we can expect to maintain altitude above 90 % throttle
@@ -15,7 +15,7 @@
 // crash_check - disarms motors if a crash has been detected
 // crashes are detected by the vehicle being more than 20 degrees beyond it's angle limits continuously for more than 1 second
 // called at MAIN_LOOP_RATE
-void Copter::crash_check()
+void Blimp::crash_check()
 {
     static uint16_t crash_counter;  // number of iterations vehicle may have been crashed
 
@@ -84,12 +84,12 @@ void Copter::crash_check()
         // send message to gcs
         gcs().send_text(MAV_SEVERITY_EMERGENCY,"Crash: Disarming: AngErr=%.0f>%.0f, Accel=%.1f<%.1f", angle_error, CRASH_CHECK_ANGLE_DEVIATION_DEG, filtered_acc, CRASH_CHECK_ACCEL_MAX);
         // disarm motors
-        copter.arming.disarm(AP_Arming::Method::CRASH);
+        blimp.arming.disarm(AP_Arming::Method::CRASH);
     }
 }
 
 // check for loss of thrust and trigger thrust boost in motors library
-void Copter::thrust_loss_check()
+void Blimp::thrust_loss_check()
 {
     static uint16_t thrust_loss_counter;  // number of iterations vehicle may have been crashed
 
@@ -161,14 +161,14 @@ void Copter::thrust_loss_check()
 
 #if PARACHUTE == ENABLED
 
-// Code to detect a crash main ArduCopter code
+// Code to detect a crash main ArduBlimp code
 #define PARACHUTE_CHECK_TRIGGER_SEC         1       // 1 second of loss of control triggers the parachute
 #define PARACHUTE_CHECK_ANGLE_DEVIATION_CD  3000    // 30 degrees off from target indicates a loss of control
 
 // parachute_check - disarms motors and triggers the parachute if serious loss of control has been detected
 // vehicle is considered to have a "serious loss of control" by the vehicle being more than 30 degrees off from the target roll and pitch angles continuously for 1 second
 // called at MAIN_LOOP_RATE
-void Copter::parachute_check()
+void Blimp::parachute_check()
 {
     static uint16_t control_loss_count; // number of iterations we have been out of control
     static int32_t baro_alt_start;
@@ -199,7 +199,7 @@ void Copter::parachute_check()
     }
 
     if (parachute.release_initiated()) {
-        copter.arming.disarm(AP_Arming::Method::PARACHUTE_RELEASE);
+        blimp.arming.disarm(AP_Arming::Method::PARACHUTE_RELEASE);
         return;
     }
 
@@ -259,7 +259,7 @@ void Copter::parachute_check()
 }
 
 // parachute_release - trigger the release of the parachute, disarm the motors and notify the user
-void Copter::parachute_release()
+void Blimp::parachute_release()
 {
     // disarm motors
     arming.disarm(AP_Arming::Method::PARACHUTE_RELEASE);
@@ -273,7 +273,7 @@ void Copter::parachute_release()
 
 // parachute_manual_release - trigger the release of the parachute, after performing some checks for pilot error
 //   checks if the vehicle is landed 
-void Copter::parachute_manual_release()
+void Blimp::parachute_manual_release()
 {
     // exit immediately if parachute is not enabled
     if (!parachute.enabled()) {

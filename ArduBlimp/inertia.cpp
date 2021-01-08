@@ -1,7 +1,7 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 // read_inertia - read inertia in from accelerometers
-void Copter::read_inertia()
+void Blimp::read_inertia()
 {
     // inertial altitude estimates. Use barometer climb rate during high vibrations
     inertial_nav.update(vibration_check.high_vibes);

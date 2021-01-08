@@ -2,7 +2,7 @@
 
 #include <GCS_MAVLink/GCS.h>
 
-class GCS_MAVLINK_Copter : public GCS_MAVLINK
+class GCS_MAVLINK_Blimp : public GCS_MAVLINK
 {
 
 public:

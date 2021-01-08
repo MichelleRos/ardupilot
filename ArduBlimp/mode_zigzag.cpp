@@ -1,4 +1,4 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 #if MODE_ZIGZAG_ENABLED == ENABLED
 
@@ -67,7 +67,7 @@ ModeZigZag::ModeZigZag(void) : Mode()
 // initialise zigzag controller
 bool ModeZigZag::init(bool ignore_checks)
 {
-    if (!copter.failsafe.radio) {
+    if (!blimp.failsafe.radio) {
         // apply simple mode transform to pilot inputs
         update_simple_mode();
 
@@ -245,7 +245,7 @@ void ModeZigZag::return_to_manual_control(bool maintain_target)
             const Vector3f& wp_dest = wp_nav->get_wp_destination();
             loiter_nav->init_target(wp_dest);
             if (wp_nav->origin_and_destination_are_terrain_alt()) {
-                copter.surface_tracking.set_target_alt_cm(wp_dest.z);
+                blimp.surface_tracking.set_target_alt_cm(wp_dest.z);
             }
         } else {
             loiter_nav->init_target();
@@ -260,7 +260,7 @@ void ModeZigZag::auto_control()
 {
     // process pilot's yaw input
     float target_yaw_rate = 0;
-    if (!copter.failsafe.radio) {
+    if (!blimp.failsafe.radio) {
         // get pilot's desired yaw rate
         target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->get_control_in());
     }
@@ -292,7 +292,7 @@ void ModeZigZag::manual_control()
     float takeoff_climb_rate = 0.0f;
 
     // process pilot inputs unless we are in radio failsafe
-    if (!copter.failsafe.radio) {
+    if (!blimp.failsafe.radio) {
         float target_roll, target_pitch;
         // apply SIMPLE mode transform to pilot inputs
         update_simple_mode();
@@ -316,7 +316,7 @@ void ModeZigZag::manual_control()
     }
 
     // relax loiter target if we might be landed
-    if (copter.ap.land_complete_maybe) {
+    if (blimp.ap.land_complete_maybe) {
         loiter_nav->soften_for_landing();
     }
 
@@ -382,7 +382,7 @@ void ModeZigZag::manual_control()
         attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(loiter_nav->get_roll(), loiter_nav->get_pitch(), target_yaw_rate);
 
         // adjust climb rate using rangefinder
-        target_climb_rate = copter.surface_tracking.adjust_climb_rate(target_climb_rate);
+        target_climb_rate = blimp.surface_tracking.adjust_climb_rate(target_climb_rate);
 
         // get avoidance adjusted climb rate
         target_climb_rate = get_avoidance_adjusted_climbrate(target_climb_rate);
@@ -457,10 +457,10 @@ bool ModeZigZag::calculate_next_dest(Destination ab_dest, bool use_wpnav_alt, Ve
         next_dest.z = wp_nav->get_wp_destination().z;
     } else {
         // if we have a downward facing range finder then use terrain altitude targets
-        terrain_alt = copter.rangefinder_alt_ok() && wp_nav->rangefinder_used_and_healthy();
+        terrain_alt = blimp.rangefinder_alt_ok() && wp_nav->rangefinder_used_and_healthy();
         if (terrain_alt) {
-            if (!copter.surface_tracking.get_target_alt_cm(next_dest.z)) {
-                next_dest.z = copter.rangefinder_state.alt_cm_filt.get();
+            if (!blimp.surface_tracking.get_target_alt_cm(next_dest.z)) {
+                next_dest.z = blimp.rangefinder_state.alt_cm_filt.get();
             }
         } else {
             next_dest.z = pos_control->is_active_z() ? pos_control->get_alt_target() : curr_pos.z;
@@ -510,10 +510,10 @@ bool ModeZigZag::calculate_side_dest(Vector3f& next_dest, bool& terrain_alt) con
     next_dest.y = curr_pos2d.y + (AB_side.y * scalar);
 
     // if we have a downward facing range finder then use terrain altitude targets
-    terrain_alt = copter.rangefinder_alt_ok() && wp_nav->rangefinder_used_and_healthy();
+    terrain_alt = blimp.rangefinder_alt_ok() && wp_nav->rangefinder_used_and_healthy();
     if (terrain_alt) {
-        if (!copter.surface_tracking.get_target_alt_cm(next_dest.z)) {
-            next_dest.z = copter.rangefinder_state.alt_cm_filt.get();
+        if (!blimp.surface_tracking.get_target_alt_cm(next_dest.z)) {
+            next_dest.z = blimp.rangefinder_state.alt_cm_filt.get();
         }
     } else {
         next_dest.z = pos_control->is_active_z() ? pos_control->get_alt_target() : curr_pos.z;
@@ -584,7 +584,7 @@ void ModeZigZag::spray(bool b)
 {
 #if SPRAYER_ENABLED == ENABLED
     if (_spray_enabled) {
-        copter.sprayer.run(b);
+        blimp.sprayer.run(b);
     }
 #endif
 }

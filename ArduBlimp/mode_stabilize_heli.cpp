@@ -1,4 +1,4 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 #if FRAME_CONFIG == HELI_FRAME
 /*
@@ -9,7 +9,7 @@
 bool ModeStabilize_Heli::init(bool ignore_checks)
 {
     // set stab collective true to use stabilize scaled collective pitch range
-    copter.input_manager.set_use_stab_col(true);
+    blimp.input_manager.set_use_stab_col(true);
 
     return true;
 }
@@ -26,17 +26,17 @@ void ModeStabilize_Heli::run()
     update_simple_mode();
 
     // convert pilot input to lean angles
-    get_pilot_desired_lean_angles(target_roll, target_pitch, copter.aparm.angle_max, copter.aparm.angle_max);
+    get_pilot_desired_lean_angles(target_roll, target_pitch, blimp.aparm.angle_max, blimp.aparm.angle_max);
 
     // get pilot's desired yaw rate
     target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->get_control_in());
 
     // get pilot's desired throttle
-    pilot_throttle_scaled = copter.input_manager.get_pilot_desired_collective(channel_throttle->get_control_in());
+    pilot_throttle_scaled = blimp.input_manager.get_pilot_desired_collective(channel_throttle->get_control_in());
 
     // Tradheli should not reset roll, pitch, yaw targets when motors are not runup while flying, because
     // we may be in autorotation flight.  This is so that the servos move in a realistic fashion while disarmed
-    // for operational checks. Also, unlike multicopters we do not set throttle (i.e. collective pitch) to zero
+    // for operational checks. Also, unlike multiblimps we do not set throttle (i.e. collective pitch) to zero
     // so the swash servos move.
 
     if (!motors->armed()) {
@@ -56,13 +56,13 @@ void ModeStabilize_Heli::run()
     case AP_Motors::SpoolState::GROUND_IDLE:
         // If aircraft is landed, set target heading to current and reset the integrator
         // Otherwise motors could be at ground idle for practice autorotation
-        if ((motors->init_targets_on_arming() && motors->using_leaky_integrator()) || (copter.ap.land_complete && !motors->using_leaky_integrator())) {
+        if ((motors->init_targets_on_arming() && motors->using_leaky_integrator()) || (blimp.ap.land_complete && !motors->using_leaky_integrator())) {
             attitude_control->set_yaw_target_to_current_heading();
             attitude_control->reset_rate_controller_I_terms_smoothly();
         }
         break;
     case AP_Motors::SpoolState::THROTTLE_UNLIMITED:
-        if (copter.ap.land_complete && !motors->using_leaky_integrator()) {
+        if (blimp.ap.land_complete && !motors->using_leaky_integrator()) {
             attitude_control->reset_rate_controller_I_terms_smoothly();
         }
         break;

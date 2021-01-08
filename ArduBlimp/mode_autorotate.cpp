@@ -5,7 +5,7 @@
     https://discuss.ardupilot.org/t/autonomous-autorotation-gsoc-project-blog/42139
  -----------------------------------------------------------------------------------------*/
 
-#include "Copter.h"
+#include "Blimp.h"
 #include <AC_Autorotation/AC_Autorotation.h>
 #include "mode.h"
 
@@ -75,11 +75,11 @@ bool ModeAutorotate::init(bool ignore_checks)
 void ModeAutorotate::run()
 {
     // Check if interlock becomes engaged
-    if (motors->get_interlock() && !copter.ap.land_complete) {
+    if (motors->get_interlock() && !blimp.ap.land_complete) {
         phase_switch = Autorotation_Phase::BAIL_OUT;
-    } else if (motors->get_interlock() && copter.ap.land_complete) {
+    } else if (motors->get_interlock() && blimp.ap.land_complete) {
         // Aircraft is landed and no need to bail out
-        set_mode(copter.prev_control_mode, ModeReason::AUTOROTATION_BAILOUT);
+        set_mode(blimp.prev_control_mode, ModeReason::AUTOROTATION_BAILOUT);
     }
 
     // Current time
@@ -262,10 +262,10 @@ void ModeAutorotate::run()
         if ((now - _bail_time_start_ms)/1000.0f >= _bail_time) {
             // Bail out timer complete.  Change flight mode. Do not revert back to auto. Prevent aircraft
             // from continuing mission and potentially flying further away after a power failure.
-            if (copter.prev_control_mode == Mode::Number::AUTO) {
+            if (blimp.prev_control_mode == Mode::Number::AUTO) {
                 set_mode(Mode::Number::ALT_HOLD, ModeReason::AUTOROTATION_BAILOUT);
             } else {
-                set_mode(copter.prev_control_mode, ModeReason::AUTOROTATION_BAILOUT);
+                set_mode(blimp.prev_control_mode, ModeReason::AUTOROTATION_BAILOUT);
             }
         }
 
@@ -281,7 +281,7 @@ void ModeAutorotate::run()
             // Operator is in control of roll and yaw.  Controls act as if in stabilise flight mode.  Pitch 
             // is controlled by speed-height controller.
             float pilot_roll, pilot_pitch;
-            get_pilot_desired_lean_angles(pilot_roll, pilot_pitch, copter.aparm.angle_max, copter.aparm.angle_max);
+            get_pilot_desired_lean_angles(pilot_roll, pilot_pitch, blimp.aparm.angle_max, blimp.aparm.angle_max);
 
             // Get pilot's desired yaw rate
             float pilot_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->get_control_in());

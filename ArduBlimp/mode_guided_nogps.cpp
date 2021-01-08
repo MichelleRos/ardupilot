@@ -1,4 +1,4 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 #if MODE_GUIDED_NOGPS_ENABLED == ENABLED
 

@@ -17,14 +17,14 @@
 #include <AP_Rally/AP_Rally.h>
 #include <AP_AHRS/AP_AHRS.h>
 
-class AP_Rally_Copter : public AP_Rally
+class AP_Rally_Blimp : public AP_Rally
 {
 public:
-    AP_Rally_Copter() : AP_Rally() { }
+    AP_Rally_Blimp() : AP_Rally() { }
 
     /* Do not allow copies */
-    AP_Rally_Copter(const AP_Rally_Copter &other) = delete;
-    AP_Rally_Copter &operator=(const AP_Rally_Copter&) = delete;
+    AP_Rally_Blimp(const AP_Rally_Blimp &other) = delete;
+    AP_Rally_Blimp &operator=(const AP_Rally_Blimp&) = delete;
 
 private:
     bool is_valid(const Location &rally_point) const override;

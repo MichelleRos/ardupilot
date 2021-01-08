@@ -3,26 +3,26 @@
 #include <GCS_MAVLink/GCS.h>
 #include "GCS_Mavlink.h"
 
-class GCS_Copter : public GCS
+class GCS_Blimp : public GCS
 {
-    friend class Copter; // for access to _chan in parameter declarations
+    friend class Blimp; // for access to _chan in parameter declarations
 
 public:
 
     // return GCS link at offset ofs
-    GCS_MAVLINK_Copter *chan(const uint8_t ofs) override {
+    GCS_MAVLINK_Blimp *chan(const uint8_t ofs) override {
         if (ofs > _num_gcs) {
             INTERNAL_ERROR(AP_InternalError::error_t::gcs_offset);
             return nullptr;
         }
-        return (GCS_MAVLINK_Copter *)_chan[ofs];
+        return (GCS_MAVLINK_Blimp *)_chan[ofs];
     }
-    const GCS_MAVLINK_Copter *chan(const uint8_t ofs) const override {
+    const GCS_MAVLINK_Blimp *chan(const uint8_t ofs) const override {
         if (ofs > _num_gcs) {
             INTERNAL_ERROR(AP_InternalError::error_t::gcs_offset);
             return nullptr;
         }
-        return (GCS_MAVLINK_Copter *)_chan[ofs];
+        return (GCS_MAVLINK_Blimp *)_chan[ofs];
     }
 
     void update_vehicle_sensor_status_flags(void) override;
@@ -49,9 +49,9 @@ protected:
         return 250;
     }
 
-    GCS_MAVLINK_Copter *new_gcs_mavlink_backend(GCS_MAVLINK_Parameters &params,
+    GCS_MAVLINK_Blimp *new_gcs_mavlink_backend(GCS_MAVLINK_Parameters &params,
                                                 AP_HAL::UARTDriver &uart) override {
-        return new GCS_MAVLINK_Copter(params, uart);
+        return new GCS_MAVLINK_Blimp(params, uart);
     }
 
 };

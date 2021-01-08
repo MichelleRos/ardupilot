@@ -154,7 +154,7 @@ public:
         k_param_precland = 74,
 
         //
-        // 75: Singlecopter, CoaxCopter
+        // 75: Singlecopter, CoaxBlimp
         //
         k_param_single_servo_1 = 75,    // remove
         k_param_single_servo_2,         // remove
@@ -526,7 +526,7 @@ public:
     
 #if ADVANCED_FAILSAFE == ENABLED
     // advanced failsafe library
-    AP_AdvancedFailsafe_Copter afs;
+    AP_AdvancedFailsafe_Blimp afs;
 #endif
 
     // developer options
@@ -542,7 +542,7 @@ public:
     AP_Int8 frame_class;
 
     // RC input channels
-    RC_Channels_Copter rc_channels;
+    RC_Channels_Blimp rc_channels;
     
     // control over servo output ranges
     SRV_Channels servo_channels;

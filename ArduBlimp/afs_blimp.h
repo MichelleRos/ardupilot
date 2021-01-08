@@ -15,7 +15,7 @@
 #pragma once
 
 /*
-  advanced failsafe support for copter
+  advanced failsafe support for blimp
  */
 
 #if ADVANCED_FAILSAFE == ENABLED
@@ -24,10 +24,10 @@
 /*
   a plane specific AP_AdvancedFailsafe class
  */
-class AP_AdvancedFailsafe_Copter : public AP_AdvancedFailsafe
+class AP_AdvancedFailsafe_Blimp : public AP_AdvancedFailsafe
 {
 public:
-    AP_AdvancedFailsafe_Copter(AP_Mission &_mission);
+    AP_AdvancedFailsafe_Blimp(AP_Mission &_mission);
 
     // called to set all outputs to termination state
     void terminate_vehicle(void) override;

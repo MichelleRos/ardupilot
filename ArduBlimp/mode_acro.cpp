@@ -1,4 +1,4 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 #include "mode.h"
 
@@ -17,7 +17,7 @@ void ModeAcro::run()
     if (!motors->armed()) {
         // Motors should be Stopped
         motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::SHUT_DOWN);
-    } else if (copter.ap.throttle_zero) {
+    } else if (blimp.ap.throttle_zero) {
         // Attempting to Land
         motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::GROUND_IDLE);
     } else {
@@ -60,14 +60,14 @@ void ModeAcro::run()
     // output pilot's throttle without angle boost
     attitude_control->set_throttle_out(get_pilot_desired_throttle(),
                                        false,
-                                       copter.g.throttle_filt);
+                                       blimp.g.throttle_filt);
 }
 
 bool ModeAcro::init(bool ignore_checks)
 {
     if (g2.acro_options.get() & uint8_t(AcroOptions::AIR_MODE)) {
         disable_air_mode_reset = false;
-        copter.air_mode = AirMode::AIRMODE_ENABLED;
+        blimp.air_mode = AirMode::AIRMODE_ENABLED;
     }
 
     return true;
@@ -76,7 +76,7 @@ bool ModeAcro::init(bool ignore_checks)
 void ModeAcro::exit()
 {
     if (!disable_air_mode_reset && (g2.acro_options.get() & uint8_t(AcroOptions::AIR_MODE))) {
-        copter.air_mode = AirMode::AIRMODE_DISABLED;
+        blimp.air_mode = AirMode::AIRMODE_DISABLED;
     }
     disable_air_mode_reset = false;
 }
@@ -137,7 +137,7 @@ void ModeAcro::get_pilot_desired_angle_rates(int16_t roll_in, int16_t pitch_in, 
     // calculate yaw rate request
     rate_bf_request.z = get_pilot_desired_yaw_rate(yaw_in);
 
-    // calculate earth frame rate corrections to pull the copter back to level while in ACRO mode
+    // calculate earth frame rate corrections to pull the blimp back to level while in ACRO mode
 
     if (g.acro_trainer != (uint8_t)Trainer::OFF) {
 
@@ -157,7 +157,7 @@ void ModeAcro::get_pilot_desired_angle_rates(int16_t roll_in, int16_t pitch_in, 
 
         // Calculate angle limiting earth frame rate commands
         if (g.acro_trainer == (uint8_t)Trainer::LIMITED) {
-            const float angle_max = copter.aparm.angle_max;
+            const float angle_max = blimp.aparm.angle_max;
             if (roll_angle > angle_max){
                 rate_ef_level.x +=  AC_AttitudeControl::sqrt_controller(angle_max - roll_angle, g.acro_rp_p * 4.5, attitude_control->get_accel_roll_max(), G_Dt);
             }else if (roll_angle < -angle_max) {

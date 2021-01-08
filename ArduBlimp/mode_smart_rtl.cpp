@@ -1,4 +1,4 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 #if MODE_SMARTRTL_ENABLED == ENABLED
 
@@ -6,7 +6,7 @@
  * Init and run calls for Smart_RTL flight mode
  *
  * This code uses the SmartRTL path that is already in memory, and feeds it into WPNav, one point at a time.
- * Once the copter is close to home, it will run a standard land controller.
+ * Once the blimp is close to home, it will run a standard land controller.
  */
 
 bool ModeSmartRTL::init(bool ignore_checks)
@@ -82,7 +82,7 @@ void ModeSmartRTL::wait_cleanup_run()
 void ModeSmartRTL::path_follow_run()
 {
     float target_yaw_rate = 0.0f;
-    if (!copter.failsafe.radio) {
+    if (!blimp.failsafe.radio) {
         // get pilot's desired yaw rate
         target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->get_control_in());
         if (!is_zero(target_yaw_rate)) {
@@ -143,11 +143,11 @@ void ModeSmartRTL::pre_land_position_run()
     // if we are close to 2m above start point, we are ready to land.
     if (wp_nav->reached_wp_destination()) {
         // choose descend and hold, or land based on user parameter rtl_alt_final
-        if (g.rtl_alt_final <= 0 || copter.failsafe.radio) {
+        if (g.rtl_alt_final <= 0 || blimp.failsafe.radio) {
             land_start();
             smart_rtl_state = SmartRTL_Land;
         } else {
-            set_descent_target_alt(copter.g.rtl_alt_final);
+            set_descent_target_alt(blimp.g.rtl_alt_final);
             descent_start();
             smart_rtl_state = SmartRTL_Descend;
         }
@@ -163,9 +163,9 @@ void ModeSmartRTL::pre_land_position_run()
 // save current position for use by the smart_rtl flight mode
 void ModeSmartRTL::save_position()
 {
-    const bool should_save_position = motors->armed() && (copter.control_mode != Mode::Number::SMART_RTL);
+    const bool should_save_position = motors->armed() && (blimp.control_mode != Mode::Number::SMART_RTL);
 
-    copter.g2.smart_rtl.update(copter.position_ok(), should_save_position);
+    blimp.g2.smart_rtl.update(blimp.position_ok(), should_save_position);
 }
 
 bool ModeSmartRTL::get_wp(Location& destination)

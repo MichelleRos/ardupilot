@@ -1,4 +1,4 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 Mode::AutoYaw Mode::auto_yaw;
 
@@ -8,7 +8,7 @@ float Mode::AutoYaw::roi_yaw()
     roi_yaw_counter++;
     if (roi_yaw_counter >= 4) {
         roi_yaw_counter = 0;
-        _roi_yaw = get_bearing_cd(copter.inertial_nav.get_position(), roi);
+        _roi_yaw = get_bearing_cd(blimp.inertial_nav.get_position(), roi);
     }
 
     return _roi_yaw;
@@ -16,10 +16,10 @@ float Mode::AutoYaw::roi_yaw()
 
 float Mode::AutoYaw::look_ahead_yaw()
 {
-    const Vector3f& vel = copter.inertial_nav.get_velocity();
+    const Vector3f& vel = blimp.inertial_nav.get_velocity();
     float speed = norm(vel.x,vel.y);
     // Commanded Yaw to automatically look ahead.
-    if (copter.position_ok() && (speed > YAW_LOOK_AHEAD_MIN_SPEED)) {
+    if (blimp.position_ok() && (speed > YAW_LOOK_AHEAD_MIN_SPEED)) {
         _look_ahead_yaw = degrees(atan2f(vel.y,vel.x))*100.0f;
     }
     return _look_ahead_yaw;
@@ -34,7 +34,7 @@ void Mode::AutoYaw::set_mode_to_default(bool rtl)
 // set rtl parameter to true if this is during an RTL
 autopilot_yaw_mode Mode::AutoYaw::default_mode(bool rtl) const
 {
-    switch (copter.g.wp_yaw_behavior) {
+    switch (blimp.g.wp_yaw_behavior) {
 
     case WP_YAW_BEHAVIOR_NONE:
         return AUTO_YAW_HOLD;
@@ -73,7 +73,7 @@ void Mode::AutoYaw::set_mode(autopilot_yaw_mode yaw_mode)
 
     case AUTO_YAW_ROI:
         // look ahead until we know otherwise
-        _roi_yaw = copter.ahrs.yaw_sensor;
+        _roi_yaw = blimp.ahrs.yaw_sensor;
         break;
 
     case AUTO_YAW_FIXED:
@@ -83,7 +83,7 @@ void Mode::AutoYaw::set_mode(autopilot_yaw_mode yaw_mode)
 
     case AUTO_YAW_LOOK_AHEAD:
         // Commanded Yaw to automatically look ahead.
-        _look_ahead_yaw = copter.ahrs.yaw_sensor;
+        _look_ahead_yaw = blimp.ahrs.yaw_sensor;
         break;
 
     case AUTO_YAW_RESETTOARMEDYAW:
@@ -104,7 +104,7 @@ void Mode::AutoYaw::set_mode(autopilot_yaw_mode yaw_mode)
 // set_fixed_yaw - sets the yaw look at heading for auto mode
 void Mode::AutoYaw::set_fixed_yaw(float angle_deg, float turn_rate_dps, int8_t direction, bool relative_angle)
 {
-    const int32_t curr_yaw_target = copter.attitude_control->get_att_target_euler_cd().z;
+    const int32_t curr_yaw_target = blimp.attitude_control->get_att_target_euler_cd().z;
 
     // calculate final angle as relative to vehicle heading or absolute
     if (!relative_angle) {
@@ -142,20 +142,20 @@ void Mode::AutoYaw::set_roi(const Location &roi_location)
         auto_yaw.set_mode_to_default(false);
 #if HAL_MOUNT_ENABLED
         // switch off the camera tracking if enabled
-        if (copter.camera_mount.get_mode() == MAV_MOUNT_MODE_GPS_POINT) {
-            copter.camera_mount.set_mode_to_default();
+        if (blimp.camera_mount.get_mode() == MAV_MOUNT_MODE_GPS_POINT) {
+            blimp.camera_mount.set_mode_to_default();
         }
 #endif  // HAL_MOUNT_ENABLED
     } else {
 #if HAL_MOUNT_ENABLED
         // check if mount type requires us to rotate the quad
-        if (!copter.camera_mount.has_pan_control()) {
+        if (!blimp.camera_mount.has_pan_control()) {
             if (roi_location.get_vector_from_origin_NEU(roi)) {
                 auto_yaw.set_mode(AUTO_YAW_ROI);
             }
         }
         // send the command to the camera mount
-        copter.camera_mount.set_roi_target(roi_location);
+        blimp.camera_mount.set_roi_target(roi_location);
 
         // TO-DO: expand handling of the do_nav_roi to support all modes of the MAVLink.  Currently we only handle mode 4 (see below)
         //      0: do nothing
@@ -199,22 +199,22 @@ float Mode::AutoYaw::yaw()
 
     case AUTO_YAW_RESETTOARMEDYAW:
         // changes yaw to be same as when quad was armed
-        return copter.initial_armed_bearing;
+        return blimp.initial_armed_bearing;
 
     case AUTO_YAW_CIRCLE:
 #if MODE_CIRCLE_ENABLED
-        if (copter.circle_nav->is_active()) {
-            return copter.circle_nav->get_yaw();
+        if (blimp.circle_nav->is_active()) {
+            return blimp.circle_nav->get_yaw();
         }
 #endif
         // return the current attitude target
-        return wrap_360_cd(copter.attitude_control->get_att_target_euler_cd().z);
+        return wrap_360_cd(blimp.attitude_control->get_att_target_euler_cd().z);
 
     case AUTO_YAW_LOOK_AT_NEXT_WP:
     default:
         // point towards next waypoint.
-        // we don't use wp_bearing because we don't want the copter to turn too much during flight
-        return copter.wp_nav->get_yaw();
+        // we don't use wp_bearing because we don't want the blimp to turn too much during flight
+        return blimp.wp_nav->get_yaw();
     }
 }
 

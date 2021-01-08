@@ -1,4 +1,4 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 #if MODE_FLIP_ENABLED == ENABLED
 
@@ -15,9 +15,9 @@
  *          Pilot may manually exit flip by switching off ch7/ch8 or by moving roll stick to >40deg left or right
  *
  *      State machine approach:
- *          FlipState::Start (while copter is leaning <45deg) : roll right at 400deg/sec, increase throttle
- *          FlipState::Roll (while copter is between +45deg ~ -90) : roll right at 400deg/sec, reduce throttle
- *          FlipState::Recover (while copter is between -90deg and original target angle) : use earth frame angle controller to return vehicle to original attitude
+ *          FlipState::Start (while blimp is leaning <45deg) : roll right at 400deg/sec, increase throttle
+ *          FlipState::Roll (while blimp is between +45deg ~ -90) : roll right at 400deg/sec, reduce throttle
+ *          FlipState::Recover (while blimp is between -90deg and original target angle) : use earth frame angle controller to return vehicle to original attitude
  */
 
 #define FLIP_THR_INC        0.20f   // throttle increase during FlipState::Start stage (under 45deg lean angle)
@@ -36,15 +36,15 @@
 bool ModeFlip::init(bool ignore_checks)
 {
     // only allow flip from ACRO, Stabilize, AltHold or Drift flight modes
-    if (copter.control_mode != Mode::Number::ACRO &&
-        copter.control_mode != Mode::Number::STABILIZE &&
-        copter.control_mode != Mode::Number::ALT_HOLD &&
-        copter.control_mode != Mode::Number::FLOWHOLD) {
+    if (blimp.control_mode != Mode::Number::ACRO &&
+        blimp.control_mode != Mode::Number::STABILIZE &&
+        blimp.control_mode != Mode::Number::ALT_HOLD &&
+        blimp.control_mode != Mode::Number::FLOWHOLD) {
         return false;
     }
 
     // if in acro or stabilize ensure throttle is above zero
-    if (copter.ap.throttle_zero && (copter.control_mode == Mode::Number::ACRO || copter.control_mode == Mode::Number::STABILIZE)) {
+    if (blimp.ap.throttle_zero && (blimp.control_mode == Mode::Number::ACRO || blimp.control_mode == Mode::Number::STABILIZE)) {
         return false;
     }
 
@@ -54,12 +54,12 @@ bool ModeFlip::init(bool ignore_checks)
     }
 
     // only allow flip when flying
-    if (!motors->armed() || copter.ap.land_complete) {
+    if (!motors->armed() || blimp.ap.land_complete) {
         return false;
     }
 
     // capture original flight mode so that we can return to it after completion
-    orig_control_mode = copter.control_mode;
+    orig_control_mode = blimp.control_mode;
 
     // initialise state
     _state = FlipState::Start;
@@ -82,7 +82,7 @@ bool ModeFlip::init(bool ignore_checks)
     AP::logger().Write_Event(LogEvent::FLIP_START);
 
     // capture current attitude which will be used during the FlipState::Recovery stage
-    const float angle_max = copter.aparm.angle_max;
+    const float angle_max = blimp.aparm.angle_max;
     orig_attitude.x = constrain_float(ahrs.roll_sensor, -angle_max, angle_max);
     orig_attitude.y = constrain_float(ahrs.pitch_sensor, -angle_max, angle_max);
     orig_attitude.z = ahrs.yaw_sensor;
@@ -192,9 +192,9 @@ void ModeFlip::run()
         // check for successful recovery
         if (fabsf(recovery_angle) <= FLIP_RECOVERY_ANGLE) {
             // restore original flight mode
-            if (!copter.set_mode(orig_control_mode, ModeReason::FLIP_COMPLETE)) {
+            if (!blimp.set_mode(orig_control_mode, ModeReason::FLIP_COMPLETE)) {
                 // this should never happen but just in case
-                copter.set_mode(Mode::Number::STABILIZE, ModeReason::UNKNOWN);
+                blimp.set_mode(Mode::Number::STABILIZE, ModeReason::UNKNOWN);
             }
             // log successful completion
             AP::logger().Write_Event(LogEvent::FLIP_END);
@@ -204,9 +204,9 @@ void ModeFlip::run()
     }
     case FlipState::Abandon:
         // restore original flight mode
-        if (!copter.set_mode(orig_control_mode, ModeReason::FLIP_COMPLETE)) {
+        if (!blimp.set_mode(orig_control_mode, ModeReason::FLIP_COMPLETE)) {
             // this should never happen but just in case
-            copter.set_mode(Mode::Number::STABILIZE, ModeReason::UNKNOWN);
+            blimp.set_mode(Mode::Number::STABILIZE, ModeReason::UNKNOWN);
         }
         // log abandoning flip
         AP::logger().Write_Error(LogErrorSubsystem::FLIP, LogErrorCode::FLIP_ABANDONED);

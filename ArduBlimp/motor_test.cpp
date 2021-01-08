@@ -1,4 +1,4 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 /*
   mavlink motor test - implements the MAV_CMD_DO_MOTOR_TEST mavlink command so that the GCS/pilot can test an individual motor or flaps
@@ -18,7 +18,7 @@ static uint8_t motor_test_throttle_type;    // motor throttle type (0=throttle p
 static float motor_test_throttle_value;  // throttle to be sent to motor, value depends upon it's type
 
 // motor_test_output - checks for timeout and sends updates to motors objects
-void Copter::motor_test_output()
+void Blimp::motor_test_output()
 {
     // exit immediately if the motor test is not running
     if (!ap.motor_test) {
@@ -95,7 +95,7 @@ void Copter::motor_test_output()
 
 // mavlink_motor_test_check - perform checks before motor tests can begin
 //  return true if tests can continue, false if not
-bool Copter::mavlink_motor_test_check(const GCS_MAVLINK &gcs_chan, bool check_rc)
+bool Blimp::mavlink_motor_test_check(const GCS_MAVLINK &gcs_chan, bool check_rc)
 {
     // check board has initialised
     if (!ap.initialised) {
@@ -127,7 +127,7 @@ bool Copter::mavlink_motor_test_check(const GCS_MAVLINK &gcs_chan, bool check_rc
 
 // mavlink_motor_test_start - start motor test - spin a single motor at a specified pwm
 //  returns MAV_RESULT_ACCEPTED on success, MAV_RESULT_FAILED on failure
-MAV_RESULT Copter::mavlink_motor_test_start(const GCS_MAVLINK &gcs_chan, uint8_t motor_seq, uint8_t throttle_type, float throttle_value,
+MAV_RESULT Blimp::mavlink_motor_test_start(const GCS_MAVLINK &gcs_chan, uint8_t motor_seq, uint8_t throttle_type, float throttle_value,
                                          float timeout_sec, uint8_t motor_count)
 {
     if (motor_count == 0) {
@@ -185,7 +185,7 @@ MAV_RESULT Copter::mavlink_motor_test_start(const GCS_MAVLINK &gcs_chan, uint8_t
 }
 
 // motor_test_stop - stops the motor test
-void Copter::motor_test_stop()
+void Blimp::motor_test_stop()
 {
     // exit immediately if the test is not running
     if (!ap.motor_test) {

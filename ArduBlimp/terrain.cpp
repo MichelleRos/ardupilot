@@ -1,7 +1,7 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 // update terrain data
-void Copter::terrain_update()
+void Blimp::terrain_update()
 {
 #if AP_TERRAIN_AVAILABLE && AC_TERRAIN
     terrain.update();
@@ -18,7 +18,7 @@ void Copter::terrain_update()
 }
 
 // log terrain data - should be called at 1hz
-void Copter::terrain_logging()
+void Blimp::terrain_logging()
 {
 #if AP_TERRAIN_AVAILABLE && AC_TERRAIN
     if (should_log(MASK_LOG_GPS)) {

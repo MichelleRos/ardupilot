@@ -2,22 +2,22 @@
 
 #include <AP_Arming/AP_Arming.h>
 
-class AP_Arming_Copter : public AP_Arming
+class AP_Arming_Blimp : public AP_Arming
 {
 public:
-    friend class Copter;
+    friend class Blimp;
     friend class ToyMode;
 
-    AP_Arming_Copter() : AP_Arming()
+    AP_Arming_Blimp() : AP_Arming()
     {
-        // default REQUIRE parameter to 1 (Copter does not have an
+        // default REQUIRE parameter to 1 (Blimp does not have an
         // actual ARMING_REQUIRE parameter)
         require.set_default((uint8_t)Required::YES_MIN_PWM);
     }
 
     /* Do not allow copies */
-    AP_Arming_Copter(const AP_Arming_Copter &other) = delete;
-    AP_Arming_Copter &operator=(const AP_Arming_Copter&) = delete;
+    AP_Arming_Blimp(const AP_Arming_Blimp &other) = delete;
+    AP_Arming_Blimp &operator=(const AP_Arming_Blimp&) = delete;
 
     void update(void);
 

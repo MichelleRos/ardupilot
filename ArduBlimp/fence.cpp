@@ -1,12 +1,12 @@
-#include "Copter.h"
+#include "Blimp.h"
 
-// Code to integrate AC_Fence library with main ArduCopter code
+// Code to integrate AC_Fence library with main ArduBlimp code
 
 #if AC_FENCE == ENABLED
 
 // fence_check - ask fence library to check for breaches and initiate the response
 // called at 1hz
-void Copter::fence_check()
+void Blimp::fence_check()
 {
     const uint8_t orig_breaches = fence.get_breaches();
 

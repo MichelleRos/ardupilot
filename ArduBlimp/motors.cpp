@@ -1,4 +1,4 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 #define ARM_DELAY               20  // called at 10hz so 2 seconds
 #define DISARM_DELAY            20  // called at 10hz so 2 seconds
@@ -7,9 +7,9 @@
 
 static uint32_t auto_disarm_begin;
 
-// arm_motors_check - checks for pilot input to arm or disarm the copter
+// arm_motors_check - checks for pilot input to arm or disarm the blimp
 // called at 10hz
-void Copter::arm_motors_check()
+void Blimp::arm_motors_check()
 {
     static int16_t arming_counter;
 
@@ -82,8 +82,8 @@ void Copter::arm_motors_check()
     }
 }
 
-// auto_disarm_check - disarms the copter if it has been sitting on the ground in manual mode with throttle low for at least 15 seconds
-void Copter::auto_disarm_check()
+// auto_disarm_check - disarms the blimp if it has been sitting on the ground in manual mode with throttle low for at least 15 seconds
+void Blimp::auto_disarm_check()
 {
     uint32_t tnow_ms = millis();
     uint32_t disarm_delay_ms = 1000*constrain_int16(g.disarm_delay, 0, 127);
@@ -105,7 +105,7 @@ void Copter::auto_disarm_check()
     if ((ap.using_interlock && !motors->get_interlock()) || SRV_Channels::get_emergency_stop()) {
 #if FRAME_CONFIG != HELI_FRAME
         // use a shorter delay if using throttle interlock switch or Emergency Stop, because it is less
-        // obvious the copter is armed as the motors will not be spinning
+        // obvious the blimp is armed as the motors will not be spinning
         disarm_delay_ms /= 2;
 #endif
     } else {
@@ -132,7 +132,7 @@ void Copter::auto_disarm_check()
 }
 
 // motors_output - send output to motors library which will adjust and send to ESCs and servos
-void Copter::motors_output()
+void Blimp::motors_output()
 {
 #if ADVANCED_FAILSAFE == ENABLED
     // this is to allow the failsafe module to deliberately crash
@@ -183,7 +183,7 @@ void Copter::motors_output()
 }
 
 // check for pilot stick input to trigger lost vehicle alarm
-void Copter::lost_vehicle_check()
+void Blimp::lost_vehicle_check()
 {
     static uint8_t soundalarm_counter;
 
@@ -197,7 +197,7 @@ void Copter::lost_vehicle_check()
         if (soundalarm_counter >= LOST_VEHICLE_DELAY) {
             if (AP_Notify::flags.vehicle_lost == false) {
                 AP_Notify::flags.vehicle_lost = true;
-                gcs().send_text(MAV_SEVERITY_NOTICE,"Locate Copter alarm");
+                gcs().send_text(MAV_SEVERITY_NOTICE,"Locate Blimp alarm");
             }
         } else {
             soundalarm_counter++;

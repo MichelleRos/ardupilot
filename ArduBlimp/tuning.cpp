@@ -1,4 +1,4 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 /*
  * Function to update various parameters in flight using the ch6 tuning knob
@@ -7,7 +7,7 @@
 
 // tuning - updates parameters based on the ch6 tuning knob's position
 //  should be called at 3.3hz
-void Copter::tuning()
+void Blimp::tuning()
 {
     const RC_Channel *rc6 = rc().channel(CH_6);
 
@@ -189,7 +189,7 @@ void Copter::tuning()
 
      case TUNING_SYSTEM_ID_MAGNITUDE:
 #if MODE_SYSTEMID_ENABLED == ENABLED
-         copter.mode_systemid.set_magnitude(tuning_value);
+         blimp.mode_systemid.set_magnitude(tuning_value);
 #endif
          break;
     }

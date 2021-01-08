@@ -1,11 +1,11 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 /*
   compass/motor interference calibration
  */
 
 // setup_compassmot - sets compass's motor interference parameters
-MAV_RESULT Copter::mavlink_compassmot(const GCS_MAVLINK &gcs_chan)
+MAV_RESULT Blimp::mavlink_compassmot(const GCS_MAVLINK &gcs_chan)
 {
 #if FRAME_CONFIG == HELI_FRAME
     // compassmot not implemented for tradheli

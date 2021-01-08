@@ -1,6 +1,6 @@
-#include "Copter.h"
+#include "Blimp.h"
 
-// Code to detect a crash main ArduCopter code
+// Code to detect a crash main ArduBlimp code
 #define LAND_CHECK_ANGLE_ERROR_DEG  30.0f       // maximum angle error to be considered landing
 #define LAND_CHECK_LARGE_ANGLE_CD   1500.0f     // maximum angle target to be considered landing
 #define LAND_CHECK_ACCEL_MOVING     3.0f        // maximum acceleration after subtracting gravity
@@ -11,7 +11,7 @@ static uint32_t land_detector_count = 0;
 
 // run land and crash detectors
 // called at MAIN_LOOP_RATE
-void Copter::update_land_and_crash_detectors()
+void Blimp::update_land_and_crash_detectors()
 {
     // update 1hz filtered acceleration
     Vector3f accel_ef = ahrs.get_accel_ef_blended();
@@ -31,7 +31,7 @@ void Copter::update_land_and_crash_detectors()
 
 // update_land_detector - checks if we have landed and updates the ap.land_complete flag
 // called at MAIN_LOOP_RATE
-void Copter::update_land_detector()
+void Blimp::update_land_detector()
 {
     // land detector can not use the following sensors because they are unreliable during landing
     // barometer altitude :                 ground effect can cause errors larger than 4m
@@ -93,7 +93,7 @@ void Copter::update_land_detector()
 }
 
 // set land_complete flag and disarm motors if disarm-on-land is configured
-void Copter::set_land_complete(bool b)
+void Blimp::set_land_complete(bool b)
 {
     // if no change, exit immediately
     if( ap.land_complete == b )
@@ -125,7 +125,7 @@ void Copter::set_land_complete(bool b)
 }
 
 // set land complete maybe flag
-void Copter::set_land_complete_maybe(bool b)
+void Blimp::set_land_complete_maybe(bool b)
 {
     // if no change, exit immediately
     if (ap.land_complete_maybe == b)
@@ -140,7 +140,7 @@ void Copter::set_land_complete_maybe(bool b)
 // sets motors throttle_low_comp value depending upon vehicle state
 //  low values favour pilot/autopilot throttle over attitude control, high values favour attitude control over throttle
 //  has no effect when throttle is above hover throttle
-void Copter::update_throttle_mix()
+void Blimp::update_throttle_mix()
 {
 #if FRAME_CONFIG != HELI_FRAME
     // if disarmed or landed prioritise throttle

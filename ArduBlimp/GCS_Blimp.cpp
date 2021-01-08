@@ -1,28 +1,28 @@
-#include "GCS_Copter.h"
+#include "GCS_Blimp.h"
 
-#include "Copter.h"
+#include "Blimp.h"
 
-uint8_t GCS_Copter::sysid_this_mav() const
+uint8_t GCS_Blimp::sysid_this_mav() const
 {
-    return copter.g.sysid_this_mav;
+    return blimp.g.sysid_this_mav;
 }
 
-const char* GCS_Copter::frame_string() const
+const char* GCS_Blimp::frame_string() const
 {
-    return copter.get_frame_string();
+    return blimp.get_frame_string();
 }
 
-bool GCS_Copter::simple_input_active() const
+bool GCS_Blimp::simple_input_active() const
 {
-    return copter.simple_mode == Copter::SimpleMode::SIMPLE;
+    return blimp.simple_mode == Blimp::SimpleMode::SIMPLE;
 }
 
-bool GCS_Copter::supersimple_input_active() const
+bool GCS_Blimp::supersimple_input_active() const
 {
-    return copter.simple_mode == Copter::SimpleMode::SUPERSIMPLE;
+    return blimp.simple_mode == Blimp::SimpleMode::SUPERSIMPLE;
 }
 
-void GCS_Copter::update_vehicle_sensor_status_flags(void)
+void GCS_Blimp::update_vehicle_sensor_status_flags(void)
 {
     control_sensors_present |=
         MAV_SYS_STATUS_SENSOR_ANGULAR_RATE_CONTROL |
@@ -47,19 +47,19 @@ void GCS_Copter::update_vehicle_sensor_status_flags(void)
     }
 #endif
 #if PRECISION_LANDING == ENABLED
-    if (copter.precland.enabled()) {
+    if (blimp.precland.enabled()) {
         control_sensors_present |= MAV_SYS_STATUS_SENSOR_VISION_POSITION;
         control_sensors_enabled |= MAV_SYS_STATUS_SENSOR_VISION_POSITION;
     }
 #endif
-    const Copter::ap_t &ap = copter.ap;
+    const Blimp::ap_t &ap = blimp.ap;
 
     if (ap.rc_receiver_present) {
         control_sensors_present |= MAV_SYS_STATUS_SENSOR_RC_RECEIVER;
         control_sensors_enabled |= MAV_SYS_STATUS_SENSOR_RC_RECEIVER;
     }
 #if PROXIMITY_ENABLED == ENABLED
-    if (copter.g2.proximity.sensor_present()) {
+    if (blimp.g2.proximity.sensor_present()) {
         control_sensors_present |= MAV_SYS_STATUS_SENSOR_PROXIMITY;
     }
 #endif
@@ -73,7 +73,7 @@ void GCS_Copter::update_vehicle_sensor_status_flags(void)
     control_sensors_present |= MAV_SYS_STATUS_SENSOR_Z_ALTITUDE_CONTROL;
     control_sensors_present |= MAV_SYS_STATUS_SENSOR_XY_POSITION_CONTROL;
 
-    switch (copter.control_mode) {
+    switch (blimp.control_mode) {
     case Mode::Number::AUTO:
     case Mode::Number::AVOID_ADSB:
     case Mode::Number::GUIDED:
@@ -104,12 +104,12 @@ void GCS_Copter::update_vehicle_sensor_status_flags(void)
     }
 
 #if PROXIMITY_ENABLED == ENABLED
-    if (copter.g2.proximity.sensor_enabled()) {
+    if (blimp.g2.proximity.sensor_enabled()) {
         control_sensors_enabled |= MAV_SYS_STATUS_SENSOR_PROXIMITY;
     }
 #endif
 
-    if (ap.rc_receiver_present && !copter.failsafe.radio) {
+    if (ap.rc_receiver_present && !blimp.failsafe.radio) {
         control_sensors_health |= MAV_SYS_STATUS_SENSOR_RC_RECEIVER;
     }
 #if OPTFLOW == ENABLED
@@ -118,23 +118,23 @@ void GCS_Copter::update_vehicle_sensor_status_flags(void)
     }
 #endif
 #if PRECISION_LANDING == ENABLED
-    if (copter.precland.enabled() && copter.precland.healthy()) {
+    if (blimp.precland.enabled() && blimp.precland.healthy()) {
         control_sensors_health |= MAV_SYS_STATUS_SENSOR_VISION_POSITION;
     }
 #endif
 
 #if PROXIMITY_ENABLED == ENABLED
-    if (!copter.g2.proximity.sensor_failed()) {
+    if (!blimp.g2.proximity.sensor_failed()) {
         control_sensors_health |= MAV_SYS_STATUS_SENSOR_PROXIMITY;
     }
 #endif
 
 #if AP_TERRAIN_AVAILABLE && AC_TERRAIN
-    switch (copter.terrain.status()) {
+    switch (blimp.terrain.status()) {
     case AP_Terrain::TerrainStatusDisabled:
         break;
     case AP_Terrain::TerrainStatusUnhealthy:
-        // To-Do: restore unhealthy terrain status reporting once terrain is used in copter
+        // To-Do: restore unhealthy terrain status reporting once terrain is used in blimp
         //control_sensors_present |= MAV_SYS_STATUS_TERRAIN;
         //control_sensors_enabled |= MAV_SYS_STATUS_TERRAIN;
         //break;
@@ -147,7 +147,7 @@ void GCS_Copter::update_vehicle_sensor_status_flags(void)
 #endif
 
 #if RANGEFINDER_ENABLED == ENABLED
-    if (copter.rangefinder_state.enabled) {
+    if (blimp.rangefinder_state.enabled) {
         control_sensors_enabled |= MAV_SYS_STATUS_SENSOR_LASER_POSITION;
         if (rangefinder && rangefinder->has_data_orient(ROTATION_PITCH_270)) {
             control_sensors_health |= MAV_SYS_STATUS_SENSOR_LASER_POSITION;

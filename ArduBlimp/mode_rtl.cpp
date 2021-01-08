@@ -1,4 +1,4 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 #if MODE_RTL_ENABLED == ENABLED
 
@@ -21,7 +21,7 @@ bool ModeRTL::init(bool ignore_checks)
     wp_nav->wp_and_spline_init();
     _state = RTL_Starting;
     _state_complete = true; // see run() method below
-    terrain_following_allowed = !copter.failsafe.terrain;
+    terrain_following_allowed = !blimp.failsafe.terrain;
     return true;
 }
 
@@ -66,7 +66,7 @@ void ModeRTL::run(bool disarm_on_land)
             loiterathome_start();
             break;
         case RTL_LoiterAtHome:
-            if (rtl_path.land || copter.failsafe.radio) {
+            if (rtl_path.land || blimp.failsafe.radio) {
                 land_start();
             }else{
                 descent_start();
@@ -127,7 +127,7 @@ void ModeRTL::climb_start()
         // this should not happen because rtl_build_path will have checked terrain data was available
         gcs().send_text(MAV_SEVERITY_CRITICAL,"RTL: unexpected error setting climb target");
         AP::logger().Write_Error(LogErrorSubsystem::NAVIGATION, LogErrorCode::FAILED_TO_SET_DESTINATION);
-        copter.set_mode(Mode::Number::LAND, ModeReason::TERRAIN_FAILSAFE);
+        blimp.set_mode(Mode::Number::LAND, ModeReason::TERRAIN_FAILSAFE);
         return;
     }
     wp_nav->set_fast_waypoint(true);
@@ -163,7 +163,7 @@ void ModeRTL::climb_return_run()
 
     // process pilot's yaw input
     float target_yaw_rate = 0;
-    if (!copter.failsafe.radio && use_pilot_yaw()) {
+    if (!blimp.failsafe.radio && use_pilot_yaw()) {
         // get pilot's desired yaw rate
         target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->get_control_in());
         if (!is_zero(target_yaw_rate)) {
@@ -175,7 +175,7 @@ void ModeRTL::climb_return_run()
     motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::THROTTLE_UNLIMITED);
 
     // run waypoint controller
-    copter.failsafe_terrain_set_status(wp_nav->update_wpnav());
+    blimp.failsafe_terrain_set_status(wp_nav->update_wpnav());
 
     // call z-axis position controller (wpnav should have already updated it's alt target)
     pos_control->update_z_controller();
@@ -220,7 +220,7 @@ void ModeRTL::loiterathome_run()
 
     // process pilot's yaw input
     float target_yaw_rate = 0;
-    if (!copter.failsafe.radio && use_pilot_yaw()) {
+    if (!blimp.failsafe.radio && use_pilot_yaw()) {
         // get pilot's desired yaw rate
         target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->get_control_in());
         if (!is_zero(target_yaw_rate)) {
@@ -232,7 +232,7 @@ void ModeRTL::loiterathome_run()
     motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::THROTTLE_UNLIMITED);
 
     // run waypoint controller
-    copter.failsafe_terrain_set_status(wp_nav->update_wpnav());
+    blimp.failsafe_terrain_set_status(wp_nav->update_wpnav());
 
     // call z-axis position controller (wpnav should have already updated it's alt target)
     pos_control->update_z_controller();
@@ -250,7 +250,7 @@ void ModeRTL::loiterathome_run()
     if ((millis() - _loiter_start_time) >= (uint32_t)g.rtl_loiter_time.get()) {
         if (auto_yaw.mode() == AUTO_YAW_RESETTOARMEDYAW) {
             // check if heading is within 2 degrees of heading when vehicle was armed
-            if (abs(wrap_180_cd(ahrs.yaw_sensor-copter.initial_armed_bearing)) <= 200) {
+            if (abs(wrap_180_cd(ahrs.yaw_sensor-blimp.initial_armed_bearing)) <= 200) {
                 _state_complete = true;
             }
         } else {
@@ -276,7 +276,7 @@ void ModeRTL::descent_start()
     auto_yaw.set_mode(AUTO_YAW_HOLD);
 
     // optionally deploy landing gear
-    copter.landinggear.deploy_for_landing();
+    blimp.landinggear.deploy_for_landing();
 }
 
 // rtl_descent_run - implements the final descent to the RTL_ALT
@@ -294,12 +294,12 @@ void ModeRTL::descent_run()
     }
 
     // process pilot's input
-    if (!copter.failsafe.radio) {
-        if ((g.throttle_behavior & THR_BEHAVE_HIGH_THROTTLE_CANCELS_LAND) != 0 && copter.rc_throttle_control_in_filter.get() > LAND_CANCEL_TRIGGER_THR){
+    if (!blimp.failsafe.radio) {
+        if ((g.throttle_behavior & THR_BEHAVE_HIGH_THROTTLE_CANCELS_LAND) != 0 && blimp.rc_throttle_control_in_filter.get() > LAND_CANCEL_TRIGGER_THR){
             AP::logger().Write_Event(LogEvent::LAND_CANCELLED_BY_PILOT);
             // exit land if throttle is high
-            if (!copter.set_mode(Mode::Number::LOITER, ModeReason::THROTTLE_LAND_ESCAPE)) {
-                copter.set_mode(Mode::Number::ALT_HOLD, ModeReason::THROTTLE_LAND_ESCAPE);
+            if (!blimp.set_mode(Mode::Number::LOITER, ModeReason::THROTTLE_LAND_ESCAPE)) {
+                blimp.set_mode(Mode::Number::ALT_HOLD, ModeReason::THROTTLE_LAND_ESCAPE);
             }
         }
 
@@ -312,10 +312,10 @@ void ModeRTL::descent_run()
 
             // record if pilot has overridden roll or pitch
             if (!is_zero(target_roll) || !is_zero(target_pitch)) {
-                if (!copter.ap.land_repo_active) {
+                if (!blimp.ap.land_repo_active) {
                     AP::logger().Write_Event(LogEvent::LAND_REPO_ACTIVE);
                 }
-                copter.ap.land_repo_active = true;
+                blimp.ap.land_repo_active = true;
             }
         }
 
@@ -342,7 +342,7 @@ void ModeRTL::descent_run()
     attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(loiter_nav->get_roll(), loiter_nav->get_pitch(), target_yaw_rate);
 
     // check if we've reached within 20cm of final altitude
-    _state_complete = labs(rtl_path.descent_target.alt - copter.current_loc.alt) < 20;
+    _state_complete = labs(rtl_path.descent_target.alt - blimp.current_loc.alt) < 20;
 }
 
 // rtl_loiterathome_start - initialise controllers to loiter over home
@@ -364,7 +364,7 @@ void ModeRTL::land_start()
     auto_yaw.set_mode(AUTO_YAW_HOLD);
 
     // optionally deploy landing gear
-    copter.landinggear.deploy_for_landing();
+    blimp.landinggear.deploy_for_landing();
 }
 
 bool ModeRTL::is_landing() const
@@ -377,11 +377,11 @@ bool ModeRTL::is_landing() const
 void ModeRTL::land_run(bool disarm_on_land)
 {
     // check if we've completed this stage of RTL
-    _state_complete = copter.ap.land_complete;
+    _state_complete = blimp.ap.land_complete;
 
     // disarm when the landing detector says we've landed
-    if (disarm_on_land && copter.ap.land_complete && motors->get_spool_state() == AP_Motors::SpoolState::GROUND_IDLE) {
-        copter.arming.disarm(AP_Arming::Method::LANDED);
+    if (disarm_on_land && blimp.ap.land_complete && motors->get_spool_state() == AP_Motors::SpoolState::GROUND_IDLE) {
+        blimp.arming.disarm(AP_Arming::Method::LANDED);
     }
 
     // if not armed set throttle to zero and exit immediately
@@ -427,13 +427,13 @@ void ModeRTL::compute_return_target()
 {
     // set return target to nearest rally point or home position (Note: alt is absolute)
 #if AC_RALLY == ENABLED
-    rtl_path.return_target = copter.rally.calc_best_rally_or_home_location(copter.current_loc, ahrs.get_home().alt);
+    rtl_path.return_target = blimp.rally.calc_best_rally_or_home_location(blimp.current_loc, ahrs.get_home().alt);
 #else
     rtl_path.return_target = ahrs.get_home();
 #endif
 
     // curr_alt is current altitude above home or above terrain depending upon use_terrain
-    int32_t curr_alt = copter.current_loc.alt;
+    int32_t curr_alt = blimp.current_loc.alt;
 
     // determine altitude type of return journey (alt-above-home, alt-above-terrain using range finder or alt-above-terrain using terrain database)
     ReturnTargetAltType alt_type = ReturnTargetAltType::RELATIVE;
@@ -456,7 +456,7 @@ void ModeRTL::compute_return_target()
 
     // set curr_alt and return_target.alt from range finder
     if (alt_type == ReturnTargetAltType::RANGEFINDER) {
-        if (copter.get_rangefinder_height_interpolated_cm(curr_alt)) {
+        if (blimp.get_rangefinder_height_interpolated_cm(curr_alt)) {
             // set return_target.alt
             rtl_path.return_target.set_alt_cm(MAX(curr_alt + MAX(0, g.rtl_climb_min), MAX(g.rtl_altitude, RTL_ALT_MIN)), Location::AltFrame::ABOVE_TERRAIN);
         } else {
@@ -473,7 +473,7 @@ void ModeRTL::compute_return_target()
         // convert return_target.alt from an abs (above MSL) to altitude above terrain
         //   Note: the return_target may be a rally point with the alt set above the terrain alt (like the top of a building)
         int32_t curr_terr_alt;
-        if (copter.current_loc.get_alt_cm(Location::AltFrame::ABOVE_TERRAIN, curr_terr_alt) &&
+        if (blimp.current_loc.get_alt_cm(Location::AltFrame::ABOVE_TERRAIN, curr_terr_alt) &&
             rtl_path.return_target.change_alt_frame(Location::AltFrame::ABOVE_TERRAIN)) {
             curr_alt = curr_terr_alt;
         } else {
@@ -518,10 +518,10 @@ void ModeRTL::compute_return_target()
     //       if terrain altitudes are being used, the code below which reduces the return_target's altitude can lead to
     //       the vehicle not climbing at all as RTL begins.  This can be overly conservative and it might be better
     //       to apply the fence alt limit independently on the origin_point and return_target
-    if ((copter.fence.get_enabled_fences() & AC_FENCE_TYPE_ALT_MAX) != 0) {
+    if ((blimp.fence.get_enabled_fences() & AC_FENCE_TYPE_ALT_MAX) != 0) {
         // get return target as alt-above-home so it can be compared to fence's alt
         if (rtl_path.return_target.get_alt_cm(Location::AltFrame::ABOVE_HOME, target_alt)) {
-            float fence_alt = copter.fence.get_safe_alt_max()*100.0f;
+            float fence_alt = blimp.fence.get_safe_alt_max()*100.0f;
             if (target_alt > fence_alt) {
                 // reduce target alt to the fence alt
                 rtl_path.return_target.alt -= (target_alt - fence_alt);
@@ -565,7 +565,7 @@ int32_t ModeRTL::wp_bearing() const
 // returns true if pilot's yaw input should be used to adjust vehicle's heading
 bool ModeRTL::use_pilot_yaw(void) const
 {
-    return (copter.g2.rtl_options.get() & uint32_t(Options::IgnorePilotYaw)) == 0;
+    return (blimp.g2.rtl_options.get() & uint32_t(Options::IgnorePilotYaw)) == 0;
 }
 
 #endif

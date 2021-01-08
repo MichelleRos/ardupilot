@@ -1,4 +1,4 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 #if LOGGING_ENABLED == ENABLED
 
@@ -23,7 +23,7 @@ struct PACKED log_Control_Tuning {
 };
 
 // Write a control tuning packet
-void Copter::Log_Write_Control_Tuning()
+void Blimp::Log_Write_Control_Tuning()
 {
     // get terrain altitude
     float terr_alt = 0.0f;
@@ -65,7 +65,7 @@ void Copter::Log_Write_Control_Tuning()
 }
 
 // Write an attitude packet
-void Copter::Log_Write_Attitude()
+void Blimp::Log_Write_Attitude()
 {
     Vector3f targets = attitude_control->get_att_target_euler_cd();
     targets.z = wrap_360_cd(targets.z);
@@ -80,7 +80,7 @@ void Copter::Log_Write_Attitude()
 }
 
 // Write an EKF and POS packet
-void Copter::Log_Write_EKF_POS()
+void Blimp::Log_Write_EKF_POS()
 {
     AP::ahrs_navekf().Log_Write();
     logger.Write_AHRS2();
@@ -100,7 +100,7 @@ struct PACKED log_MotBatt {
 };
 
 // Write an rate packet
-void Copter::Log_Write_MotBatt()
+void Blimp::Log_Write_MotBatt()
 {
 #if FRAME_CONFIG != HELI_FRAME
     struct log_MotBatt pkt_mot = {
@@ -124,7 +124,7 @@ struct PACKED log_Data_Int16t {
 
 // Write an int16_t data packet
 UNUSED_FUNCTION
-void Copter::Log_Write_Data(LogDataID id, int16_t value)
+void Blimp::Log_Write_Data(LogDataID id, int16_t value)
 {
     if (should_log(MASK_LOG_ANY)) {
         struct log_Data_Int16t pkt = {
@@ -146,7 +146,7 @@ struct PACKED log_Data_UInt16t {
 
 // Write an uint16_t data packet
 UNUSED_FUNCTION 
-void Copter::Log_Write_Data(LogDataID id, uint16_t value)
+void Blimp::Log_Write_Data(LogDataID id, uint16_t value)
 {
     if (should_log(MASK_LOG_ANY)) {
         struct log_Data_UInt16t pkt = {
@@ -167,7 +167,7 @@ struct PACKED log_Data_Int32t {
 };
 
 // Write an int32_t data packet
-void Copter::Log_Write_Data(LogDataID id, int32_t value)
+void Blimp::Log_Write_Data(LogDataID id, int32_t value)
 {
     if (should_log(MASK_LOG_ANY)) {
         struct log_Data_Int32t pkt = {
@@ -188,7 +188,7 @@ struct PACKED log_Data_UInt32t {
 };
 
 // Write a uint32_t data packet
-void Copter::Log_Write_Data(LogDataID id, uint32_t value)
+void Blimp::Log_Write_Data(LogDataID id, uint32_t value)
 {
     if (should_log(MASK_LOG_ANY)) {
         struct log_Data_UInt32t pkt = {
@@ -210,7 +210,7 @@ struct PACKED log_Data_Float {
 
 // Write a float data packet
 UNUSED_FUNCTION
-void Copter::Log_Write_Data(LogDataID id, float value)
+void Blimp::Log_Write_Data(LogDataID id, float value)
 {
     if (should_log(MASK_LOG_ANY)) {
         struct log_Data_Float pkt = {
@@ -232,7 +232,7 @@ struct PACKED log_ParameterTuning {
     float    tuning_max;    // tuning maximum value
 };
 
-void Copter::Log_Write_Parameter_Tuning(uint8_t param, float tuning_val, float tune_min, float tune_max)
+void Blimp::Log_Write_Parameter_Tuning(uint8_t param, float tuning_val, float tune_min, float tune_max)
 {
     struct log_ParameterTuning pkt_tune = {
         LOG_PACKET_HEADER_INIT(LOG_PARAMTUNE_MSG),
@@ -247,7 +247,7 @@ void Copter::Log_Write_Parameter_Tuning(uint8_t param, float tuning_val, float t
 }
 
 // logs when baro or compass becomes unhealthy
-void Copter::Log_Sensor_Health()
+void Blimp::Log_Sensor_Health()
 {
     // check baro
     if (sensor_health.baro != barometer.healthy()) {
@@ -284,7 +284,7 @@ struct PACKED log_SysIdD {
 };
 
 // Write an rate packet
-void Copter::Log_Write_SysID_Data(float waveform_time, float waveform_sample, float waveform_freq, float angle_x, float angle_y, float angle_z, float accel_x, float accel_y, float accel_z)
+void Blimp::Log_Write_SysID_Data(float waveform_time, float waveform_sample, float waveform_freq, float angle_x, float angle_y, float angle_z, float accel_x, float accel_y, float accel_z)
 {
 #if MODE_SYSTEMID_ENABLED == ENABLED
     struct log_SysIdD pkt_sidd = {
@@ -318,7 +318,7 @@ struct PACKED log_SysIdS {
 };
 
 // Write an rate packet
-void Copter::Log_Write_SysID_Setup(uint8_t systemID_axis, float waveform_magnitude, float frequency_start, float frequency_stop, float time_fade_in, float time_const_freq, float time_record, float time_fade_out)
+void Blimp::Log_Write_SysID_Setup(uint8_t systemID_axis, float waveform_magnitude, float frequency_start, float frequency_stop, float time_fade_in, float time_const_freq, float time_record, float time_fade_out)
 {
 #if MODE_SYSTEMID_ENABLED == ENABLED
     struct log_SysIdS pkt_sids = {
@@ -348,7 +348,7 @@ struct PACKED log_Heli {
 };
 
 // Write an helicopter packet
-void Copter::Log_Write_Heli()
+void Blimp::Log_Write_Heli()
 {
     struct log_Heli pkt_heli = {
         LOG_PACKET_HEADER_INIT(LOG_HELI_MSG),
@@ -381,7 +381,7 @@ struct PACKED log_Precland {
 };
 
 // Write a precision landing entry
-void Copter::Log_Write_Precland()
+void Blimp::Log_Write_Precland()
 {
  #if PRECISION_LANDING == ENABLED
     // exit immediately if not enabled
@@ -432,7 +432,7 @@ struct PACKED log_GuidedTarget {
 // Write a Guided mode target
 // pos_target is lat, lon, alt OR offset from ekf origin in cm OR roll, pitch, yaw target in centi-degrees
 // vel_target is cm/s
-void Copter::Log_Write_GuidedTarget(uint8_t target_type, const Vector3f& pos_target, const Vector3f& vel_target)
+void Blimp::Log_Write_GuidedTarget(uint8_t target_type, const Vector3f& pos_target, const Vector3f& vel_target)
 {
     struct log_GuidedTarget pkt = {
         LOG_PACKET_HEADER_INIT(LOG_GUIDEDTARGET_MSG),
@@ -451,12 +451,12 @@ void Copter::Log_Write_GuidedTarget(uint8_t target_type, const Vector3f& pos_tar
 // type and unit information can be found in
 // libraries/AP_Logger/Logstructure.h; search for "log_Units" for
 // units and "Format characters" for field type information
-const struct LogStructure Copter::log_structure[] = {
+const struct LogStructure Blimp::log_structure[] = {
     LOG_COMMON_STRUCTURES,
     
 // @LoggerMessage: PTUN
 // @Description: Parameter Tuning information
-// @URL: https://ardupilot.org/copter/docs/tuning.html#in-flight-tuning
+// @URL: https://ardupilot.org/blimp/docs/tuning.html#in-flight-tuning
 // @Field: TimeUS: Time since system startup
 // @Field: Param: Parameter being tuned
 // @Field: TunVal: Normalized value used inside tuning() function
@@ -614,7 +614,7 @@ const struct LogStructure Copter::log_structure[] = {
       "GUID",  "QBffffff",    "TimeUS,Type,pX,pY,pZ,vX,vY,vZ", "s-mmmnnn", "F-BBBBBB" },
 };
 
-void Copter::Log_Write_Vehicle_Startup_Messages()
+void Blimp::Log_Write_Vehicle_Startup_Messages()
 {
     // only 200(?) bytes are guaranteed by AP_Logger
     logger.Write_MessageF("Frame: %s", get_frame_string());
@@ -623,35 +623,35 @@ void Copter::Log_Write_Vehicle_Startup_Messages()
     gps.Write_AP_Logger_Log_Startup_messages();
 }
 
-void Copter::log_init(void)
+void Blimp::log_init(void)
 {
     logger.Init(log_structure, ARRAY_SIZE(log_structure));
 }
 
 #else // LOGGING_ENABLED
 
-void Copter::Log_Write_Control_Tuning() {}
-void Copter::Log_Write_Performance() {}
-void Copter::Log_Write_Attitude(void) {}
-void Copter::Log_Write_EKF_POS() {}
-void Copter::Log_Write_MotBatt() {}
-void Copter::Log_Write_Data(LogDataID id, int32_t value) {}
-void Copter::Log_Write_Data(LogDataID id, uint32_t value) {}
-void Copter::Log_Write_Data(LogDataID id, int16_t value) {}
-void Copter::Log_Write_Data(LogDataID id, uint16_t value) {}
-void Copter::Log_Write_Data(LogDataID id, float value) {}
-void Copter::Log_Write_Parameter_Tuning(uint8_t param, float tuning_val, float tune_min, float tune_max) {}
-void Copter::Log_Sensor_Health() {}
-void Copter::Log_Write_Precland() {}
-void Copter::Log_Write_GuidedTarget(uint8_t target_type, const Vector3f& pos_target, const Vector3f& vel_target) {}
-void Copter::Log_Write_SysID_Setup(uint8_t systemID_axis, float waveform_magnitude, float frequency_start, float frequency_stop, float time_fade_in, float time_const_freq, float time_record, float time_fade_out) {}
-void Copter::Log_Write_SysID_Data(float waveform_time, float waveform_sample, float waveform_freq, float angle_x, float angle_y, float angle_z, float accel_x, float accel_y, float accel_z) {}
-void Copter::Log_Write_Vehicle_Startup_Messages() {}
+void Blimp::Log_Write_Control_Tuning() {}
+void Blimp::Log_Write_Performance() {}
+void Blimp::Log_Write_Attitude(void) {}
+void Blimp::Log_Write_EKF_POS() {}
+void Blimp::Log_Write_MotBatt() {}
+void Blimp::Log_Write_Data(LogDataID id, int32_t value) {}
+void Blimp::Log_Write_Data(LogDataID id, uint32_t value) {}
+void Blimp::Log_Write_Data(LogDataID id, int16_t value) {}
+void Blimp::Log_Write_Data(LogDataID id, uint16_t value) {}
+void Blimp::Log_Write_Data(LogDataID id, float value) {}
+void Blimp::Log_Write_Parameter_Tuning(uint8_t param, float tuning_val, float tune_min, float tune_max) {}
+void Blimp::Log_Sensor_Health() {}
+void Blimp::Log_Write_Precland() {}
+void Blimp::Log_Write_GuidedTarget(uint8_t target_type, const Vector3f& pos_target, const Vector3f& vel_target) {}
+void Blimp::Log_Write_SysID_Setup(uint8_t systemID_axis, float waveform_magnitude, float frequency_start, float frequency_stop, float time_fade_in, float time_const_freq, float time_record, float time_fade_out) {}
+void Blimp::Log_Write_SysID_Data(float waveform_time, float waveform_sample, float waveform_freq, float angle_x, float angle_y, float angle_z, float accel_x, float accel_y, float accel_z) {}
+void Blimp::Log_Write_Vehicle_Startup_Messages() {}
 
 #if FRAME_CONFIG == HELI_FRAME
-void Copter::Log_Write_Heli() {}
+void Blimp::Log_Write_Heli() {}
 #endif
 
-void Copter::log_init(void) {}
+void Blimp::log_init(void) {}
 
 #endif // LOGGING_ENABLED

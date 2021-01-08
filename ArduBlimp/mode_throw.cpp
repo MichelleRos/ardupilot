@@ -1,4 +1,4 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 #if MODE_THROW_ENABLED == ENABLED
 
@@ -29,9 +29,9 @@ void ModeThrow::run()
     /* Throw State Machine
     Throw_Disarmed - motors are off
     Throw_Detecting -  motors are on and we are waiting for the throw
-    Throw_Uprighting - the throw has been detected and the copter is being uprighted
-    Throw_HgtStabilise - the copter is kept level and  height is stabilised about the target height
-    Throw_PosHold - the copter is kept at a constant position and height
+    Throw_Uprighting - the throw has been detected and the blimp is being uprighted
+    Throw_HgtStabilise - the blimp is kept level and  height is stabilised about the target height
+    Throw_PosHold - the blimp is kept at a constant position and height
     */
 
     if (!motors->armed()) {
@@ -71,7 +71,7 @@ void ModeThrow::run()
         pos_control->set_desired_velocity_z(fmaxf(inertial_nav.get_velocity_z(),0.0f));
 
         // Set the auto_arm status to true to avoid a possible automatic disarm caused by selection of an auto mode with throttle at minimum
-        copter.set_auto_armed(true);
+        blimp.set_auto_armed(true);
 
     } else if (stage == Throw_HgtStabilise && throw_height_good()) {
         gcs().send_text(MAV_SEVERITY_INFO,"height achieved - controlling position");
@@ -82,7 +82,7 @@ void ModeThrow::run()
         loiter_nav->init_target();
 
         // Set the auto_arm status to true to avoid a possible automatic disarm caused by selection of an auto mode with throttle at minimum
-        copter.set_auto_armed(true);
+        blimp.set_auto_armed(true);
     } else if (stage == Throw_PosHold && throw_position_good()) {
         if (!nextmode_attempted) {
             switch ((Mode::Number)g2.throw_nextmode.get()) {
@@ -191,7 +191,7 @@ void ModeThrow::run()
         last_log_ms = now;
         const float velocity = inertial_nav.get_velocity().length();
         const float velocity_z = inertial_nav.get_velocity().z;
-        const float accel = copter.ins.get_accel().length();
+        const float accel = blimp.ins.get_accel().length();
         const float ef_accel_z = ahrs.get_accel_ef().z;
         const bool throw_detect = (stage > Throw_Detecting) || throw_detected();
         const bool attitude_ok = (stage > Throw_Uprighting) || throw_attitude_good();
@@ -200,7 +200,7 @@ void ModeThrow::run()
         
 // @LoggerMessage: THRO
 // @Description: Throw Mode messages
-// @URL: https://ardupilot.org/copter/docs/throw-mode.html
+// @URL: https://ardupilot.org/blimp/docs/throw-mode.html
 // @Field: TimeUS: Time since system startup
 // @Field: Stage: Current stage of the Throw Mode
 // @Field: Vel: Magnitude of the velocity vector
@@ -253,8 +253,8 @@ bool ModeThrow::throw_detected()
     // Check the vertical acceleraton is greater than 0.25g
     bool free_falling = ahrs.get_accel_ef().z > -0.25 * GRAVITY_MSS;
 
-    // Check if the accel length is < 1.0g indicating that any throw action is complete and the copter has been released
-    bool no_throw_action = copter.ins.get_accel().length() < 1.0f * GRAVITY_MSS;
+    // Check if the accel length is < 1.0g indicating that any throw action is complete and the blimp has been released
+    bool no_throw_action = blimp.ins.get_accel().length() < 1.0f * GRAVITY_MSS;
 
     // High velocity or free-fall combined with increasing height indicate a possible air-drop or throw release
     bool possible_throw_detected = (free_falling || high_speed) && changing_height && no_throw_action;
@@ -278,7 +278,7 @@ bool ModeThrow::throw_detected()
 
 bool ModeThrow::throw_attitude_good()
 {
-    // Check that we have uprighted the copter
+    // Check that we have uprighted the blimp
     const Matrix3f &rotMat = ahrs.get_rotation_body_to_ned();
     return (rotMat.c.z > 0.866f); // is_upright
 }

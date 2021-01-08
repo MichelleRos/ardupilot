@@ -1,7 +1,7 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 // checks if we should update ahrs/RTL home position from the EKF
-void Copter::update_home_from_EKF()
+void Blimp::update_home_from_EKF()
 {
     // exit immediately if home already set
     if (ahrs.home_is_set()) {
@@ -20,7 +20,7 @@ void Copter::update_home_from_EKF()
 }
 
 // set_home_to_current_location_inflight - set home to current GPS location (horizontally) and EKF origin vertically
-void Copter::set_home_to_current_location_inflight() {
+void Blimp::set_home_to_current_location_inflight() {
     // get current location from EKF
     Location temp_loc;
     Location ekf_origin;
@@ -37,7 +37,7 @@ void Copter::set_home_to_current_location_inflight() {
 }
 
 // set_home_to_current_location - set home to current GPS location
-bool Copter::set_home_to_current_location(bool lock) {
+bool Blimp::set_home_to_current_location(bool lock) {
     // get current location from EKF
     Location temp_loc;
     if (ahrs.get_location(temp_loc)) {
@@ -56,7 +56,7 @@ bool Copter::set_home_to_current_location(bool lock) {
 // set_home - sets ahrs home (used for RTL) to specified location
 //  initialises inertial nav and compass on first call
 //  returns true if home location set successfully
-bool Copter::set_home(const Location& loc, bool lock)
+bool Blimp::set_home(const Location& loc, bool lock)
 {
     // check EKF origin has been set
     Location ekf_origin;
@@ -103,7 +103,7 @@ bool Copter::set_home(const Location& loc, bool lock)
 
 // far_from_EKF_origin - checks if a location is too far from the EKF origin
 //  returns true if too far
-bool Copter::far_from_EKF_origin(const Location& loc)
+bool Blimp::far_from_EKF_origin(const Location& loc)
 {
     // check distance to EKF origin
     Location ekf_origin;

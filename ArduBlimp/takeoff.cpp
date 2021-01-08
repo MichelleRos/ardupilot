@@ -1,4 +1,4 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 Mode::_TakeOff Mode::takeoff;
 
@@ -12,17 +12,17 @@ float Mode::auto_takeoff_no_nav_alt_cm = 0;
 
 bool Mode::do_user_takeoff_start(float takeoff_alt_cm)
 {
-    copter.flightmode->takeoff.start(takeoff_alt_cm);
+    blimp.flightmode->takeoff.start(takeoff_alt_cm);
     return true;
 }
 
 // initiate user takeoff - called when MAVLink TAKEOFF command is received
 bool Mode::do_user_takeoff(float takeoff_alt_cm, bool must_navigate)
 {
-    if (!copter.motors->armed()) {
+    if (!blimp.motors->armed()) {
         return false;
     }
-    if (!copter.ap.land_complete) {
+    if (!blimp.ap.land_complete) {
         // can't takeoff again!
         return false;
     }
@@ -30,13 +30,13 @@ bool Mode::do_user_takeoff(float takeoff_alt_cm, bool must_navigate)
         // this mode doesn't support user takeoff
         return false;
     }
-    if (takeoff_alt_cm <= copter.current_loc.alt) {
+    if (takeoff_alt_cm <= blimp.current_loc.alt) {
         // can't takeoff downwards...
         return false;
     }
 
-    // Helicopters should return false if MAVlink takeoff command is received while the rotor is not spinning
-    if (motors->get_spool_state() != AP_Motors::SpoolState::THROTTLE_UNLIMITED && copter.ap.using_interlock) {
+    // Heliblimps should return false if MAVlink takeoff command is received while the rotor is not spinning
+    if (motors->get_spool_state() != AP_Motors::SpoolState::THROTTLE_UNLIMITED && blimp.ap.using_interlock) {
         return false;
     }
 
@@ -44,7 +44,7 @@ bool Mode::do_user_takeoff(float takeoff_alt_cm, bool must_navigate)
         return false;
     }
 
-    copter.set_auto_armed(true);
+    blimp.set_auto_armed(true);
     return true;
 }
 
@@ -52,12 +52,12 @@ bool Mode::do_user_takeoff(float takeoff_alt_cm, bool must_navigate)
 void Mode::_TakeOff::start(float alt_cm)
 {
     // indicate we are taking off
-    copter.set_land_complete(false);
+    blimp.set_land_complete(false);
     // tell position controller to reset alt target and reset I terms
-    copter.flightmode->set_throttle_takeoff();
+    blimp.flightmode->set_throttle_takeoff();
 
     // calculate climb rate
-    const float speed = MIN(copter.wp_nav->get_default_speed_up(), MAX(copter.g.pilot_speed_up*2.0f/3.0f, copter.g.pilot_speed_up-50.0f));
+    const float speed = MIN(blimp.wp_nav->get_default_speed_up(), MAX(blimp.g.pilot_speed_up*2.0f/3.0f, blimp.g.pilot_speed_up-50.0f));
 
     // sanity check speed and target
     if (speed <= 0.0f || alt_cm <= 0.0f) {
@@ -144,7 +144,7 @@ void Mode::_TakeOff::get_climb_rates(float& pilot_climb_rate,
 void Mode::auto_takeoff_run()
 {
     // if not armed set throttle to zero and exit immediately
-    if (!motors->armed() || !copter.ap.auto_armed) {
+    if (!motors->armed() || !blimp.ap.auto_armed) {
         make_safe_spool_down();
         wp_nav->shift_wp_origin_to_current_pos();
         return;
@@ -155,7 +155,7 @@ void Mode::auto_takeoff_run()
 
     // process pilot's yaw input
     float target_yaw_rate = 0;
-    if (!copter.failsafe.radio) {
+    if (!blimp.failsafe.radio) {
         // get pilot's desired yaw rate
         target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->get_control_in());
     }
@@ -190,7 +190,7 @@ void Mode::auto_takeoff_run()
     }
 
     // run waypoint controller
-    copter.failsafe_terrain_set_status(wp_nav->update_wpnav());
+    blimp.failsafe_terrain_set_status(wp_nav->update_wpnav());
 
     if (!auto_takeoff_no_nav_active) {
         nav_roll = wp_nav->get_roll();
@@ -198,7 +198,7 @@ void Mode::auto_takeoff_run()
     }
 
     // call z-axis position controller (wpnav should have already updated it's alt target)
-    copter.pos_control->update_z_controller();
+    blimp.pos_control->update_z_controller();
 
     // roll & pitch from waypoint controller, yaw rate from pilot
     attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(nav_roll, nav_pitch, target_yaw_rate);
@@ -220,7 +220,7 @@ bool Mode::is_taking_off() const
     if (!has_user_takeoff(false)) {
         return false;
     }
-    if (copter.ap.land_complete) {
+    if (blimp.ap.land_complete) {
         return false;
     }
     if (takeoff.running()) {

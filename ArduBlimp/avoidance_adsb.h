@@ -2,18 +2,18 @@
 
 #include <AP_Avoidance/AP_Avoidance.h>
 
-// Provide Copter-specific implementation of avoidance.  While most of
+// Provide Blimp-specific implementation of avoidance.  While most of
 // the logic for doing the actual avoidance is present in
-// AP_Avoidance, this class allows Copter to override base
+// AP_Avoidance, this class allows Blimp to override base
 // functionality - for example, not doing anything while landed.
-class AP_Avoidance_Copter : public AP_Avoidance {
+class AP_Avoidance_Blimp : public AP_Avoidance {
 public:
 
     using AP_Avoidance::AP_Avoidance;
 
     /* Do not allow copies */
-    AP_Avoidance_Copter(const AP_Avoidance_Copter &other) = delete;
-    AP_Avoidance_Copter &operator=(const AP_Avoidance_Copter&) = delete;
+    AP_Avoidance_Blimp(const AP_Avoidance_Blimp &other) = delete;
+    AP_Avoidance_Blimp &operator=(const AP_Avoidance_Blimp&) = delete;
 
 private:
     // helper function to set modes and always succeed

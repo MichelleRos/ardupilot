@@ -1,7 +1,7 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 // ---------------------------------------------
-void Copter::set_auto_armed(bool b)
+void Blimp::set_auto_armed(bool b)
 {
     // if no change, exit immediately
     if( ap.auto_armed == b )
@@ -19,7 +19,7 @@ void Copter::set_auto_armed(bool b)
  *
  * @param [in] b 0:false or disabled, 1:true or SIMPLE, 2:SUPERSIMPLE
  */
-void Copter::set_simple_mode(SimpleMode b)
+void Blimp::set_simple_mode(SimpleMode b)
 {
     if (simple_mode != b) {
         switch (b) {
@@ -43,7 +43,7 @@ void Copter::set_simple_mode(SimpleMode b)
 }
 
 // ---------------------------------------------
-void Copter::set_failsafe_radio(bool b)
+void Blimp::set_failsafe_radio(bool b)
 {
     // only act on changes
     // -------------------
@@ -70,7 +70,7 @@ void Copter::set_failsafe_radio(bool b)
 
 
 // ---------------------------------------------
-void Copter::set_failsafe_gcs(bool b)
+void Blimp::set_failsafe_gcs(bool b)
 {
     failsafe.gcs = b;
 
@@ -80,7 +80,7 @@ void Copter::set_failsafe_gcs(bool b)
 
 // ---------------------------------------------
 
-void Copter::update_using_interlock()
+void Blimp::update_using_interlock()
 {
 #if FRAME_CONFIG == HELI_FRAME
     // helicopters are always using motor interlock

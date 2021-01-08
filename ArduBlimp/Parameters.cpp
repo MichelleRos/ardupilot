@@ -1,4 +1,4 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 /*
    This program is free software: you can redistribute it and/or modify
@@ -16,17 +16,17 @@
  */
 
 /*
- *  ArduCopter parameter definitions
+ *  ArduBlimp parameter definitions
  *
  */
 
-#define GSCALAR(v, name, def) { copter.g.v.vtype, name, Parameters::k_param_ ## v, &copter.g.v, {def_value : def} }
-#define ASCALAR(v, name, def) { copter.aparm.v.vtype, name, Parameters::k_param_ ## v, (const void *)&copter.aparm.v, {def_value : def} }
-#define GGROUP(v, name, class) { AP_PARAM_GROUP, name, Parameters::k_param_ ## v, &copter.g.v, {group_info : class::var_info} }
-#define GOBJECT(v, name, class) { AP_PARAM_GROUP, name, Parameters::k_param_ ## v, (const void *)&copter.v, {group_info : class::var_info} }
-#define GOBJECTPTR(v, name, class) { AP_PARAM_GROUP, name, Parameters::k_param_ ## v, (const void *)&copter.v, {group_info : class::var_info}, AP_PARAM_FLAG_POINTER }
-#define GOBJECTVARPTR(v, name, var_info_ptr) { AP_PARAM_GROUP, name, Parameters::k_param_ ## v, (const void *)&copter.v, {group_info_ptr : var_info_ptr}, AP_PARAM_FLAG_POINTER | AP_PARAM_FLAG_INFO_POINTER }
-#define GOBJECTN(v, pname, name, class) { AP_PARAM_GROUP, name, Parameters::k_param_ ## pname, (const void *)&copter.v, {group_info : class::var_info} }
+#define GSCALAR(v, name, def) { blimp.g.v.vtype, name, Parameters::k_param_ ## v, &blimp.g.v, {def_value : def} }
+#define ASCALAR(v, name, def) { blimp.aparm.v.vtype, name, Parameters::k_param_ ## v, (const void *)&blimp.aparm.v, {def_value : def} }
+#define GGROUP(v, name, class) { AP_PARAM_GROUP, name, Parameters::k_param_ ## v, &blimp.g.v, {group_info : class::var_info} }
+#define GOBJECT(v, name, class) { AP_PARAM_GROUP, name, Parameters::k_param_ ## v, (const void *)&blimp.v, {group_info : class::var_info} }
+#define GOBJECTPTR(v, name, class) { AP_PARAM_GROUP, name, Parameters::k_param_ ## v, (const void *)&blimp.v, {group_info : class::var_info}, AP_PARAM_FLAG_POINTER }
+#define GOBJECTVARPTR(v, name, var_info_ptr) { AP_PARAM_GROUP, name, Parameters::k_param_ ## v, (const void *)&blimp.v, {group_info_ptr : var_info_ptr}, AP_PARAM_FLAG_POINTER | AP_PARAM_FLAG_INFO_POINTER }
+#define GOBJECTN(v, pname, name, class) { AP_PARAM_GROUP, name, Parameters::k_param_ ## pname, (const void *)&blimp.v, {group_info : class::var_info} }
 
 #if FRAME_CONFIG == HELI_FRAME
 // 6 here is AP_Motors::MOTOR_FRAME_HELI
@@ -35,7 +35,7 @@
 #define DEFAULT_FRAME_CLASS 0
 #endif
 
-const AP_Param::Info Copter::var_info[] = {
+const AP_Param::Info Blimp::var_info[] = {
     // @Param: FORMAT_VERSION
     // @DisplayName: Eeprom format version number
     // @Description: This value is incremented when changes are made to the eeprom format
@@ -163,7 +163,7 @@ const AP_Param::Info Copter::var_info[] = {
 #if RANGEFINDER_ENABLED == ENABLED
     // @Param: RNGFND_GAIN
     // @DisplayName: Rangefinder gain
-    // @Description: Used to adjust the speed with which the target altitude is changed when objects are sensed below the copter
+    // @Description: Used to adjust the speed with which the target altitude is changed when objects are sensed below the blimp
     // @Range: 0.01 2.0
     // @Increment: 0.01
     // @User: Standard
@@ -331,7 +331,7 @@ const AP_Param::Info Copter::var_info[] = {
 
     // @Param: ESC_CALIBRATION
     // @DisplayName: ESC Calibration
-    // @Description: Controls whether ArduCopter will enter ESC calibration on the next restart.  Do not adjust this parameter manually.
+    // @Description: Controls whether ArduBlimp will enter ESC calibration on the next restart.  Do not adjust this parameter manually.
     // @User: Advanced
     // @Values: 0:Normal Start-up, 1:Start-up in ESC Calibration mode if throttle high, 2:Start-up in ESC Calibration mode regardless of throttle, 3:Start-up and automatically calibrate ESCs, 9:Disabled
     GSCALAR(esc_calibrate, "ESC_CALIBRATION",       0),
@@ -345,7 +345,7 @@ const AP_Param::Info Copter::var_info[] = {
 
     // @Param: FRAME_TYPE
     // @DisplayName: Frame Type (+, X, V, etc)
-    // @Description: Controls motor mixing for multicopters.  Not used for Tri or Traditional Helicopters.
+    // @Description: Controls motor mixing for multiblimps.  Not used for Tri or Traditional Heliblimps.
     // @Values: 0:Plus, 1:X, 2:V, 3:H, 4:V-Tail, 5:A-Tail, 10:Y6B, 11:Y6F, 12:BetaFlightX, 13:DJIX, 14:ClockwiseX, 15: I, 18: BetaFlightXReversed
     // @User: Standard
     // @RebootRequired: True
@@ -353,7 +353,7 @@ const AP_Param::Info Copter::var_info[] = {
 
     // @Group: ARMING_
     // @Path: ../libraries/AP_Arming/AP_Arming.cpp
-    GOBJECT(arming,                 "ARMING_", AP_Arming_Copter),
+    GOBJECT(arming,                 "ARMING_", AP_Arming_Blimp),
 
     // @Param: DISARM_DELAY
     // @DisplayName: Disarm delay
@@ -441,7 +441,7 @@ const AP_Param::Info Copter::var_info[] = {
 #if MODE_ACRO_ENABLED == ENABLED || MODE_SPORT_ENABLED == ENABLED
     // @Param: ACRO_BAL_ROLL
     // @DisplayName: Acro Balance Roll
-    // @Description: rate at which roll angle returns to level in acro and sport mode.  A higher value causes the vehicle to return to level faster. For helicopter sets the decay rate of the virtual flybar in the roll axis. A higher value causes faster decay of desired to actual attitude.
+    // @Description: rate at which roll angle returns to level in acro and sport mode.  A higher value causes the vehicle to return to level faster. For heliblimp sets the decay rate of the virtual flybar in the roll axis. A higher value causes faster decay of desired to actual attitude.
     // @Range: 0 3
     // @Increment: 0.1
     // @User: Advanced
@@ -449,7 +449,7 @@ const AP_Param::Info Copter::var_info[] = {
 
     // @Param: ACRO_BAL_PITCH
     // @DisplayName: Acro Balance Pitch
-    // @Description: rate at which pitch angle returns to level in acro and sport mode.  A higher value causes the vehicle to return to level faster. For helicopter sets the decay rate of the virtual flybar in the pitch axis. A higher value causes faster decay of desired to actual attitude.
+    // @Description: rate at which pitch angle returns to level in acro and sport mode.  A higher value causes the vehicle to return to level faster. For heliblimp sets the decay rate of the virtual flybar in the pitch axis. A higher value causes faster decay of desired to actual attitude.
     // @Range: 0 3
     // @Increment: 0.1
     // @User: Advanced
@@ -641,17 +641,17 @@ const AP_Param::Info Copter::var_info[] = {
 #if AC_RALLY == ENABLED
     // @Group: RALLY_
     // @Path: AP_Rally.cpp,../libraries/AP_Rally/AP_Rally.cpp
-    GOBJECT(rally,      "RALLY_",   AP_Rally_Copter),
+    GOBJECT(rally,      "RALLY_",   AP_Rally_Blimp),
 #endif
 
 #if FRAME_CONFIG == HELI_FRAME
     // @Group: H_
     // @Path: ../libraries/AP_Motors/AP_MotorsHeli_Single.cpp,../libraries/AP_Motors/AP_MotorsHeli_Dual.cpp,../libraries/AP_Motors/AP_MotorsHeli.cpp
-    GOBJECTVARPTR(motors, "H_",        &copter.motors_var_info),
+    GOBJECTVARPTR(motors, "H_",        &blimp.motors_var_info),
 #else
     // @Group: MOT_
-    // @Path: ../libraries/AP_Motors/AP_MotorsMulticopter.cpp
-    GOBJECTVARPTR(motors, "MOT_",      &copter.motors_var_info),
+    // @Path: ../libraries/AP_Motors/AP_MotorsMultiblimp.cpp
+    GOBJECTVARPTR(motors, "MOT_",      &blimp.motors_var_info),
 #endif
 
     // @Group: RCMAP_
@@ -717,7 +717,7 @@ const AP_Param::Info Copter::var_info[] = {
 
     // @Group: AVD_
     // @Path: ../libraries/AP_Avoidance/AP_Avoidance.cpp
-    GOBJECT(avoidance_adsb, "AVD_", AP_Avoidance_Copter),
+    GOBJECT(avoidance_adsb, "AVD_", AP_Avoidance_Blimp),
 #endif
 
     // @Group: NTF_
@@ -752,7 +752,7 @@ const AP_Param::Info Copter::var_info[] = {
 
     // @Group:
     // @Path: ../libraries/AP_Vehicle/AP_Vehicle.cpp
-    { AP_PARAM_GROUP, "", Parameters::k_param_vehicle, (const void *)&copter, {group_info : AP_Vehicle::var_info} },
+    { AP_PARAM_GROUP, "", Parameters::k_param_vehicle, (const void *)&blimp, {group_info : AP_Vehicle::var_info} },
 
     AP_VAREND
 };
@@ -785,7 +785,7 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
 
     // @Param: THROW_TYPE
     // @DisplayName: Type of Type
-    // @Description: Used by Throw mode. Specifies whether Copter is thrown upward or dropped.
+    // @Description: Used by Throw mode. Specifies whether Blimp is thrown upward or dropped.
     // @Values: 0:Upward Throw,1:Drop
     // @User: Standard
     AP_GROUPINFO("THROW_TYPE", 4, ParametersG2, throw_type, (float)ModeThrow::ThrowType::Upward),
@@ -861,7 +861,7 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
 
     // @Param: FRAME_CLASS
     // @DisplayName: Frame Class
-    // @Description: Controls major frame class for multicopter component
+    // @Description: Controls major frame class for multiblimp component
     // @Values: 0:Undefined, 1:Quad, 2:Hexa, 3:Octa, 4:OctaQuad, 5:Y6, 6:Heli, 7:Tri, 8:SingleCopter, 9:CoaxCopter, 10:BiCopter, 11:Heli_Dual, 12:DodecaHexa, 13:HeliQuad, 14:Deca
     // @User: Standard
     // @RebootRequired: True
@@ -873,7 +873,7 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
 
     // @Group: RC
     // @Path: ../libraries/RC_Channel/RC_Channels_VarInfo.h
-    AP_SUBGROUPINFO(rc_channels, "RC", 17, ParametersG2, RC_Channels_Copter),
+    AP_SUBGROUPINFO(rc_channels, "RC", 17, ParametersG2, RC_Channels_Blimp),
 
     // 18 was used by AP_VisualOdom
 
@@ -984,7 +984,7 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     // @Values: 0:Disabled, 1:Continue if in Auto on RC failsafe only, 2:Continue if in Auto on GCS failsafe only, 3:Continue if in Auto on RC and/or GCS failsafe, 4:Continue if in Guided on RC failsafe only, 8:Continue if landing on any failsafe, 16:Continue if in pilot controlled modes on GCS failsafe, 19:Continue if in Auto on RC and/or GCS failsafe and continue if in pilot controlled modes on GCS failsafe
     // @Bitmask: 0:Continue if in Auto on RC failsafe, 1:Continue if in Auto on GCS failsafe, 2:Continue if in Guided on RC failsafe, 3:Continue if landing on any failsafe, 4:Continue if in pilot controlled modes on GCS failsafe, 5:Release Gripper
     // @User: Advanced
-    AP_GROUPINFO("FS_OPTIONS", 36, ParametersG2, fs_options, (float)Copter::FailsafeOption::GCS_CONTINUE_IF_PILOT_CONTROL),
+    AP_GROUPINFO("FS_OPTIONS", 36, ParametersG2, fs_options, (float)Blimp::FailsafeOption::GCS_CONTINUE_IF_PILOT_CONTROL),
 
 #if MODE_AUTOROTATE_ENABLED == ENABLED
     // @Group: AROT_
@@ -1001,7 +1001,7 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
 #if MODE_ACRO_ENABLED == ENABLED
     // @Param: ACRO_OPTIONS
     // @DisplayName: Acro mode options
-    // @Description: A range of options that can be applied to change acro mode behaviour. Air-mode enables ATC_THR_MIX_MAN at all times (air-mode has no effect on helicopters). Rate Loop Only disables the use of angle stabilization and uses angular rate stabilization only.
+    // @Description: A range of options that can be applied to change acro mode behaviour. Air-mode enables ATC_THR_MIX_MAN at all times (air-mode has no effect on heliblimps). Rate Loop Only disables the use of angle stabilization and uses angular rate stabilization only.
     // @Bitmask: 0:Air-mode,1:Rate Loop Only
     // @User: Advanced
     AP_GROUPINFO("ACRO_OPTIONS", 39, ParametersG2, acro_options, 0),
@@ -1010,7 +1010,7 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
 #if MODE_AUTO_ENABLED == ENABLED
     // @Param: AUTO_OPTIONS
     // @DisplayName: Auto mode options
-    // @Description: A range of options that can be applied to change auto mode behaviour. Allow Arming allows the copter to be armed in Auto. Allow Takeoff Without Raising Throttle allows takeoff without the pilot having to raise the throttle. Ignore pilot yaw overrides the pilot's yaw stick being used while in auto.
+    // @Description: A range of options that can be applied to change auto mode behaviour. Allow Arming allows the blimp to be armed in Auto. Allow Takeoff Without Raising Throttle allows takeoff without the pilot having to raise the throttle. Ignore pilot yaw overrides the pilot's yaw stick being used while in auto.
     // @Bitmask: 0:Allow Arming,1:Allow Takeoff Without Raising Throttle,2:Ignore pilot yaw
     // @User: Advanced
     AP_GROUPINFO("AUTO_OPTIONS", 40, ParametersG2, auto_options, 0),
@@ -1052,19 +1052,19 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
 ParametersG2::ParametersG2(void)
     : temp_calibration() // this doesn't actually need constructing, but removing it here is problematic syntax-wise
 #if BEACON_ENABLED == ENABLED
-    , beacon(copter.serial_manager)
+    , beacon(blimp.serial_manager)
 #endif
 #if PROXIMITY_ENABLED == ENABLED
     , proximity()
 #endif
 #if ADVANCED_FAILSAFE == ENABLED
-    ,afs(copter.mode_auto.mission)
+    ,afs(blimp.mode_auto.mission)
 #endif
 #if MODE_SMARTRTL_ENABLED == ENABLED
     ,smart_rtl()
 #endif
 #if !HAL_MINIMIZE_FEATURES && OPTFLOW == ENABLED
-    ,mode_flowhold_ptr(&copter.mode_flowhold)
+    ,mode_flowhold_ptr(&blimp.mode_flowhold)
 #endif
 #if MODE_FOLLOW_ENABLED == ENABLED
     ,follow()
@@ -1073,17 +1073,17 @@ ParametersG2::ParametersG2(void)
     ,user_parameters()
 #endif
 #if AUTOTUNE_ENABLED == ENABLED
-    ,autotune_ptr(&copter.autotune)
+    ,autotune_ptr(&blimp.autotune)
 #endif
 #if MODE_SYSTEMID_ENABLED == ENABLED
-    ,mode_systemid_ptr(&copter.mode_systemid)
+    ,mode_systemid_ptr(&blimp.mode_systemid)
 #endif
 #if MODE_AUTOROTATE_ENABLED == ENABLED
     ,arot()
 #endif
-    ,button_ptr(&copter.button)
+    ,button_ptr(&blimp.button)
 #if MODE_ZIGZAG_ENABLED == ENABLED
-    ,mode_zigzag_ptr(&copter.mode_zigzag)
+    ,mode_zigzag_ptr(&blimp.mode_zigzag)
 #endif
 {
     AP_Param::setup_object_defaults(this, var_info);
@@ -1123,7 +1123,7 @@ const AP_Param::ConversionInfo conversion_table[] = {
     { Parameters::k_param_arming,             2,     AP_PARAM_INT16,  "ARMING_CHECK" },
 };
 
-void Copter::load_parameters(void)
+void Blimp::load_parameters(void)
 {
     if (!AP_Param::check_var_info()) {
         hal.console->printf("Bad var table\n");
@@ -1166,7 +1166,7 @@ void Copter::load_parameters(void)
 }
 
 // handle conversion of PID gains
-void Copter::convert_pid_parameters(void)
+void Blimp::convert_pid_parameters(void)
 {
     // conversion info
     const AP_Param::ConversionInfo pid_conversion_info[] = {
@@ -1195,7 +1195,7 @@ void Copter::convert_pid_parameters(void)
         { Parameters::k_param_pid_rate_yaw,   7, AP_PARAM_FLOAT, "ATC_RAT_YAW_ILMI" },
 #endif
     };
-    // conversion from Copter-3.3 to Copter-3.4
+    // conversion from Blimp-3.3 to Blimp-3.4
     const AP_Param::ConversionInfo angle_and_filt_conversion_info[] = {
         { Parameters::k_param_p_stabilize_roll, 0, AP_PARAM_FLOAT, "ATC_ANG_RLL_P" },
         { Parameters::k_param_p_stabilize_pitch, 0, AP_PARAM_FLOAT, "ATC_ANG_PIT_P" },
@@ -1232,7 +1232,7 @@ void Copter::convert_pid_parameters(void)
     float pid_scaler = 1.27f;
 
 #if FRAME_CONFIG != HELI_FRAME
-    // Multicopter x-frame gains are 40% lower because -1 or +1 input to motors now results in maximum rotation
+    // Multiblimp x-frame gains are 40% lower because -1 or +1 input to motors now results in maximum rotation
     if (g.frame_type == AP_Motors::MOTOR_FRAME_TYPE_X || g.frame_type == AP_Motors::MOTOR_FRAME_TYPE_V || g.frame_type == AP_Motors::MOTOR_FRAME_TYPE_H) {
         pid_scaler = 0.9f;
     }
@@ -1253,7 +1253,7 @@ void Copter::convert_pid_parameters(void)
     for (uint8_t i=0; i<table_size; i++) {
         AP_Param::convert_old_parameter(&angle_and_filt_conversion_info[i], 1.0f);
     }
-    // convert throttle parameters (multicopter only)
+    // convert throttle parameters (multiblimp only)
     table_size = ARRAY_SIZE(throttle_conversion_info);
     for (uint8_t i=0; i<table_size; i++) {
         AP_Param::convert_old_parameter(&throttle_conversion_info[i], 0.001f);
@@ -1290,7 +1290,7 @@ void Copter::convert_pid_parameters(void)
     AP_Param::set_defaults_from_table(heli_defaults_table, ARRAY_SIZE(heli_defaults_table));
 #endif
 
-    // attitude and position control filter parameter changes (from _FILT to FLTD, FLTE, FLTT) for Copter-4.0
+    // attitude and position control filter parameter changes (from _FILT to FLTD, FLTE, FLTT) for Blimp-4.0
     // magic numbers shown below are discovered by setting AP_PARAM_KEY_DUMP = 1
     const AP_Param::ConversionInfo ff_and_filt_conversion_info[] = {
 #if FRAME_CONFIG == HELI_FRAME
@@ -1299,7 +1299,7 @@ void Copter::convert_pid_parameters(void)
         { Parameters::k_param_attitude_control, 387, AP_PARAM_FLOAT, "ATC_RAT_PIT_FLTE" },
         { Parameters::k_param_attitude_control, 388, AP_PARAM_FLOAT, "ATC_RAT_YAW_FLTE" },
 #else
-        // multicopters move ATC_RAT_RLL/PIT_FILT to FLTD & FLTT, ATC_RAT_YAW_FILT to FLTE
+        // multiblimps move ATC_RAT_RLL/PIT_FILT to FLTD & FLTT, ATC_RAT_YAW_FILT to FLTE
         { Parameters::k_param_attitude_control, 385, AP_PARAM_FLOAT, "ATC_RAT_RLL_FLTD" },
         { Parameters::k_param_attitude_control, 385, AP_PARAM_FLOAT, "ATC_RAT_RLL_FLTT" },
         { Parameters::k_param_attitude_control, 386, AP_PARAM_FLOAT, "ATC_RAT_PIT_FLTD" },
@@ -1316,7 +1316,7 @@ void Copter::convert_pid_parameters(void)
         AP_Param::convert_old_parameters(&ff_and_filt_conversion_info[i], 1.0f);
     }
 
-    // notch filter parameter conversions (changed position and type) for Copter-3.7
+    // notch filter parameter conversions (changed position and type) for Blimp-3.7
     const AP_Param::ConversionInfo notchfilt_conversion_info[] = {
         { Parameters::k_param_ins, 165, AP_PARAM_INT16, "INS_NOTCH_FREQ" },
         { Parameters::k_param_ins, 229, AP_PARAM_INT16, "INS_NOTCH_BW" },
@@ -1333,7 +1333,7 @@ void Copter::convert_pid_parameters(void)
 /*
   convert landing gear parameters
  */
-void Copter::convert_lgr_parameters(void)
+void Blimp::convert_lgr_parameters(void)
 {
     // convert landing gear PWM values
     uint8_t chan;
@@ -1413,8 +1413,8 @@ void Copter::convert_lgr_parameters(void)
 }
 
 #if FRAME_CONFIG == HELI_FRAME
-// handle conversion of tradheli parameters from Copter-3.6 to Copter-3.7
-void Copter::convert_tradheli_parameters(void)
+// handle conversion of tradheli parameters from Blimp-3.6 to Blimp-3.7
+void Blimp::convert_tradheli_parameters(void)
 {
     if (g2.frame_class.get() == AP_Motors::MOTOR_FRAME_HELI) {
         // single heli conversion info
@@ -1588,7 +1588,7 @@ void Copter::convert_tradheli_parameters(void)
 }
 #endif
 
-void Copter::convert_fs_options_params(void)
+void Blimp::convert_fs_options_params(void)
 {
     // If FS_OPTIONS has already been configured and we don't change it.
     enum ap_var_type ptype;

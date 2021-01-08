@@ -1,4 +1,4 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 // Traditional helicopter variables and functions
 
@@ -12,7 +12,7 @@
 static int8_t heli_dynamic_flight_counter;
 
 // heli_init - perform any special initialisation required for the tradheli
-void Copter::heli_init()
+void Blimp::heli_init()
 {
     // pre-load stab col values as mode is initialized as Stabilize, but stabilize_init() function is not run on start-up.
     input_manager.set_use_stab_col(true);
@@ -21,7 +21,7 @@ void Copter::heli_init()
 
 // heli_check_dynamic_flight - updates the dynamic_flight flag based on our horizontal velocity
 // should be called at 50hz
-void Copter::check_dynamic_flight(void)
+void Blimp::check_dynamic_flight(void)
 {
     if (motors->get_spool_state() != AP_Motors::SpoolState::THROTTLE_UNLIMITED ||
         flightmode->is_landing()) {
@@ -71,7 +71,7 @@ void Copter::check_dynamic_flight(void)
 
 // update_heli_control_dynamics - pushes several important factors up into AP_MotorsHeli.
 // should be run between the rate controller and the servo updates.
-void Copter::update_heli_control_dynamics(void)
+void Blimp::update_heli_control_dynamics(void)
 {
 
     if (!motors->using_leaky_integrator()) {
@@ -101,7 +101,7 @@ void Copter::update_heli_control_dynamics(void)
     attitude_control->set_hover_roll_trim_scalar((float) hover_roll_trim_scalar_slew/(float) scheduler.get_loop_rate_hz());
 }
 
-bool Copter::should_use_landing_swash() const
+bool Blimp::should_use_landing_swash() const
 {
     if (flightmode->has_manual_throttle() ||
         control_mode == Mode::Number::DRIFT) {
@@ -133,14 +133,14 @@ bool Copter::should_use_landing_swash() const
 
 // heli_update_landing_swash - sets swash plate flag so higher minimum is used when landed or landing
 // should be called soon after update_land_detector in main code
-void Copter::heli_update_landing_swash()
+void Blimp::heli_update_landing_swash()
 {
     motors->set_collective_for_landing(should_use_landing_swash());
 }
 
 // convert motor interlock switch's position to desired rotor speed expressed as a value from 0 to 1
 // returns zero if motor interlock auxiliary switch hasn't been defined
-float Copter::get_pilot_desired_rotor_speed() const
+float Blimp::get_pilot_desired_rotor_speed() const
 {
     RC_Channel *rc_ptr = rc().find_channel_for_option(RC_Channel::AUX_FUNC::MOTOR_INTERLOCK);
     if (rc_ptr != nullptr) {
@@ -151,7 +151,7 @@ float Copter::get_pilot_desired_rotor_speed() const
 }
 
 // heli_update_rotor_speed_targets - reads pilot input and passes new rotor speed targets to heli motors object
-void Copter::heli_update_rotor_speed_targets()
+void Blimp::heli_update_rotor_speed_targets()
 {
 
     static bool rotor_runup_complete_last = false;
@@ -202,7 +202,7 @@ void Copter::heli_update_rotor_speed_targets()
 
 // heli_update_autorotation - determines if aircraft is in autorotation and sets motors flag and switches
 // to autorotation flight mode if manual collective is not being used.
-void Copter::heli_update_autorotation()
+void Blimp::heli_update_autorotation()
 {
 #if MODE_AUTOROTATE_ENABLED == ENABLED
     // check if flying and interlock disengaged
@@ -232,7 +232,7 @@ void Copter::heli_update_autorotation()
 
 #if MODE_AUTOROTATE_ENABLED == ENABLED
 // heli_set_autorotation - set the autorotation flag throughout libraries
-void Copter::heli_set_autorotation(bool autorotation)
+void Blimp::heli_set_autorotation(bool autorotation)
 {
     motors->set_in_autorotation(autorotation);
 }

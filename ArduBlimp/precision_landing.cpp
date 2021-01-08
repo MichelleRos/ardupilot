@@ -2,16 +2,16 @@
 // functions to support precision landing
 //
 
-#include "Copter.h"
+#include "Blimp.h"
 
 #if PRECISION_LANDING == ENABLED
 
-void Copter::init_precland()
+void Blimp::init_precland()
 {
-    copter.precland.init(400);
+    blimp.precland.init(400);
 }
 
-void Copter::update_precland()
+void Blimp::update_precland()
 {
     int32_t height_above_ground_cm = current_loc.alt;
 

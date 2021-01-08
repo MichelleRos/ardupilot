@@ -1,4 +1,4 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 /**
  *
@@ -26,7 +26,7 @@ static struct {
 
 // ekf_check - detects if ekf variance are out of tolerance and triggers failsafe
 // should be called at 10hz
-void Copter::ekf_check()
+void Blimp::ekf_check()
 {
     // ensure EKF_CHECK_ITERATIONS_MAX is at least 7
     static_assert(EKF_CHECK_ITERATIONS_MAX >= 7, "EKF_CHECK_ITERATIONS_MAX must be at least 7");
@@ -100,7 +100,7 @@ void Copter::ekf_check()
 }
 
 // ekf_over_threshold - returns true if the ekf's variance are over the tolerance
-bool Copter::ekf_over_threshold()
+bool Blimp::ekf_over_threshold()
 {
     // return false immediately if disabled
     if (g.fs_ekf_thresh <= 0.0f) {
@@ -139,7 +139,7 @@ bool Copter::ekf_over_threshold()
 
 
 // failsafe_ekf_event - perform ekf failsafe
-void Copter::failsafe_ekf_event()
+void Blimp::failsafe_ekf_event()
 {
     // return immediately if ekf failsafe already triggered
     if (failsafe.ekf) {
@@ -157,7 +157,7 @@ void Copter::failsafe_ekf_event()
     }
 
     // does this mode require position?
-    if (!copter.flightmode->requires_GPS() && (g.fs_ekf_action != FS_EKF_ACTION_LAND_EVEN_STABILIZE)) {
+    if (!blimp.flightmode->requires_GPS() && (g.fs_ekf_action != FS_EKF_ACTION_LAND_EVEN_STABILIZE)) {
         return;
     }
 
@@ -178,7 +178,7 @@ void Copter::failsafe_ekf_event()
 }
 
 // failsafe_ekf_off_event - actions to take when EKF failsafe is cleared
-void Copter::failsafe_ekf_off_event(void)
+void Blimp::failsafe_ekf_off_event(void)
 {
     // return immediately if not in ekf failsafe
     if (!failsafe.ekf) {
@@ -190,7 +190,7 @@ void Copter::failsafe_ekf_off_event(void)
 }
 
 // check for ekf yaw reset and adjust target heading, also log position reset
-void Copter::check_ekf_reset()
+void Blimp::check_ekf_reset()
 {
     // check for yaw reset
     float yaw_angle_change_rad;
@@ -213,7 +213,7 @@ void Copter::check_ekf_reset()
 }
 
 // check for high vibrations affecting altitude control
-void Copter::check_vibration()
+void Blimp::check_vibration()
 {
     uint32_t now = AP_HAL::millis();
 

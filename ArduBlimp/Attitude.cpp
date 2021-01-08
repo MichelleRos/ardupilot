@@ -1,8 +1,8 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 // transform pilot's yaw input into a desired yaw rate
 // returns desired yaw rate in centi-degrees per second
-float Copter::get_pilot_desired_yaw_rate(int16_t stick_angle)
+float Blimp::get_pilot_desired_yaw_rate(int16_t stick_angle)
 {
     // throttle failsafe check
     if (failsafe.radio || !ap.rc_receiver_present) {
@@ -36,7 +36,7 @@ float Copter::get_pilot_desired_yaw_rate(int16_t stick_angle)
 
 // update estimated throttle required to hover (if necessary)
 //  called at 100hz
-void Copter::update_throttle_hover()
+void Blimp::update_throttle_hover()
 {
     // if not armed or landed exit
     if (!motors->armed() || ap.land_complete) {
@@ -69,7 +69,7 @@ void Copter::update_throttle_hover()
 
 // get_pilot_desired_climb_rate - transform pilot's throttle input to climb rate in cm/s
 // without any deadzone at the bottom
-float Copter::get_pilot_desired_climb_rate(float throttle_control)
+float Blimp::get_pilot_desired_climb_rate(float throttle_control)
 {
     // throttle failsafe check
     if (failsafe.radio || !ap.rc_receiver_present) {
@@ -111,13 +111,13 @@ float Copter::get_pilot_desired_climb_rate(float throttle_control)
 }
 
 // get_non_takeoff_throttle - a throttle somewhere between min and mid throttle which should not lead to a takeoff
-float Copter::get_non_takeoff_throttle()
+float Blimp::get_non_takeoff_throttle()
 {
     return MAX(0,motors->get_throttle_hover()/2.0f);
 }
 
 // set_accel_throttle_I_from_pilot_throttle - smoothes transition from pilot controlled throttle to autopilot throttle
-void Copter::set_accel_throttle_I_from_pilot_throttle()
+void Blimp::set_accel_throttle_I_from_pilot_throttle()
 {
     // get last throttle input sent to attitude controller
     float pilot_throttle = constrain_float(attitude_control->get_throttle_in(), 0.0f, 1.0f);
@@ -126,7 +126,7 @@ void Copter::set_accel_throttle_I_from_pilot_throttle()
 }
 
 // rotate vector from vehicle's perspective to North-East frame
-void Copter::rotate_body_frame_to_NE(float &x, float &y)
+void Blimp::rotate_body_frame_to_NE(float &x, float &y)
 {
     float ne_x = x*ahrs.cos_yaw() - y*ahrs.sin_yaw();
     float ne_y = x*ahrs.sin_yaw() + y*ahrs.cos_yaw();
@@ -135,7 +135,7 @@ void Copter::rotate_body_frame_to_NE(float &x, float &y)
 }
 
 // It will return the PILOT_SPEED_DN value if non zero, otherwise if zero it returns the PILOT_SPEED_UP value.
-uint16_t Copter::get_pilot_speed_dn()
+uint16_t Blimp::get_pilot_speed_dn()
 {
     if (g2.pilot_speed_dn == 0) {
         return abs(g.pilot_speed_up);

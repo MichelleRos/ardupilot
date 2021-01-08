@@ -1,16 +1,16 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 /*
  *       This event will be called when the failsafe changes
  *       boolean failsafe reflects the current state
  */
 
-bool Copter::failsafe_option(FailsafeOption opt) const
+bool Blimp::failsafe_option(FailsafeOption opt) const
 {
     return (g2.fs_options & (uint32_t)opt);
 }
 
-void Copter::failsafe_radio_on_event()
+void Blimp::failsafe_radio_on_event()
 {
     AP::logger().Write_Error(LogErrorSubsystem::FAILSAFE_RADIO, LogErrorCode::FAILSAFE_OCCURRED);
 
@@ -74,7 +74,7 @@ void Copter::failsafe_radio_on_event()
 }
 
 // failsafe_off_event - respond to radio contact being regained
-void Copter::failsafe_radio_off_event()
+void Blimp::failsafe_radio_off_event()
 {
     // no need to do anything except log the error as resolved
     // user can now override roll, pitch, yaw and throttle and even use flight mode switch to restore previous flight mode
@@ -82,7 +82,7 @@ void Copter::failsafe_radio_off_event()
     gcs().send_text(MAV_SEVERITY_WARNING, "Radio Failsafe Cleared");
 }
 
-void Copter::handle_battery_failsafe(const char *type_str, const int8_t action)
+void Blimp::handle_battery_failsafe(const char *type_str, const int8_t action)
 {
     AP::logger().Write_Error(LogErrorSubsystem::FAILSAFE_BATT, LogErrorCode::FAILSAFE_OCCURRED);
 
@@ -109,7 +109,7 @@ void Copter::handle_battery_failsafe(const char *type_str, const int8_t action)
 }
 
 // failsafe_gcs_check - check for ground station failsafe
-void Copter::failsafe_gcs_check()
+void Blimp::failsafe_gcs_check()
 {
     // Bypass GCS failsafe checks if disabled or GCS never connected
     if (g.failsafe_gcs == FS_GCS_DISABLED || failsafe.last_heartbeat_ms == 0) {
@@ -141,7 +141,7 @@ void Copter::failsafe_gcs_check()
 }
 
 // failsafe_gcs_on_event - actions to take when GCS contact is lost
-void Copter::failsafe_gcs_on_event(void)
+void Blimp::failsafe_gcs_on_event(void)
 {
     AP::logger().Write_Error(LogErrorSubsystem::FAILSAFE_GCS, LogErrorCode::FAILSAFE_OCCURRED);
     RC_Channels::clear_overrides();
@@ -208,14 +208,14 @@ void Copter::failsafe_gcs_on_event(void)
 }
 
 // failsafe_gcs_off_event - actions to take when GCS contact is restored
-void Copter::failsafe_gcs_off_event(void)
+void Blimp::failsafe_gcs_off_event(void)
 {
     gcs().send_text(MAV_SEVERITY_WARNING, "GCS Failsafe Cleared");
     AP::logger().Write_Error(LogErrorSubsystem::FAILSAFE_GCS, LogErrorCode::FAILSAFE_RESOLVED);
 }
 
 // executes terrain failsafe if data is missing for longer than a few seconds
-void Copter::failsafe_terrain_check()
+void Blimp::failsafe_terrain_check()
 {
     // trigger within <n> milliseconds of failures while in various modes
     bool timeout = (failsafe.terrain_last_failure_ms - failsafe.terrain_first_failure_ms) > FS_TERRAIN_TIMEOUT_MS;
@@ -233,7 +233,7 @@ void Copter::failsafe_terrain_check()
 }
 
 // set terrain data status (found or not found)
-void Copter::failsafe_terrain_set_status(bool data_ok)
+void Blimp::failsafe_terrain_set_status(bool data_ok)
 {
     uint32_t now = millis();
 
@@ -253,7 +253,7 @@ void Copter::failsafe_terrain_set_status(bool data_ok)
 }
 
 // terrain failsafe action
-void Copter::failsafe_terrain_on_event()
+void Blimp::failsafe_terrain_on_event()
 {
     failsafe.terrain = true;
     gcs().send_text(MAV_SEVERITY_CRITICAL,"Failsafe: Terrain data missing");
@@ -271,7 +271,7 @@ void Copter::failsafe_terrain_on_event()
 }
 
 // check for gps glitch failsafe
-void Copter::gpsglitch_check()
+void Blimp::gpsglitch_check()
 {
     // get filter status
     nav_filter_status filt_status = inertial_nav.get_filter_status();
@@ -292,7 +292,7 @@ void Copter::gpsglitch_check()
 
 // set_mode_RTL_or_land_with_pause - sets mode to RTL if possible or LAND with 4 second delay before descent starts
 //  this is always called from a failsafe so we trigger notification to pilot
-void Copter::set_mode_RTL_or_land_with_pause(ModeReason reason)
+void Blimp::set_mode_RTL_or_land_with_pause(ModeReason reason)
 {
     // attempt to switch to RTL, if this fails then switch to Land
     if (!set_mode(Mode::Number::RTL, reason)) {
@@ -306,7 +306,7 @@ void Copter::set_mode_RTL_or_land_with_pause(ModeReason reason)
 
 // set_mode_SmartRTL_or_land_with_pause - sets mode to SMART_RTL if possible or LAND with 4 second delay before descent starts
 // this is always called from a failsafe so we trigger notification to pilot
-void Copter::set_mode_SmartRTL_or_land_with_pause(ModeReason reason)
+void Blimp::set_mode_SmartRTL_or_land_with_pause(ModeReason reason)
 {
     // attempt to switch to SMART_RTL, if this failed then switch to Land
     if (!set_mode(Mode::Number::SMART_RTL, reason)) {
@@ -319,7 +319,7 @@ void Copter::set_mode_SmartRTL_or_land_with_pause(ModeReason reason)
 
 // set_mode_SmartRTL_or_RTL - sets mode to SMART_RTL if possible or RTL if possible or LAND with 4 second delay before descent starts
 // this is always called from a failsafe so we trigger notification to pilot
-void Copter::set_mode_SmartRTL_or_RTL(ModeReason reason)
+void Blimp::set_mode_SmartRTL_or_RTL(ModeReason reason)
 {
     // attempt to switch to SmartRTL, if this failed then attempt to RTL
     // if that fails, then land
@@ -331,7 +331,7 @@ void Copter::set_mode_SmartRTL_or_RTL(ModeReason reason)
     }
 }
 
-bool Copter::should_disarm_on_failsafe() {
+bool Blimp::should_disarm_on_failsafe() {
     if (ap.in_arming_delay) {
         return true;
     }
@@ -352,7 +352,7 @@ bool Copter::should_disarm_on_failsafe() {
 }
 
 
-void Copter::do_failsafe_action(Failsafe_Action action, ModeReason reason){
+void Blimp::do_failsafe_action(Failsafe_Action action, ModeReason reason){
 
     // Execute the specified desired_action
     switch (action) {
@@ -382,7 +382,7 @@ void Copter::do_failsafe_action(Failsafe_Action action, ModeReason reason){
 
 #if GRIPPER_ENABLED == ENABLED
     if (failsafe_option(FailsafeOption::RELEASE_GRIPPER)) {
-        copter.g2.gripper.release();
+        blimp.g2.gripper.release();
     }
 #endif
 }

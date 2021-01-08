@@ -1,4 +1,4 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 // Run standby functions at approximately 100 Hz to limit maximum variable build up
 //
@@ -10,7 +10,7 @@
 //      thrust_loss_check is disabled
 //      parachute_check is disabled
 //      and landing detection is disabled.
-void Copter::standby_update()
+void Blimp::standby_update()
 {
     if (!standby_active) {
         return;

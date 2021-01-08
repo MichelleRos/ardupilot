@@ -1,11 +1,11 @@
-#include "Copter.h"
+#include "Blimp.h"
 
 /*
  * control_avoid.cpp - init and run calls for AP_Avoidance's AVOID flight mode
  *
  * This re-uses GUIDED mode functions but does not interfere with the GCS or companion computer's
  * use of guided mode because the velocity requests arrive from different sources (i.e MAVLink messages
- * for GCS and Companion Computers vs the AP_Avoidance_Copter class for adsb avoidance) and inputs from
+ * for GCS and Companion Computers vs the AP_Avoidance_Blimp class for adsb avoidance) and inputs from
  * each source are only accepted and processed in the appropriate flight mode.
  */
 
@@ -19,7 +19,7 @@ bool ModeAvoidADSB::init(const bool ignore_checks)
 bool ModeAvoidADSB::set_velocity(const Vector3f& velocity_neu)
 {
     // check flight mode
-    if (copter.control_mode != Mode::Number::AVOID_ADSB) {
+    if (blimp.control_mode != Mode::Number::AVOID_ADSB) {
         return false;
     }
 
