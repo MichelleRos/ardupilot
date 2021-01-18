@@ -4,9 +4,9 @@
  * Init and run calls for stabilize flight mode
  */
 
-// stabilize_run - runs the main stabilize controller
+// manual_run - runs the main manual controller
 // should be called at 100hz or more
-void ModeStabilize::run()
+void ModeManual::run()
 {
     // apply simple mode transform to pilot inputs
     update_simple_mode();
