@@ -41,9 +41,9 @@ def build(bld):
         defines=['FRAME_CONFIG=MULTICOPTER_FRAME'],
         )
 
-    bld.ap_program(
-        program_name='ardublimp-heli',
-        program_groups=['bin', 'bheli'],
-        use=vehicle + '_libs',
-        defines=['FRAME_CONFIG=HELI_FRAME'],
-        )
+    # bld.ap_program(
+    #     program_name='ardublimp-heli',
+    #     program_groups=['bin', 'bheli'],
+    #     use=vehicle + '_libs',
+    #     defines=['FRAME_CONFIG=HELI_FRAME'],
+    #     )

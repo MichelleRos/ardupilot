@@ -215,7 +215,7 @@ void Blimp::get_scheduler_tasks(const AP_Scheduler::Task *&tasks,
 
 constexpr int8_t Blimp::_failsafe_priorities[7];
 
-// Main loop - 400hz
+// Main loop - 50hz
 void Blimp::fast_loop()
 {
     // update INS immediately to get current gyro data populated
@@ -231,13 +231,6 @@ void Blimp::fast_loop()
     // --------------------
     read_AHRS();
 
-#if FRAME_CONFIG == HELI_FRAME
-    update_heli_control_dynamics();
-    #if MODE_AUTOROTATE_ENABLED == ENABLED
-        heli_update_autorotation();
-    #endif
-#endif //HELI_FRAME
-
     // Inertial Nav
     // --------------------
     read_inertia();
@@ -252,7 +245,8 @@ void Blimp::fast_loop()
     update_home_from_EKF();
 
     // check if we've landed or crashed
-    update_land_and_crash_detectors();
+    // Skip for now since Blimp won't land
+    // update_land_and_crash_detectors();
 
 #if HAL_MOUNT_ENABLED
     // camera mount's fast update
@@ -264,23 +258,9 @@ void Blimp::fast_loop()
         Log_Sensor_Health();
     }
 
-    AP_Vehicle::fast_loop();
+    AP_Vehicle::fast_loop(); //just does gyro fft
 }
 
-// start takeoff to given altitude (for use by scripting)
-bool Blimp::start_takeoff(float alt)
-{
-    // exit if vehicle is not in Guided mode or Auto-Guided mode
-    if (!flightmode->in_guided_mode()) {
-        return false;
-    }
-
-    if (mode_guided.do_user_takeoff_start(alt * 100.0f)) {
-        blimp.set_auto_armed(true);
-        return true;
-    }
-    return false;
-}
 
 // set target location (for use by scripting)
 bool Blimp::set_target_location(const Location& target_loc)
@@ -340,14 +320,6 @@ void Blimp::throttle_loop()
 
     // check auto_armed status
     update_auto_armed();
-
-#if FRAME_CONFIG == HELI_FRAME
-    // update rotor speed
-    heli_update_rotor_speed_targets();
-
-    // update trad heli swash plate movement
-    heli_update_landing_swash();
-#endif
 
     // compensate for ground effect (if enabled)
     update_ground_effect_detector();
