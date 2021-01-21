@@ -261,6 +261,21 @@ void Blimp::fast_loop()
     AP_Vehicle::fast_loop(); //just does gyro fft
 }
 
+// start takeoff to given altitude (for use by scripting)
+bool Blimp::start_takeoff(float alt)
+{
+    // exit if vehicle is not in Guided mode or Auto-Guided mode
+    if (!flightmode->in_guided_mode()) {
+        return false;
+    }
+
+    if (mode_guided.do_user_takeoff_start(alt * 100.0f)) {
+        blimp.set_auto_armed(true);
+        return true;
+    }
+    return false;
+}
+
 
 // set target location (for use by scripting)
 bool Blimp::set_target_location(const Location& target_loc)
