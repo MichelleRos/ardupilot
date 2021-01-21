@@ -1,2 +1,2 @@
 all:
-	@$(MAKE) -C ../ -f Makefile.waf blimp
+	@$(MAKE) -C ../ -f Makefile.waf blimp2
