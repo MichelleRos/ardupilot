@@ -84,7 +84,7 @@ public:
     int32_t get_alt_above_ground_cm(void);
 
     // pilot input processing
-    void get_pilot_desired_accelerations(float &roll_out, float &pitch_out, float angle_max, float angle_limit) const;
+    void get_pilot_desired_accelerations(float &right_out, float &front_out) const;
     float get_pilot_desired_yaw_rate(int16_t stick_angle);
     float get_pilot_desired_throttle() const;
 
@@ -137,9 +137,9 @@ protected:
     // AC_AttitudeControl_t *&attitude_control;
     MOTOR_CLASS *&motors;
     // Fins *&motors;
-    RC_Channel *&channel_roll;
-    RC_Channel *&channel_pitch;
-    RC_Channel *&channel_throttle;
+    RC_Channel *&channel_right;
+    RC_Channel *&channel_front;
+    RC_Channel *&channel_down;
     RC_Channel *&channel_yaw;
     float &G_Dt;
 

@@ -18,9 +18,9 @@ Mode::Mode(void) :
     ahrs(blimp.ahrs),
     // attitude_control(blimp.attitude_control),
     motors(blimp.motors),
-    channel_roll(blimp.channel_roll),
-    channel_pitch(blimp.channel_pitch),
-    channel_throttle(blimp.channel_throttle),
+    channel_right(blimp.channel_right),
+    channel_front(blimp.channel_front),
+    channel_down(blimp.channel_down),
     channel_yaw(blimp.channel_yaw),
     G_Dt(blimp.G_Dt)
 { };

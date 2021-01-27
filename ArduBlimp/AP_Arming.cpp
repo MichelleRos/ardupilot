@@ -57,9 +57,7 @@ bool AP_Arming_Blimp::run_pre_arm_checks(bool display_failure)
         & parameter_checks(display_failure)
         & motor_checks(display_failure)
         & pilot_throttle_checks(display_failure)
-        & oa_checks(display_failure)
         & gcs_failsafe_check(display_failure)
-        & winch_checks(display_failure)
         & alt_checks(display_failure)
         & AP_Arming::pre_arm_checks(display_failure);
 }
@@ -228,17 +226,7 @@ bool AP_Arming_Blimp::pilot_throttle_checks(bool display_failure)
 
 bool AP_Arming_Blimp::rc_calibration_checks(bool display_failure)
 {
-    const RC_Channel *channels[] = {
-        blimp.channel_roll,
-        blimp.channel_pitch,
-        blimp.channel_throttle,
-        blimp.channel_yaw
-    };
-
-    blimp.ap.pre_arm_rc_check = rc_checks_copter_sub(display_failure, channels)
-        & AP_Arming::rc_calibration_checks(display_failure);
-
-    return blimp.ap.pre_arm_rc_check;
+    return true;
 }
 
 // performs pre_arm gps related checks and returns true if passed
@@ -398,9 +386,6 @@ bool AP_Arming_Blimp::arm(const AP_Arming::Method method, const bool do_arming_c
     // let logger know that we're armed (it may open logs e.g.)
     AP::logger().set_vehicle_armed(true);
 
-    // disable cpu failsafe because initialising everything takes a while
-    blimp.failsafe_disable();
-
     // notify that arming will occur (we do this early to give plenty of warning)
     AP_Notify::flags.armed = true;
     // call notify update a few times to ensure the message gets out
@@ -409,10 +394,6 @@ bool AP_Arming_Blimp::arm(const AP_Arming::Method method, const bool do_arming_c
     }
 
     gcs().send_text(MAV_SEVERITY_INFO, "Arming motors"); //MIR kept in - usually only in SITL
-
-    // Remember Orientation
-    // --------------------
-    blimp.init_simple_bearing();
 
     AP_AHRS_NavEKF &ahrs = AP::ahrs_navekf();
 
@@ -439,17 +420,11 @@ bool AP_Arming_Blimp::arm(const AP_Arming::Method method, const bool do_arming_c
     ahrs.set_correct_centrifugal(true);
     hal.util->set_soft_armed(true);
 
-    // enable output to motors
-    blimp.enable_motor_output();
-
     // finally actually arm the motors
     blimp.motors->armed(true);
 
     // log flight mode in case it was changed while vehicle was disarmed
     AP::logger().Write_Mode((uint8_t)blimp.control_mode, blimp.control_mode_reason);
-
-    // re-enable failsafe
-    blimp.failsafe_enable();
 
     // perf monitor ignores delay due to arming
     AP::scheduler().perf_info.ignore_this_loop();
@@ -497,10 +472,6 @@ bool AP_Arming_Blimp::disarm(const AP_Arming::Method method)
             }
         }
     }
-
-    // we are not in the air
-    blimp.set_land_complete(true);
-    blimp.set_land_complete_maybe(true);
 
     // send disarm command to motors
     blimp.motors->armed(false);
