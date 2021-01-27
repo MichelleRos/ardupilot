@@ -607,6 +607,7 @@ MAV_RESULT GCS_MAVLINK_Blimp::handle_command_long_packet(const mavlink_command_l
 
         if (!blimp.flightmode->do_user_takeoff(takeoff_alt, is_zero(packet.param3))) {
             return MAV_RESULT_FAILED;
+        //MIR Do I need this?
         }
         return MAV_RESULT_ACCEPTED;
     }

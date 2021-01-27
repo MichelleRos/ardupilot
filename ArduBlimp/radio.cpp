@@ -166,12 +166,13 @@ void Blimp::set_throttle_zero_flag(int16_t throttle_control)
     // if not using throttle interlock and non-zero throttle and not E-stopped,
     // or using motor interlock and it's enabled, then motors are running, 
     // and we are flying. Immediately set as non-zero
-    if (!ap.using_interlock && (throttle_control > 0) && !SRV_Channels::get_emergency_stop()) {
+    if (throttle_control > 0) {
         last_nonzero_throttle_ms = tnow_ms;
         ap.throttle_zero = false;
     } else if (tnow_ms - last_nonzero_throttle_ms > THROTTLE_ZERO_DEBOUNCE_TIME_MS) {
         ap.throttle_zero = true;
     }
+    //MIR What does this mean??
 }
 
 // pass pilot's inputs to motors library (used to allow wiggling servos while disarmed on heli, single, coax blimps)

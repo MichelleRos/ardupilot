@@ -43,7 +43,7 @@ void Blimp::init_ardupilot()
 #endif
 
     // update motor interlock state
-    update_using_interlock();
+    // update_using_interlock();
 
 
     init_rc_in();               // sets up rc channels from radio
@@ -265,18 +265,18 @@ void Blimp::update_auto_armed()
     }else{
         // arm checks
         
-        // for tradheli if motors are armed and throttle is above zero and the motor is started, auto_armed should be true
-        if(motors->armed() && ap.using_interlock) {
-            if(!ap.throttle_zero && motors->get_spool_state() == Fins::SpoolState::THROTTLE_UNLIMITED) {
-                set_auto_armed(true);
-            }
-        // if motors are armed and throttle is above zero auto_armed should be true
-        // if motors are armed and we are in throw mode, then auto_armed should be true
-        } else if (motors->armed() && !ap.using_interlock) {
-            if(!ap.throttle_zero) {
-                set_auto_armed(true);
-            }
-        }
+        // // for tradheli if motors are armed and throttle is above zero and the motor is started, auto_armed should be true
+        // if(motors->armed() && ap.using_interlock) {
+        //     if(!ap.throttle_zero && motors->get_spool_state() == Fins::SpoolState::THROTTLE_UNLIMITED) {
+        //         set_auto_armed(true);
+        //     }
+        // // if motors are armed and throttle is above zero auto_armed should be true
+        // // if motors are armed and we are in throw mode, then auto_armed should be true
+        // } else if (motors->armed() && !ap.using_interlock) {
+        //     if(!ap.throttle_zero) {
+        //         set_auto_armed(true);
+        //     }
+        // }
     }
 }
 
