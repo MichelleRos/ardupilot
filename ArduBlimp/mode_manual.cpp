@@ -13,52 +13,29 @@ void ModeManual::run()
 
     // convert pilot input to lean angles
     float target_roll, target_pitch;
-    get_pilot_desired_lean_angles(target_roll, target_pitch, blimp.aparm.angle_max, blimp.aparm.angle_max);
+    get_pilot_desired_accelerations(target_roll, target_pitch, blimp.aparm.angle_max, blimp.aparm.angle_max);
 
     // get pilot's desired yaw rate
     float target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->get_control_in());
 
     if (!motors->armed()) {
         // Motors should be Stopped
-        motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::SHUT_DOWN);
-    } else if (blimp.ap.throttle_zero) {
-        // Attempting to Land
-        motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::GROUND_IDLE);
+        motors->set_desired_spool_state(Fins::DesiredSpoolState::SHUT_DOWN);
     } else {
-        motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::THROTTLE_UNLIMITED);
+        motors->set_desired_spool_state(Fins::DesiredSpoolState::THROTTLE_UNLIMITED);
     }
 
-    switch (motors->get_spool_state()) {
-    case AP_Motors::SpoolState::SHUT_DOWN:
-        // Motors Stopped
-        attitude_control->set_yaw_target_to_current_heading();
-        attitude_control->reset_rate_controller_I_terms();
-        break;
+    roll_out = target_roll;
+    pitch_out = target_pitch;
+    yaw_out = target_yaw_rate;
+    throttle_out = get_pilot_desired_throttle();
+    motors->output();
 
-    case AP_Motors::SpoolState::GROUND_IDLE:
-        // Landed
-        attitude_control->set_yaw_target_to_current_heading();
-        attitude_control->reset_rate_controller_I_terms_smoothly();
-        break;
+    // // call attitude controller
+    // attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(target_roll, target_pitch, target_yaw_rate);
 
-    case AP_Motors::SpoolState::THROTTLE_UNLIMITED:
-        // clear landing flag above zero throttle
-        if (!motors->limit.throttle_lower) {
-            set_land_complete(false);
-        }
-        break;
-
-    case AP_Motors::SpoolState::SPOOLING_UP:
-    case AP_Motors::SpoolState::SPOOLING_DOWN:
-        // do nothing
-        break;
-    }
-
-    // call attitude controller
-    attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(target_roll, target_pitch, target_yaw_rate);
-
-    // output pilot's throttle
-    attitude_control->set_throttle_out(get_pilot_desired_throttle(),
-                                       true,
-                                       g.throttle_filt);
+    // // output pilot's throttle
+    // attitude_control->set_throttle_out(get_pilot_desired_throttle(),
+    //                                    true,
+    //                                    g.throttle_filt);
 }

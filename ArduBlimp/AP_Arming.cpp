@@ -1,8 +1,5 @@
 #include "Blimp.h"
 
-#if HAL_MAX_CAN_PROTOCOL_DRIVERS
- #include <AP_ToshibaCAN/AP_ToshibaCAN.h>
-#endif
 
 // performs pre-arm checks. expects to be called at 1hz.
 void AP_Arming_Blimp::update(void)
@@ -170,127 +167,27 @@ bool AP_Arming_Blimp::parameter_checks(bool display_failure)
             return false;
         }
 
-        // acro balance parameter check
-#if MODE_ACRO_ENABLED == ENABLED || MODE_SPORT_ENABLED == ENABLED
-        if ((blimp.g.acro_balance_roll > blimp.attitude_control->get_angle_roll_p().kP()) || (blimp.g.acro_balance_pitch > blimp.attitude_control->get_angle_pitch_p().kP())) {
-            check_failed(ARMING_CHECK_PARAMETERS, display_failure, "Check ACRO_BAL_ROLL/PITCH");
-            return false;
-        }
-#endif
-
         // pilot-speed-up parameter check
         if (blimp.g.pilot_speed_up <= 0) {
             check_failed(ARMING_CHECK_PARAMETERS, display_failure, "Check PILOT_SPEED_UP");
             return false;
         }
 
-        #if FRAME_CONFIG == HELI_FRAME
-        if (blimp.g2.frame_class.get() != AP_Motors::MOTOR_FRAME_HELI_QUAD &&
-            blimp.g2.frame_class.get() != AP_Motors::MOTOR_FRAME_HELI_DUAL &&
-            blimp.g2.frame_class.get() != AP_Motors::MOTOR_FRAME_HELI) {
-            check_failed(ARMING_CHECK_PARAMETERS, display_failure, "Invalid Heli FRAME_CLASS");
-            return false;
-        }
-
-        // check heliblimp parameters
-        if (!blimp.motors->parameter_check(display_failure)) {
-            check_failed(ARMING_CHECK_PARAMETERS, display_failure, "Heli motors checks failed");
-            return false;
-        }
-
-        char fail_msg[50];
-        // check input mangager parameters
-        if (!blimp.input_manager.parameter_check(fail_msg, ARRAY_SIZE(fail_msg))) {
-            check_failed(ARMING_CHECK_PARAMETERS, display_failure, "%s", fail_msg);
-            return false;
-        }
-
-        // Inverted flight feature disabled for Heli Single and Dual frames
-        if (blimp.g2.frame_class.get() != AP_Motors::MOTOR_FRAME_HELI_QUAD &&
-            rc().find_channel_for_option(RC_Channel::aux_func_t::INVERTED) != nullptr) {
-            check_failed(ARMING_CHECK_PARAMETERS, display_failure, "Inverted flight option not supported");
-            return false;
-        }
-        // Ensure an Aux Channel is configured for motor interlock
-        if (rc().find_channel_for_option(RC_Channel::aux_func_t::MOTOR_INTERLOCK) == nullptr) {
-            check_failed(ARMING_CHECK_PARAMETERS, display_failure, "Motor Interlock not configured");
-            return false;
-        }
-
-        #else
-        if (blimp.g2.frame_class.get() == AP_Motors::MOTOR_FRAME_HELI_QUAD ||
-            blimp.g2.frame_class.get() == AP_Motors::MOTOR_FRAME_HELI_DUAL ||
-            blimp.g2.frame_class.get() == AP_Motors::MOTOR_FRAME_HELI) {
-            check_failed(ARMING_CHECK_PARAMETERS, display_failure, "Invalid MultiBlimp FRAME_CLASS");
-            return false;
-        }
-
         // checks MOT_PWM_MIN/MAX for acceptable values
-        if (!blimp.motors->check_mot_pwm_params()) {
-            check_failed(ARMING_CHECK_PARAMETERS, display_failure, "Check MOT_PWM_MIN/MAX");
-            return false;
-        }
-        #endif // HELI_FRAME
-
-        // checks when using range finder for RTL
-#if MODE_RTL_ENABLED == ENABLED
-        if (blimp.mode_rtl.get_alt_type() == ModeRTL::RTLAltType::RTL_ALTTYPE_TERRAIN) {
-            // get terrain source from wpnav
-            switch (blimp.wp_nav->get_terrain_source()) {
-            case AC_WPNav::TerrainSource::TERRAIN_UNAVAILABLE:
-                check_failed(ARMING_CHECK_PARAMETERS, display_failure, "RTL_ALT_TYPE=1 but no terrain data");
-                return false;
-                break;
-            case AC_WPNav::TerrainSource::TERRAIN_FROM_RANGEFINDER:
-                if (!blimp.rangefinder_state.enabled || !blimp.rangefinder.has_orientation(ROTATION_PITCH_270)) {
-                    check_failed(ARMING_CHECK_PARAMETERS, display_failure, "RTL_ALT_TYPE=1 but no rangefinder");
-                    return false;
-                }
-                // check if RTL_ALT is higher than rangefinder's max range
-                if (blimp.g.rtl_altitude > blimp.rangefinder.max_distance_cm_orient(ROTATION_PITCH_270)) {
-                    check_failed(ARMING_CHECK_PARAMETERS, display_failure, "RTL_ALT_TYPE=1 but RTL_ALT>RNGFND_MAX_CM");
-                    return false;
-                }
-                break;
-            case AC_WPNav::TerrainSource::TERRAIN_FROM_TERRAINDATABASE:
-#if AP_TERRAIN_AVAILABLE && AC_TERRAIN
-                if (!blimp.terrain.enabled()) {
-                    check_failed(ARMING_CHECK_PARAMETERS, display_failure, "RTL_ALT_TYPE=1 but terrain disabled");
-                    return false;
-                }
-                // check terrain data is loaded
-                uint16_t terr_pending, terr_loaded;
-                blimp.terrain.get_statistics(terr_pending, terr_loaded);
-                if (terr_pending != 0) {
-                    check_failed(ARMING_CHECK_PARAMETERS, display_failure, "RTL_ALT_TYPE=1, waiting for terrain data");
-                    return false;
-                }
-#else
-                check_failed(ARMING_CHECK_PARAMETERS, display_failure, "RTL_ALT_TYPE=1 but terrain disabled");
-                return false;
-#endif
-                break;
-            }
-        }
-#endif
-
-        // check adsb avoidance failsafe
-#if HAL_ADSB_ENABLED
-        if (blimp.failsafe.adsb) {
-            check_failed(ARMING_CHECK_PARAMETERS, display_failure, "ADSB threat detected");
-            return false;
-        }
-#endif
+        // if (!blimp.motors->check_mot_pwm_params()) {
+        //     check_failed(ARMING_CHECK_PARAMETERS, display_failure, "Check MOT_PWM_MIN/MAX");
+        //     return false;
+        // }
 
         // ensure controllers are OK with us arming:
-        char failure_msg[50];
-        if (!blimp.pos_control->pre_arm_checks("PSC", failure_msg, ARRAY_SIZE(failure_msg))) {
-            check_failed(ARMING_CHECK_PARAMETERS, display_failure, "Bad parameter: %s", failure_msg);
-            return false;
-        }
-        if (!blimp.attitude_control->pre_arm_checks("ATC", failure_msg, ARRAY_SIZE(failure_msg))) {
-            check_failed(ARMING_CHECK_PARAMETERS, display_failure, "Bad parameter: %s", failure_msg);
-            return false;
+        // char failure_msg[50];
+        // if (!blimp.pos_control->pre_arm_checks("PSC", failure_msg, ARRAY_SIZE(failure_msg))) {
+        //     check_failed(ARMING_CHECK_PARAMETERS, display_failure, "Bad parameter: %s", failure_msg);
+        //     return false;
+        // }
+        // if (!blimp.attitude_control->pre_arm_checks("ATC", failure_msg, ARRAY_SIZE(failure_msg))) {
+        //     check_failed(ARMING_CHECK_PARAMETERS, display_failure, "Bad parameter: %s", failure_msg);
+        //     return false;
         }
     }
 
@@ -306,62 +203,10 @@ bool AP_Arming_Blimp::motor_checks(bool display_failure)
         return false;
     }
 
-	// servo_test check
-#if FRAME_CONFIG == HELI_FRAME
-    if (blimp.motors->servo_test_running()) {
-        check_failed(display_failure, "Servo Test is still running");
-        return false;
-    }
-#endif
     // further checks enabled with parameters
     if (!check_enabled(ARMING_CHECK_PARAMETERS)) {
         return true;
     }
-
-    // if this is a multiblimp using ToshibaCAN ESCs ensure MOT_PMW_MIN = 1000, MOT_PWM_MAX = 2000
-#if HAL_MAX_CAN_PROTOCOL_DRIVERS && (FRAME_CONFIG != HELI_FRAME)
-    bool tcan_active = false;
-    uint8_t tcan_index = 0;
-    const uint8_t num_drivers = AP::can().get_num_drivers();
-    for (uint8_t i = 0; i < num_drivers; i++) {
-        if (AP::can().get_driver_type(i) == AP_CANManager::Driver_Type_ToshibaCAN) {
-            tcan_active = true;
-            tcan_index = i;
-        }
-    }
-    if (tcan_active) {
-        // check motor range parameters
-        if (blimp.motors->get_pwm_output_min() != 1000) {
-            check_failed(display_failure, "TCAN ESCs require MOT_PWM_MIN=1000");
-            return false;
-        }
-        if (blimp.motors->get_pwm_output_max() != 2000) {
-            check_failed(display_failure, "TCAN ESCs require MOT_PWM_MAX=2000");
-            return false;
-        }
-
-        // check we have an ESC present for every SERVOx_FUNCTION = motorx
-        // find and report first missing ESC, extra ESCs are OK
-        AP_ToshibaCAN *tcan = AP_ToshibaCAN::get_tcan(tcan_index);
-        const uint16_t motors_mask = blimp.motors->get_motor_mask();
-        const uint16_t esc_mask = tcan->get_present_mask();
-        uint8_t escs_missing = 0;
-        uint8_t first_missing = 0;
-        for (uint8_t i = 0; i < 16; i++) {
-            uint32_t bit = 1UL << i;
-            if (((motors_mask & bit) > 0) && ((esc_mask & bit) == 0)) {
-                escs_missing++;
-                if (first_missing == 0) {
-                    first_missing = i+1;
-                }
-            }
-        }
-        if (escs_missing > 0) {
-            check_failed(display_failure, "TCAN missing %d escs, check #%d", (int)escs_missing, (int)first_missing);
-            return false;
-        }
-    }
-#endif
 
     return true;
 }
@@ -372,36 +217,13 @@ bool AP_Arming_Blimp::pilot_throttle_checks(bool display_failure)
     // this is near the bottom to allow other failures to be displayed before checking pilot throttle
     if ((checks_to_perform == ARMING_CHECK_ALL) || (checks_to_perform & ARMING_CHECK_RC)) {
         if (blimp.g.failsafe_throttle != FS_THR_DISABLED && blimp.channel_throttle->get_radio_in() < blimp.g.failsafe_throttle_value) {
-            #if FRAME_CONFIG == HELI_FRAME
-            const char *failmsg = "Collective below Failsafe";
-            #else
             const char *failmsg = "Throttle below Failsafe";
-            #endif
             check_failed(ARMING_CHECK_RC, display_failure, "%s", failmsg);
             return false;
         }
     }
 
     return true;
-}
-
-bool AP_Arming_Blimp::oa_checks(bool display_failure)
-{
-#if AC_OAPATHPLANNER_ENABLED == ENABLED
-    char failure_msg[50];
-    if (blimp.g2.oa.pre_arm_check(failure_msg, ARRAY_SIZE(failure_msg))) {
-        return true;
-    }
-    // display failure
-    if (strlen(failure_msg) == 0) {
-        check_failed(display_failure, "%s", "Check Object Avoidance");
-    } else {
-        check_failed(display_failure, "%s", failure_msg);
-    }
-    return false;
-#else
-    return true;
-#endif
 }
 
 bool AP_Arming_Blimp::rc_calibration_checks(bool display_failure)
@@ -431,15 +253,9 @@ bool AP_Arming_Blimp::gps_checks(bool display_failure)
     // check if flight mode requires GPS
     bool mode_requires_gps = blimp.flightmode->requires_GPS();
 
-    // check if fence requires GPS
-    bool fence_requires_gps = false;
-    #if AC_FENCE == ENABLED
-    // if circular or polygon fence is enabled we need GPS
-    fence_requires_gps = (blimp.fence.get_enabled_fences() & (AC_FENCE_TYPE_CIRCLE | AC_FENCE_TYPE_POLYGON)) > 0;
-    #endif
 
     // return true if GPS is not required
-    if (!mode_requires_gps && !fence_requires_gps) {
+    if (!mode_requires_gps) {
         AP_Notify::flags.pre_arm_gps_check = true;
         return true;
     }
@@ -477,37 +293,6 @@ bool AP_Arming_Blimp::pre_arm_ekf_attitude_check()
     return filt_status.flags.attitude;
 }
 
-// check nothing is too close to vehicle
-bool AP_Arming_Blimp::proximity_checks(bool display_failure) const
-{
-#if PROXIMITY_ENABLED == ENABLED
-
-    if (!AP_Arming::proximity_checks(display_failure)) {
-        return false;
-    }
-
-    if (!((checks_to_perform == ARMING_CHECK_ALL) || (checks_to_perform & ARMING_CHECK_PARAMETERS))) {
-        // check is disabled
-        return true;
-    }
-
-    // get closest object if we might use it for avoidance
-#if AC_AVOID_ENABLED == ENABLED
-    float angle_deg, distance;
-    if (blimp.avoid.proximity_avoidance_enabled() && blimp.g2.proximity.get_closest_object(angle_deg, distance)) {
-        // display error if something is within 60cm
-        const float tolerance = 0.6f;
-        if (distance <= tolerance) {
-            check_failed(ARMING_CHECK_PARAMETERS, display_failure, "Proximity %d deg, %4.2fm (want > %0.1fm)", (int)angle_deg, (double)distance, (double)tolerance);
-            return false;
-        }
-    }
-#endif
-
-#endif
-    return true;
-}
-
 // performs mandatory gps checks.  returns true if passed
 bool AP_Arming_Blimp::mandatory_gps_checks(bool display_failure)
 {
@@ -522,27 +307,13 @@ bool AP_Arming_Blimp::mandatory_gps_checks(bool display_failure)
     // check if flight mode requires GPS
     bool mode_requires_gps = blimp.flightmode->requires_GPS();
 
-    // check if fence requires GPS
-    bool fence_requires_gps = false;
-    #if AC_FENCE == ENABLED
-    // if circular or polygon fence is enabled we need GPS
-    fence_requires_gps = (blimp.fence.get_enabled_fences() & (AC_FENCE_TYPE_CIRCLE | AC_FENCE_TYPE_POLYGON)) > 0;
-    #endif
-
     if (mode_requires_gps) {
         if (!blimp.position_ok()) {
             // vehicle level position estimate checks
             check_failed(display_failure, "Need Position Estimate");
             return false;
         }
-    } else {
-        if (fence_requires_gps) {
-            if (!blimp.position_ok()) {
-                // clarify to user why they need GPS in non-GPS flight mode
-                check_failed(display_failure, "Fence enabled, need position estimate");
-                return false;
-            }
-        } else {
+    } else  {
             // return true if GPS is not required
             return true;
         }
@@ -583,28 +354,6 @@ bool AP_Arming_Blimp::gcs_failsafe_check(bool display_failure)
         check_failed(display_failure, "GCS failsafe on");
         return false;
     }
-    return true;
-}
-
-// check winch
-bool AP_Arming_Blimp::winch_checks(bool display_failure) const
-{
-#if WINCH_ENABLED == ENABLED
-    // pass if parameter or all arming checks disabled
-    if (((checks_to_perform & ARMING_CHECK_ALL) == 0) && ((checks_to_perform & ARMING_CHECK_PARAMETERS) == 0)) {
-        return true;
-    }
-
-    const AP_Winch *winch = AP::winch();
-    if (winch == nullptr) {
-        return true;
-    }
-    char failure_msg[50] = {};
-    if (!winch->pre_arm_check(failure_msg, sizeof(failure_msg))) {
-        check_failed(display_failure, "%s", failure_msg);
-        return false;
-    }
-#endif
     return true;
 }
 
@@ -658,23 +407,6 @@ bool AP_Arming_Blimp::arm_checks(AP_Arming::Method method)
         return false;
     }
 
-    // if we are using motor interlock switch and it's enabled, fail to arm
-    // skip check in Throw mode which takes control of the motor interlock
-    if (blimp.ap.using_interlock && blimp.ap.motor_interlock_switch) {
-        check_failed(true, "Motor Interlock Enabled");
-        return false;
-    }
-
-    // if we are not using Emergency Stop switch option, force Estop false to ensure motors
-    // can run normally
-    if (!rc().find_channel_for_option(RC_Channel::AUX_FUNC::MOTOR_ESTOP)){
-        SRV_Channels::set_emergency_stop(false);
-        // if we are using motor Estop switch, it must not be in Estop position
-    } else if (SRV_Channels::get_emergency_stop()){
-        check_failed(true, "Motor Emergency Stopped");
-        return false;
-    }
-
     // succeed if arming checks are disabled
     if (checks_to_perform == 0) {
         return true;
@@ -688,23 +420,9 @@ bool AP_Arming_Blimp::arm_checks(AP_Arming::Method method)
         }
     }
 
-    // check adsb
-#if HAL_ADSB_ENABLED
-    if ((checks_to_perform == ARMING_CHECK_ALL) || (checks_to_perform & ARMING_CHECK_PARAMETERS)) {
-        if (blimp.failsafe.adsb) {
-            check_failed(ARMING_CHECK_PARAMETERS, true, "ADSB threat detected");
-            return false;
-        }
-    }
-#endif
-
     // check throttle
     if ((checks_to_perform == ARMING_CHECK_ALL) || (checks_to_perform & ARMING_CHECK_RC)) {
-         #if FRAME_CONFIG == HELI_FRAME
-        const char *rc_item = "Collective";
-        #else
         const char *rc_item = "Throttle";
-        #endif
         // check throttle is not too low - must be above failsafe throttle
         if (blimp.g.failsafe_throttle != FS_THR_DISABLED && blimp.channel_throttle->get_radio_in() < blimp.g.failsafe_throttle_value) {
             check_failed(ARMING_CHECK_RC, true, "%s below failsafe", rc_item);
@@ -719,12 +437,10 @@ bool AP_Arming_Blimp::arm_checks(AP_Arming::Method method)
                 return false;
             }
             // in manual modes throttle must be at zero
-            #if FRAME_CONFIG != HELI_FRAME
             if ((blimp.flightmode->has_manual_throttle() || control_mode == Mode::Number::DRIFT) && blimp.channel_throttle->get_control_in() > 0) {
                 check_failed(ARMING_CHECK_RC, true, "%s too high", rc_item);
                 return false;
             }
-            #endif
         }
     }
 
@@ -796,9 +512,7 @@ bool AP_Arming_Blimp::arm(const AP_Arming::Method method, const bool do_arming_c
         AP::notify().update();
     }
 
-#if HIL_MODE != HIL_MODE_DISABLED || CONFIG_HAL_BOARD == HAL_BOARD_SITL
-    gcs().send_text(MAV_SEVERITY_INFO, "Arming motors");
-#endif
+    gcs().send_text(MAV_SEVERITY_INFO, "Arming motors"); //MIR kept in - usually only in SITL
 
     // Remember Orientation
     // --------------------
@@ -826,19 +540,9 @@ bool AP_Arming_Blimp::arm(const AP_Arming::Method method, const bool do_arming_c
     }
     blimp.update_super_simple_bearing(false);
 
-    // Reset SmartRTL return location. If activated, SmartRTL will ultimately try to land at this point
-#if MODE_SMARTRTL_ENABLED == ENABLED
-    blimp.g2.smart_rtl.set_home(blimp.position_ok());
-#endif
-
     // enable gps velocity based centrefugal force compensation
     ahrs.set_correct_centrifugal(true);
     hal.util->set_soft_armed(true);
-
-#if SPRAYER_ENABLED == ENABLED
-    // turn off sprayer's test if on
-    blimp.sprayer.test_pump(false);
-#endif
 
     // enable output to motors
     blimp.enable_motor_output();
@@ -883,9 +587,8 @@ bool AP_Arming_Blimp::disarm(const AP_Arming::Method method)
         return false;
     }
 
-#if HIL_MODE != HIL_MODE_DISABLED || CONFIG_HAL_BOARD == HAL_BOARD_SITL
-    gcs().send_text(MAV_SEVERITY_INFO, "Disarming motors");
-#endif
+    gcs().send_text(MAV_SEVERITY_INFO, "Disarming motors"); //MIR keeping in - usually only in SITL
+
 
     AP_AHRS_NavEKF &ahrs = AP::ahrs_navekf();
 
@@ -900,26 +603,12 @@ bool AP_Arming_Blimp::disarm(const AP_Arming::Method method)
         }
     }
 
-#if AUTOTUNE_ENABLED == ENABLED
-    // save auto tuned parameters
-    if (blimp.flightmode == &blimp.mode_autotune) {
-        blimp.mode_autotune.save_tuning_gains();
-    } else {
-        blimp.mode_autotune.reset();
-    }
-#endif
-
     // we are not in the air
     blimp.set_land_complete(true);
     blimp.set_land_complete_maybe(true);
 
     // send disarm command to motors
     blimp.motors->armed(false);
-
-#if MODE_AUTO_ENABLED == ENABLED
-    // reset the mission
-    blimp.mode_auto.mission.reset();
-#endif
 
     AP::logger().set_vehicle_armed(false);
 

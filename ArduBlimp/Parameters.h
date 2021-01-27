@@ -3,13 +3,6 @@
 #include <AP_Common/AP_Common.h>
 #include "RC_Channel.h"
 
-#if GRIPPER_ENABLED == ENABLED
- # include <AP_Gripper/AP_Gripper.h>
-#endif
-#if MODE_FOLLOW_ENABLED == ENABLED
- # include <AP_Follow/AP_Follow.h>
-#endif
-
 // Global parameter class.
 //
 class Parameters {
@@ -395,9 +388,6 @@ public:
     AP_Int16        rtl_altitude;
     AP_Int16        rtl_speed_cms;
     AP_Float        rtl_cone_slope;
-#if RANGEFINDER_ENABLED == ENABLED
-    AP_Float        rangefinder_gain;
-#endif
 
     AP_Int8         failsafe_gcs;               // ground station failsafe behavior
     AP_Int16        gps_hdop_good;              // GPS Hdop value at or below this value represent a good position
@@ -451,10 +441,6 @@ public:
     AP_Float        fs_ekf_thresh;
     AP_Int16        gcs_pid_mask;
 
-#if MODE_THROW_ENABLED == ENABLED
-    AP_Enum<ModeThrow::PreThrowMotorState>         throw_motor_start;
-#endif
-
     AP_Int8         rtl_alt_type;
 
     AP_Int16                rc_speed; // speed of fast RC Channels in Hz
@@ -487,56 +473,30 @@ public:
     // altitude at which nav control can start in takeoff
     AP_Float wp_navalt_min;
 
-    // button checking
-    AP_Button *button_ptr;
+    // // button checking
+    // AP_Button *button_ptr;
 
 #if STATS_ENABLED == ENABLED
     // vehicle statistics
     AP_Stats stats;
 #endif
 
-#if GRIPPER_ENABLED
-    AP_Gripper gripper;
-#endif
-
-#if MODE_THROW_ENABLED == ENABLED
-    // Throw mode parameters
-    AP_Int8 throw_nextmode;
-    AP_Enum<ModeThrow::ThrowType> throw_type;
-#endif
 
     // ground effect compensation enable/disable
-    AP_Int8 gndeffect_comp_enabled;
+    // AP_Int8 gndeffect_comp_enabled;
 
     // temperature calibration handling
-    AP_TempCalibration temp_calibration;
+    // AP_TempCalibration temp_calibration;
 
-#if BEACON_ENABLED == ENABLED
-    // beacon (non-GPS positioning) library
-    AP_Beacon beacon;
-#endif
-
-#if PROXIMITY_ENABLED == ENABLED
-    // proximity (aka object avoidance) library
-    AP_Proximity proximity;
-#endif
 
     // whether to enforce acceptance of packets only from sysid_my_gcs
     AP_Int8 sysid_enforce;
-    
-#if ADVANCED_FAILSAFE == ENABLED
-    // advanced failsafe library
-    AP_AdvancedFailsafe_Blimp afs;
-#endif
 
     // developer options
     AP_Int32 dev_options;
 
     // acro exponent parameters
     AP_Float acro_y_expo;
-#if MODE_ACRO_ENABLED == ENABLED
-    AP_Float acro_thr_mid;
-#endif
 
     // frame class
     AP_Int8 frame_class;
@@ -547,45 +507,12 @@ public:
     // control over servo output ranges
     SRV_Channels servo_channels;
 
-#if MODE_SMARTRTL_ENABLED == ENABLED
-    // Safe RTL library
-    AP_SmartRTL smart_rtl;
-#endif
-
-    // wheel encoder and winch
-#if WINCH_ENABLED == ENABLED
-    AP_Winch winch;
-#endif
-
     // Additional pilot velocity items
     AP_Int16    pilot_speed_dn;
 
     // Land alt final stage
     AP_Int16 land_alt_low;
 
-#if TOY_MODE_ENABLED == ENABLED
-    ToyMode toy_mode;
-#endif
-
-#if OPTFLOW == ENABLED
-    // we need a pointer to the mode for the G2 table
-    void *mode_flowhold_ptr;
-#endif
-
-#if MODE_FOLLOW_ENABLED == ENABLED
-    // follow
-    AP_Follow follow;
-#endif
-
-#ifdef USER_PARAMS_ENABLED
-    // User custom parameters
-    UserParameters user_parameters;
-#endif
-
-#if AUTOTUNE_ENABLED == ENABLED
-    // we need a pointer to autotune for the G2 table
-    void *autotune_ptr;
-#endif
 
 #ifdef ENABLE_SCRIPTING
     AP_Scripting scripting;
@@ -594,49 +521,13 @@ public:
     AP_Float tuning_min;
     AP_Float tuning_max;
 
-#if AC_OAPATHPLANNER_ENABLED == ENABLED
-    // object avoidance path planning
-    AP_OAPathPlanner oa;
-#endif
-
-#if MODE_SYSTEMID_ENABLED == ENABLED
-    // we need a pointer to the mode for the G2 table
-    void *mode_systemid_ptr;
-#endif
-
     // vibration failsafe enable/disable
     AP_Int8 fs_vibe_enabled;
 
     // Failsafe options bitmask #36
     AP_Int32 fs_options;
 
-#if MODE_AUTOROTATE_ENABLED == ENABLED
-    // Autonmous autorotation
-    AC_Autorotation arot;
-#endif
-
-#if MODE_ZIGZAG_ENABLED == ENABLED
-    // we need a pointer to the mode for the G2 table
-    void *mode_zigzag_ptr;
-#endif
-
-#if MODE_ACRO_ENABLED == ENABLED
-    AP_Int8 acro_options;
-#endif
-
-#if MODE_AUTO_ENABLED == ENABLED
-    AP_Int32 auto_options;
-#endif
-
-#if MODE_GUIDED_ENABLED == ENABLED
-    AP_Int32 guided_options;
-#endif
-
     AP_Float fs_gcs_timeout;
-
-#if MODE_RTL_ENABLED == ENABLED
-    AP_Int32 rtl_options;
-#endif
 
 };
 

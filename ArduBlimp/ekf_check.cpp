@@ -121,9 +121,6 @@ bool Blimp::ekf_over_threshold()
     }
 
     bool optflow_healthy = false;
-#if OPTFLOW == ENABLED
-    optflow_healthy = optflow.healthy();
-#endif
     if (!optflow_healthy && (vel_variance >= (2.0f * g.fs_ekf_thresh))) {
         over_thresh_count += 2;
     } else if (vel_variance >= g.fs_ekf_thresh) {
@@ -150,11 +147,12 @@ void Blimp::failsafe_ekf_event()
     failsafe.ekf = true;
     AP::logger().Write_Error(LogErrorSubsystem::FAILSAFE_EKFINAV, LogErrorCode::FAILSAFE_OCCURRED);
 
-    // sometimes LAND *does* require GPS so ensure we are in non-GPS land
-    if (control_mode == Mode::Number::LAND && landing_with_GPS()) {
-        mode_land.do_not_use_GPS();
-        return;
-    }
+    // // sometimes LAND *does* require GPS so ensure we are in non-GPS land
+    // if (control_mode == Mode::Number::LAND && landing_with_GPS()) {
+    //     mode_land.do_not_use_GPS();
+    //     return;
+    // }
+    // LAND never requires GPS.
 
     // does this mode require position?
     if (!blimp.flightmode->requires_GPS() && (g.fs_ekf_action != FS_EKF_ACTION_LAND_EVEN_STABILIZE)) {
@@ -163,12 +161,6 @@ void Blimp::failsafe_ekf_event()
 
     // take action based on fs_ekf_action parameter
     switch (g.fs_ekf_action) {
-        case FS_EKF_ACTION_ALTHOLD:
-            // AltHold
-            if (failsafe.radio || !set_mode(Mode::Number::ALT_HOLD, ModeReason::EKF_FAILSAFE)) {
-                set_mode_land_with_pause(ModeReason::EKF_FAILSAFE);
-            }
-            break;
         case FS_EKF_ACTION_LAND:
         case FS_EKF_ACTION_LAND_EVEN_STABILIZE:
         default:
@@ -196,7 +188,7 @@ void Blimp::check_ekf_reset()
     float yaw_angle_change_rad;
     uint32_t new_ekfYawReset_ms = ahrs.getLastYawResetAngle(yaw_angle_change_rad);
     if (new_ekfYawReset_ms != ekfYawReset_ms) {
-        attitude_control->inertial_frame_reset();
+        // attitude_control->inertial_frame_reset();
         ekfYawReset_ms = new_ekfYawReset_ms;
         AP::logger().Write_Event(LogEvent::EKF_YAW_RESET);
     }
@@ -204,7 +196,7 @@ void Blimp::check_ekf_reset()
 #if AP_AHRS_NAVEKF_AVAILABLE && (HAL_NAVEKF2_AVAILABLE || HAL_NAVEKF3_AVAILABLE)
     // check for change in primary EKF, reset attitude target and log.  AC_PosControl handles position target adjustment
     if ((ahrs.get_primary_core_index() != ekf_primary_core) && (ahrs.get_primary_core_index() != -1)) {
-        attitude_control->inertial_frame_reset();
+        // attitude_control->inertial_frame_reset();
         ekf_primary_core = ahrs.get_primary_core_index();
         AP::logger().Write_Error(LogErrorSubsystem::EKF_PRIMARY, LogErrorCode(ekf_primary_core));
         gcs().send_text(MAV_SEVERITY_WARNING, "EKF primary changed:%d", (unsigned)ekf_primary_core);
@@ -250,7 +242,7 @@ void Blimp::check_vibration()
             if (now - vibration_check.clear_ms > 15000) {
                 // restore ekf gains, reset timers and update user
                 vibration_check.high_vibes = false;
-                pos_control->set_vibe_comp(false);
+                // pos_control->set_vibe_comp(false);
                 vibration_check.clear_ms = 0;
                 AP::logger().Write_Error(LogErrorSubsystem::FAILSAFE_VIBE, LogErrorCode::FAILSAFE_RESOLVED);
                 gcs().send_text(MAV_SEVERITY_CRITICAL, "Vibration compensation OFF");
@@ -272,7 +264,7 @@ void Blimp::check_vibration()
         if (!vibration_check.high_vibes) {
             // switch ekf to use resistant gains
             vibration_check.high_vibes = true;
-            pos_control->set_vibe_comp(true);
+            // pos_control->set_vibe_comp(true);
             AP::logger().Write_Error(LogErrorSubsystem::FAILSAFE_VIBE, LogErrorCode::FAILSAFE_OCCURRED);
             gcs().send_text(MAV_SEVERITY_CRITICAL, "Vibration compensation ON");
         }

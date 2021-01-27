@@ -57,14 +57,6 @@
  # define FRAME_CONFIG   MULTICOPTER_FRAME
 #endif
 
-/////////////////////////////////////////////////////////////////////////////////
-// TradHeli defaults
-#if FRAME_CONFIG == HELI_FRAME
-  # define RC_FAST_SPEED                        125
-  # define WP_YAW_BEHAVIOR_DEFAULT              WP_YAW_BEHAVIOR_LOOK_AHEAD
-  # define AUTOTUNE_ENABLED                     DISABLED
-#endif
-
 //////////////////////////////////////////////////////////////////////////////
 // PWM control
 // default RC speed in Hz
@@ -338,40 +330,6 @@
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
-// Throw - fly vehicle after throwing it in the air
-#ifndef MODE_THROW_ENABLED
-# define MODE_THROW_ENABLED ENABLED
-#endif
-
-//////////////////////////////////////////////////////////////////////////////
-// ZigZag - allow vehicle to fly in a zigzag manner with predefined point A B
-#ifndef MODE_ZIGZAG_ENABLED
-# define MODE_ZIGZAG_ENABLED !HAL_MINIMIZE_FEATURES
-#endif
-
-//////////////////////////////////////////////////////////////////////////////
-
-//////////////////////////////////////////////////////////////////////////////
-// Autorotate - autonomous auto-rotation - helicopters only
-#if CONFIG_HAL_BOARD == HAL_BOARD_SITL
-    #if FRAME_CONFIG == HELI_FRAME
-        #ifndef MODE_AUTOROTATE_ENABLED
-        # define MODE_AUTOROTATE_ENABLED !HAL_MINIMIZE_FEATURES
-        #endif
-    #else
-        # define MODE_AUTOROTATE_ENABLED DISABLED
-    #endif
-#else
-    # define MODE_AUTOROTATE_ENABLED DISABLED
-#endif
-//////////////////////////////////////////////////////////////////////////////
-
-// Beacon support - support for local positioning systems
-#ifndef BEACON_ENABLED
-# define BEACON_ENABLED !HAL_MINIMIZE_FEATURES
-#endif
-
-//////////////////////////////////////////////////////////////////////////////
 // Button - Enable the button connected to AUX1-6
 #ifndef BUTTON_ENABLED
  # define BUTTON_ENABLED ENABLED
@@ -388,22 +346,22 @@
 //
 
 #ifndef FLIGHT_MODE_1
- # define FLIGHT_MODE_1                  Mode::Number::STABILIZE
+ # define FLIGHT_MODE_1                  Mode::Number::MANUAL
 #endif
 #ifndef FLIGHT_MODE_2
- # define FLIGHT_MODE_2                  Mode::Number::STABILIZE
+ # define FLIGHT_MODE_2                  Mode::Number::MANUAL
 #endif
 #ifndef FLIGHT_MODE_3
- # define FLIGHT_MODE_3                  Mode::Number::STABILIZE
+ # define FLIGHT_MODE_3                  Mode::Number::MANUAL
 #endif
 #ifndef FLIGHT_MODE_4
- # define FLIGHT_MODE_4                  Mode::Number::STABILIZE
+ # define FLIGHT_MODE_4                  Mode::Number::MANUAL
 #endif
 #ifndef FLIGHT_MODE_5
- # define FLIGHT_MODE_5                  Mode::Number::STABILIZE
+ # define FLIGHT_MODE_5                  Mode::Number::MANUAL
 #endif
 #ifndef FLIGHT_MODE_6
- # define FLIGHT_MODE_6                  Mode::Number::STABILIZE
+ # define FLIGHT_MODE_6                  Mode::Number::MANUAL
 #endif
 
 
@@ -650,115 +608,14 @@
     MASK_LOG_MOTBATT
 #endif
 
-//////////////////////////////////////////////////////////////////////////////
-// Fence, Rally and Terrain and AC_Avoidance defaults
-//
-
-// Enable/disable Fence
-#ifndef AC_FENCE
- #define AC_FENCE ENABLED
-#endif
-
-#ifndef AC_RALLY
- #define AC_RALLY   ENABLED
-#endif
-
-#ifndef AC_TERRAIN
- #define AC_TERRAIN ENABLED
-#endif
-
-#if AC_TERRAIN && !AC_RALLY
- #error Terrain relies on Rally which is disabled
-#endif
-
-#ifndef AC_AVOID_ENABLED
- #define AC_AVOID_ENABLED   ENABLED
-#endif
-
-#ifndef AC_OAPATHPLANNER_ENABLED
- #define AC_OAPATHPLANNER_ENABLED   !HAL_MINIMIZE_FEATURES
-#endif
-
-#if AC_AVOID_ENABLED && !PROXIMITY_ENABLED
-  #error AC_Avoidance relies on PROXIMITY_ENABLED which is disabled
-#endif
-#if AC_AVOID_ENABLED && !AC_FENCE
-  #error AC_Avoidance relies on AC_FENCE which is disabled
-#endif
-
-#if MODE_FOLLOW_ENABLED && !AC_AVOID_ENABLED
-  #error Follow Mode relies on AC_AVOID which is disabled
-#endif
-
-#if MODE_AUTO_ENABLED && !MODE_GUIDED_ENABLED
-  #error ModeAuto requires ModeGuided which is disabled
-#endif
-
-#if MODE_AUTO_ENABLED && !MODE_CIRCLE_ENABLED
-  #error ModeAuto requires ModeCircle which is disabled
-#endif
-
-#if MODE_AUTO_ENABLED && !MODE_RTL_ENABLED
-  #error ModeAuto requires ModeRTL which is disabled
-#endif
-
-#if AC_TERRAIN && !MODE_AUTO_ENABLED
-  #error Terrain requires ModeAuto which is disabled
-#endif
-
-#if FRAME_CONFIG == HELI_FRAME && !MODE_ACRO_ENABLED
-  #error Helicopter frame requires acro mode support which is disabled
-#endif
-
-#if MODE_SMARTRTL_ENABLED && !MODE_RTL_ENABLED
-  #error SmartRTL requires ModeRTL which is disabled
-#endif
-
-#if HAL_ADSB_ENABLED && !MODE_GUIDED_ENABLED
-  #error ADSB requires ModeGuided which is disabled
-#endif
-
-#if MODE_FOLLOW_ENABLED && !MODE_GUIDED_ENABLED
-  #error Follow requires ModeGuided which is disabled
-#endif
-
-#if MODE_GUIDED_NOGPS_ENABLED && !MODE_GUIDED_ENABLED
-  #error ModeGuided-NoGPS requires ModeGuided which is disabled
-#endif
-
-//////////////////////////////////////////////////////////////////////////////
-// Developer Items
-//
-
-//use this to completely disable FRSKY TELEM
-#ifndef FRSKY_TELEM_ENABLED
-  #  define FRSKY_TELEM_ENABLED          ENABLED
-#endif
-
-#ifndef ADVANCED_FAILSAFE
-# define ADVANCED_FAILSAFE DISABLED
-#endif
-
 #ifndef CH_MODE_DEFAULT
  # define CH_MODE_DEFAULT   5
-#endif
-
-#ifndef TOY_MODE_ENABLED
-#define TOY_MODE_ENABLED DISABLED
-#endif
-
-#if TOY_MODE_ENABLED && FRAME_CONFIG == HELI_FRAME
-  #error Toy mode is not available on Helicopters
 #endif
 
 #ifndef STATS_ENABLED
  # define STATS_ENABLED ENABLED
 #endif
 
-#ifndef OSD_ENABLED
- #define OSD_ENABLED DISABLED
-#endif
-
 #ifndef HAL_FRAME_TYPE_DEFAULT
-#define HAL_FRAME_TYPE_DEFAULT AP_Motors::MOTOR_FRAME_TYPE_X
+#define HAL_FRAME_TYPE_DEFAULT Fins::MOTOR_FRAME_TYPE_AIRFISH
 #endif

@@ -28,25 +28,26 @@ MAV_MODE GCS_MAVLINK_Blimp::base_mode() const
     // only get useful information from the custom_mode, which maps to
     // the APM flight mode and has a well defined meaning in the
     // ArduPlane documentation
-    switch (blimp.control_mode) {
-    case Mode::Number::AUTO:
-    case Mode::Number::RTL:
-    case Mode::Number::LOITER:
-    case Mode::Number::AVOID_ADSB:
-    case Mode::Number::FOLLOW:
-    case Mode::Number::GUIDED:
-    case Mode::Number::CIRCLE:
-    case Mode::Number::POSHOLD:
-    case Mode::Number::BRAKE:
-    case Mode::Number::SMART_RTL:
-        _base_mode |= MAV_MODE_FLAG_GUIDED_ENABLED;
-        // note that MAV_MODE_FLAG_AUTO_ENABLED does not match what
-        // APM does in any mode, as that is defined as "system finds its own goal
-        // positions", which APM does not currently do
-        break;
-    default:
-        break;
-    }
+
+    // switch (blimp.control_mode) {
+    // case Mode::Number::AUTO:
+    // case Mode::Number::RTL:
+    // case Mode::Number::LOITER:
+    // case Mode::Number::AVOID_ADSB:
+    // case Mode::Number::FOLLOW:
+    // case Mode::Number::GUIDED:
+    // case Mode::Number::CIRCLE:
+    // case Mode::Number::POSHOLD:
+    // case Mode::Number::BRAKE:
+    // case Mode::Number::SMART_RTL:
+    //     _base_mode |= MAV_MODE_FLAG_GUIDED_ENABLED;
+    //     // note that MAV_MODE_FLAG_AUTO_ENABLED does not match what
+    //     // APM does in any mode, as that is defined as "system finds its own goal
+    //     // positions", which APM does not currently do
+    //     break;
+    // default:
+    //     break;
+    // }
 
     // all modes except INITIALISING have some form of manual
     // override if stick mixing is enabled
@@ -111,67 +112,67 @@ void GCS_MAVLINK_Blimp::send_position_target_global_int()
         0.0f); // yaw_rate
 }
 
-void GCS_MAVLINK_Blimp::send_position_target_local_ned()
-{
-#if MODE_GUIDED_ENABLED == ENABLED
-    if (!blimp.flightmode->in_guided_mode()) {
-        return;
-    }
+// void GCS_MAVLINK_Blimp::send_position_target_local_ned()
+// {
+// #if MODE_GUIDED_ENABLED == ENABLED
+//     if (!blimp.flightmode->in_guided_mode()) {
+//         return;
+//     }
     
-    const GuidedMode guided_mode = blimp.mode_guided.mode();
-    Vector3f target_pos;
-    Vector3f target_vel;
-    uint16_t type_mask;
+//     const GuidedMode guided_mode = blimp.mode_guided.mode();
+//     Vector3f target_pos;
+//     Vector3f target_vel;
+//     uint16_t type_mask;
 
-    if (guided_mode == Guided_WP) {
-        type_mask = 0x0FF8; // ignore everything except position
-        target_pos = blimp.wp_nav->get_wp_destination() * 0.01f; // convert to metres
-    } else if (guided_mode == Guided_Velocity) {
-        type_mask = 0x0FC7; // ignore everything except velocity
-        target_vel = blimp.flightmode->get_desired_velocity() * 0.01f; // convert to m/s
-    } else {
-        type_mask = 0x0FC0; // ignore everything except position & velocity
-        target_pos = blimp.wp_nav->get_wp_destination() * 0.01f;
-        target_vel = blimp.flightmode->get_desired_velocity() * 0.01f;
-    }
+//     if (guided_mode == Guided_WP) {
+//         type_mask = 0x0FF8; // ignore everything except position
+//         target_pos = blimp.wp_nav->get_wp_destination() * 0.01f; // convert to metres
+//     } else if (guided_mode == Guided_Velocity) {
+//         type_mask = 0x0FC7; // ignore everything except velocity
+//         target_vel = blimp.flightmode->get_desired_velocity() * 0.01f; // convert to m/s
+//     } else {
+//         type_mask = 0x0FC0; // ignore everything except position & velocity
+//         target_pos = blimp.wp_nav->get_wp_destination() * 0.01f;
+//         target_vel = blimp.flightmode->get_desired_velocity() * 0.01f;
+//     }
 
-    mavlink_msg_position_target_local_ned_send(
-        chan,
-        AP_HAL::millis(), // time boot ms
-        MAV_FRAME_LOCAL_NED, 
-        type_mask,
-        target_pos.x, // x in metres
-        target_pos.y, // y in metres
-        -target_pos.z, // z in metres NED frame
-        target_vel.x, // vx in m/s
-        target_vel.y, // vy in m/s
-        -target_vel.z, // vz in m/s NED frame
-        0.0f, // afx
-        0.0f, // afy
-        0.0f, // afz
-        0.0f, // yaw
-        0.0f); // yaw_rate
-#endif
-}
+//     mavlink_msg_position_target_local_ned_send(
+//         chan,
+//         AP_HAL::millis(), // time boot ms
+//         MAV_FRAME_LOCAL_NED, 
+//         type_mask,
+//         target_pos.x, // x in metres
+//         target_pos.y, // y in metres
+//         -target_pos.z, // z in metres NED frame
+//         target_vel.x, // vx in m/s
+//         target_vel.y, // vy in m/s
+//         -target_vel.z, // vz in m/s NED frame
+//         0.0f, // afx
+//         0.0f, // afy
+//         0.0f, // afz
+//         0.0f, // yaw
+//         0.0f); // yaw_rate
+// #endif
+// }
 
-void GCS_MAVLINK_Blimp::send_nav_controller_output() const
-{
-    if (!blimp.ap.initialised) {
-        return;
-    }
-    const Vector3f &targets = blimp.attitude_control->get_att_target_euler_cd();
-    const Mode *flightmode = blimp.flightmode;
-    mavlink_msg_nav_controller_output_send(
-        chan,
-        targets.x * 1.0e-2f,
-        targets.y * 1.0e-2f,
-        targets.z * 1.0e-2f,
-        flightmode->wp_bearing() * 1.0e-2f,
-        MIN(flightmode->wp_distance() * 1.0e-2f, UINT16_MAX),
-        blimp.pos_control->get_alt_error() * 1.0e-2f,
-        0,
-        flightmode->crosstrack_error() * 1.0e-2f);
-}
+// void GCS_MAVLINK_Blimp::send_nav_controller_output() const
+// {
+//     if (!blimp.ap.initialised) {
+//         return;
+//     }
+//     const Vector3f &targets = blimp.attitude_control->get_att_target_euler_cd();
+//     const Mode *flightmode = blimp.flightmode;
+//     mavlink_msg_nav_controller_output_send(
+//         chan,
+//         targets.x * 1.0e-2f,
+//         targets.y * 1.0e-2f,
+//         targets.z * 1.0e-2f,
+//         flightmode->wp_bearing() * 1.0e-2f,
+//         MIN(flightmode->wp_distance() * 1.0e-2f, UINT16_MAX),
+//         blimp.pos_control->get_alt_error() * 1.0e-2f,
+//         0,
+//         flightmode->crosstrack_error() * 1.0e-2f);
+// }
 
 float GCS_MAVLINK_Blimp::vfr_hud_airspeed() const
 {
@@ -211,19 +212,19 @@ void GCS_MAVLINK_Blimp::send_pid_tuning()
             return;
         }
         const AP_Logger::PID_Info *pid_info = nullptr;
-        switch (axes[i]) {
-        case PID_TUNING_ROLL:
-            pid_info = &blimp.attitude_control->get_rate_roll_pid().get_pid_info();
-            break;
-        case PID_TUNING_PITCH:
-            pid_info = &blimp.attitude_control->get_rate_pitch_pid().get_pid_info();
-            break;
-        case PID_TUNING_YAW:
-            pid_info = &blimp.attitude_control->get_rate_yaw_pid().get_pid_info();
-            break;
-        case PID_TUNING_ACCZ:
-            pid_info = &blimp.pos_control->get_accel_z_pid().get_pid_info();
-            break;
+        switch (axes[i]) { //MIR Temp
+        // case PID_TUNING_ROLL:
+        //     pid_info = &blimp.attitude_control->get_rate_roll_pid().get_pid_info();
+        //     break;
+        // case PID_TUNING_PITCH:
+        //     pid_info = &blimp.attitude_control->get_rate_pitch_pid().get_pid_info();
+        //     break;
+        // case PID_TUNING_YAW:
+        //     pid_info = &blimp.attitude_control->get_rate_yaw_pid().get_pid_info();
+        //     break;
+        // case PID_TUNING_ACCZ:
+        //     pid_info = &blimp.pos_control->get_accel_z_pid().get_pid_info();
+        //     break;
         default:
             continue;
         }
@@ -238,18 +239,6 @@ void GCS_MAVLINK_Blimp::send_pid_tuning()
                                         pid_info->D);
         }
     }
-}
-
-// send winch status message
-void GCS_MAVLINK_Blimp::send_winch_status() const
-{
-#if WINCH_ENABLED == ENABLED
-    AP_Winch *winch = AP::winch();
-    if (winch == nullptr) {
-        return;
-    }
-    winch->send_status(*this);
-#endif
 }
 
 uint8_t GCS_MAVLINK_Blimp::sysid_my_gcs() const
@@ -275,13 +264,6 @@ bool GCS_MAVLINK_Blimp::try_send_message(enum ap_message id)
 {
     switch(id) {
 
-    case MSG_TERRAIN:
-#if AP_TERRAIN_AVAILABLE && AC_TERRAIN
-        CHECK_PAYLOAD_SIZE(TERRAIN_REQUEST);
-        blimp.terrain.send_request(chan);
-#endif
-        break;
-
     case MSG_WIND:
         CHECK_PAYLOAD_SIZE(WIND);
         send_wind();
@@ -292,24 +274,6 @@ bool GCS_MAVLINK_Blimp::try_send_message(enum ap_message id)
     case MSG_LANDING:
         // unused
         break;
-
-    case MSG_ADSB_VEHICLE: {
-#if HAL_ADSB_ENABLED
-        CHECK_PAYLOAD_SIZE(ADSB_VEHICLE);
-        blimp.adsb.send_adsb_vehicle(chan);
-#endif
-#if AC_OAPATHPLANNER_ENABLED == ENABLED
-        AP_OADatabase *oadb = AP_OADatabase::get_singleton();
-        if (oadb != nullptr) {
-            CHECK_PAYLOAD_SIZE(ADSB_VEHICLE);
-            uint16_t interval_ms = 0;
-            if (get_ap_message_interval(id, interval_ms)) {
-                oadb->send_adsb_vehicle(chan, interval_ms);
-            }
-        }
-#endif
-        break;
-    }
 
     default:
         return GCS_MAVLINK::try_send_message(id);
@@ -399,15 +363,6 @@ const AP_Param::GroupInfo GCS_MAVLINK_Parameters::var_info[] = {
     // @Increment: 1
     // @User: Advanced
     AP_GROUPINFO("PARAMS",   8, GCS_MAVLINK_Parameters, streamRates[8],  0),
-
-    // @Param: ADSB
-    // @DisplayName: ADSB stream rate to ground station
-    // @Description: ADSB stream rate to ground station
-    // @Units: Hz
-    // @Range: 0 50
-    // @Increment: 1
-    // @User: Advanced
-    AP_GROUPINFO("ADSB",   9, GCS_MAVLINK_Parameters, streamRates[9],  0),
 AP_GROUPEND
 };
 
@@ -458,9 +413,6 @@ static const ap_message STREAM_EXTRA3_msgs[] = {
     MSG_WIND,
     MSG_RANGEFINDER,
     MSG_DISTANCE_SENSOR,
-#if AP_TERRAIN_AVAILABLE && AC_TERRAIN
-    MSG_TERRAIN,
-#endif
     MSG_BATTERY2,
     MSG_BATTERY_STATUS,
     MSG_MOUNT_STATUS,
@@ -497,11 +449,11 @@ const struct GCS_MAVLINK::stream_entries GCS_MAVLINK::all_stream_entries[] = {
 
 bool GCS_MAVLINK_Blimp::handle_guided_request(AP_Mission::Mission_Command &cmd)
 {
-#if MODE_AUTO_ENABLED == ENABLED
-    return blimp.mode_auto.do_guided(cmd);
-#else
+// #if MODE_AUTO_ENABLED == ENABLED
+//     // return blimp.mode_auto.do_guided(cmd);
+// #else
     return false;
-#endif
+// #endif
 }
 
 void GCS_MAVLINK_Blimp::handle_change_alt_request(AP_Mission::Mission_Command &cmd)
@@ -517,16 +469,6 @@ void GCS_MAVLINK_Blimp::handle_change_alt_request(AP_Mission::Mission_Command &c
 void GCS_MAVLINK_Blimp::packetReceived(const mavlink_status_t &status,
                                         const mavlink_message_t &msg)
 {
-#if HAL_ADSB_ENABLED
-    if (blimp.g2.dev_options.get() & DevOptionADSBMAVLink) {
-        // optional handling of GLOBAL_POSITION_INT as a MAVLink based avoidance source
-        blimp.avoidance_adsb.handle_msg(msg);
-    }
-#endif
-#if MODE_FOLLOW_ENABLED == ENABLED
-    // pass message to follow library
-    blimp.g2.follow.handle_msg(msg);
-#endif
     GCS_MAVLINK::packetReceived(status, msg);
 }
 
@@ -713,41 +655,26 @@ MAV_RESULT GCS_MAVLINK_Blimp::handle_command_long_packet(const mavlink_command_l
         return MAV_RESULT_ACCEPTED;
     }
 
-#if MODE_AUTO_ENABLED == ENABLED
-    case MAV_CMD_DO_LAND_START:
-        if (blimp.mode_auto.mission.jump_to_landing_sequence() && blimp.set_mode(Mode::Number::AUTO, ModeReason::GCS_COMMAND)) {
-            return MAV_RESULT_ACCEPTED;
-        }
-        return MAV_RESULT_FAILED;
-#endif
+// #if MODE_AUTO_ENABLED == ENABLED
+//     case MAV_CMD_DO_LAND_START:
+//         if (blimp.mode_auto.mission.jump_to_landing_sequence() && blimp.set_mode(Mode::Number::AUTO, ModeReason::GCS_COMMAND)) {
+//             return MAV_RESULT_ACCEPTED;
+//         }
+//         return MAV_RESULT_FAILED;
+// #endif
 
-    case MAV_CMD_NAV_LOITER_UNLIM:
-        if (!blimp.set_mode(Mode::Number::LOITER, ModeReason::GCS_COMMAND)) {
-            return MAV_RESULT_FAILED;
-        }
-        return MAV_RESULT_ACCEPTED;
+    // case MAV_CMD_NAV_LOITER_UNLIM:
+    //     if (!blimp.set_mode(Mode::Number::LOITER, ModeReason::GCS_COMMAND)) {
+    //         return MAV_RESULT_FAILED;
+    //     }
+    //     return MAV_RESULT_ACCEPTED;
 
-    case MAV_CMD_NAV_RETURN_TO_LAUNCH:
-        if (!blimp.set_mode(Mode::Number::RTL, ModeReason::GCS_COMMAND)) {
-            return MAV_RESULT_FAILED;
-        }
-        return MAV_RESULT_ACCEPTED;
+    // case MAV_CMD_NAV_RETURN_TO_LAUNCH:
+    //     if (!blimp.set_mode(Mode::Number::RTL, ModeReason::GCS_COMMAND)) {
+    //         return MAV_RESULT_FAILED;
+    //     }
+    //     return MAV_RESULT_ACCEPTED;
 
-    case MAV_CMD_NAV_LAND:
-        if (!blimp.set_mode(Mode::Number::LAND, ModeReason::GCS_COMMAND)) {
-            return MAV_RESULT_FAILED;
-        }
-        return MAV_RESULT_ACCEPTED;
-
-#if MODE_FOLLOW_ENABLED == ENABLED
-    case MAV_CMD_DO_FOLLOW:
-        // param1: sysid of target to follow
-        if ((packet.param1 > 0) && (packet.param1 <= 255)) {
-            blimp.g2.follow.set_target_sysid((uint8_t)packet.param1);
-            return MAV_RESULT_ACCEPTED;
-        }
-        return MAV_RESULT_FAILED;
-#endif
 
     case MAV_CMD_CONDITION_YAW:
         // param1 : target angle [0-360]
@@ -783,38 +710,19 @@ MAV_RESULT GCS_MAVLINK_Blimp::handle_command_long_packet(const mavlink_command_l
         }
         return MAV_RESULT_FAILED;
 
-#if MODE_AUTO_ENABLED == ENABLED
-    case MAV_CMD_MISSION_START:
-        if (blimp.motors->armed() &&
-            blimp.set_mode(Mode::Number::AUTO, ModeReason::GCS_COMMAND)) {
-            blimp.set_auto_armed(true);
-            if (blimp.mode_auto.mission.state() != AP_Mission::MISSION_RUNNING) {
-                blimp.mode_auto.mission.start_or_resume();
-            }
-            return MAV_RESULT_ACCEPTED;
-        }
-        return MAV_RESULT_FAILED;
-#endif
+// #if MODE_AUTO_ENABLED == ENABLED
+//     case MAV_CMD_MISSION_START:
+//         if (blimp.motors->armed() &&
+//             blimp.set_mode(Mode::Number::AUTO, ModeReason::GCS_COMMAND)) {
+//             blimp.set_auto_armed(true);
+//             if (blimp.mode_auto.mission.state() != AP_Mission::MISSION_RUNNING) {
+//                 blimp.mode_auto.mission.start_or_resume();
+//             }
+//             return MAV_RESULT_ACCEPTED;
+//         }
+//         return MAV_RESULT_FAILED;
+// #endif
 
-#if PARACHUTE == ENABLED
-    case MAV_CMD_DO_PARACHUTE:
-        // configure or release parachute
-        switch ((uint16_t)packet.param1) {
-        case PARACHUTE_DISABLE:
-            blimp.parachute.enabled(false);
-            AP::logger().Write_Event(LogEvent::PARACHUTE_DISABLED);
-            return MAV_RESULT_ACCEPTED;
-        case PARACHUTE_ENABLE:
-            blimp.parachute.enabled(true);
-            AP::logger().Write_Event(LogEvent::PARACHUTE_ENABLED);
-            return MAV_RESULT_ACCEPTED;
-        case PARACHUTE_RELEASE:
-            // treat as a manual release which performs some additional check of altitude
-            blimp.parachute_manual_release();
-            return MAV_RESULT_ACCEPTED;
-        }
-        return MAV_RESULT_FAILED;
-#endif
 
     case MAV_CMD_DO_MOTOR_TEST:
         // param1 : motor sequence number (a number from 1 to max number of motors on the vehicle)
@@ -830,108 +738,25 @@ MAV_RESULT GCS_MAVLINK_Blimp::handle_command_long_packet(const mavlink_command_l
                                                packet.param4,
                                                (uint8_t)packet.param5);
 
-#if WINCH_ENABLED == ENABLED
-    case MAV_CMD_DO_WINCH:
-        // param1 : winch number (ignored)
-        // param2 : action (0=relax, 1=relative length control, 2=rate control). See WINCH_ACTIONS enum.
-        if (!blimp.g2.winch.enabled()) {
-            return MAV_RESULT_FAILED;
-        }
-        switch ((uint8_t)packet.param2) {
-        case WINCH_RELAXED:
-            blimp.g2.winch.relax();
-            return MAV_RESULT_ACCEPTED;
-        case WINCH_RELATIVE_LENGTH_CONTROL: {
-            blimp.g2.winch.release_length(packet.param3);
-            return MAV_RESULT_ACCEPTED;
-        }
-        case WINCH_RATE_CONTROL:
-            blimp.g2.winch.set_desired_rate(packet.param4);
-            return MAV_RESULT_ACCEPTED;
-        default:
-            break;
-        }
-        return MAV_RESULT_FAILED;
-#endif
-
-        case MAV_CMD_AIRFRAME_CONFIGURATION: {
-            // Param 1: Select which gear, not used in ArduPilot
-            // Param 2: 0 = Deploy, 1 = Retract
-            // For safety, anything other than 1 will deploy
-            switch ((uint8_t)packet.param2) {
-                case 1:
-                    blimp.landinggear.set_position(AP_LandingGear::LandingGear_Retract);
-                    return MAV_RESULT_ACCEPTED;
-                default:
-                    blimp.landinggear.set_position(AP_LandingGear::LandingGear_Deploy);
-                    return MAV_RESULT_ACCEPTED;
-            }
-            return MAV_RESULT_FAILED;
-        }
-
-        /* Solo user presses Fly button */
-    case MAV_CMD_SOLO_BTN_FLY_CLICK: {
-        if (blimp.failsafe.radio) {
-            return MAV_RESULT_ACCEPTED;
-        }
 
         // set mode to Loiter or fall back to AltHold
-        if (!blimp.set_mode(Mode::Number::LOITER, ModeReason::GCS_COMMAND)) {
-            blimp.set_mode(Mode::Number::ALT_HOLD, ModeReason::GCS_COMMAND);
-        }
-        return MAV_RESULT_ACCEPTED;
-    }
-
-        /* Solo user holds down Fly button for a couple of seconds */
-    case MAV_CMD_SOLO_BTN_FLY_HOLD: {
-        if (blimp.failsafe.radio) {
-            return MAV_RESULT_ACCEPTED;
-        }
+    //     if (!blimp.set_mode(Mode::Number::LOITER, ModeReason::GCS_COMMAND)) {
+    //         blimp.set_mode(Mode::Number::ALT_HOLD, ModeReason::GCS_COMMAND);
+    //     }
+    //     return MAV_RESULT_ACCEPTED;
+    // }
 
         if (!blimp.motors->armed()) {
             // if disarmed, arm motors
             blimp.arming.arm(AP_Arming::Method::MAVLINK);
         } else if (blimp.ap.land_complete) {
-            // if armed and landed, takeoff
-            if (blimp.set_mode(Mode::Number::LOITER, ModeReason::GCS_COMMAND)) {
-                blimp.flightmode->do_user_takeoff(packet.param1*100, true);
-            }
+            // // if armed and landed, takeoff
+            // if (blimp.set_mode(Mode::Number::LOITER, ModeReason::GCS_COMMAND)) {
+            //     blimp.flightmode->do_user_takeoff(packet.param1*100, true);
+            // }
         } else {
             // if flying, land
-            blimp.set_mode(Mode::Number::LAND, ModeReason::GCS_COMMAND);
-        }
-        return MAV_RESULT_ACCEPTED;
-    }
-
-        /* Solo user presses pause button */
-    case MAV_CMD_SOLO_BTN_PAUSE_CLICK: {
-        if (blimp.failsafe.radio) {
-            return MAV_RESULT_ACCEPTED;
-        }
-
-        if (blimp.motors->armed()) {
-            if (blimp.ap.land_complete) {
-                // if landed, disarm motors
-                blimp.arming.disarm(AP_Arming::Method::SOLOPAUSEWHENLANDED);
-            } else {
-                // assume that shots modes are all done in guided.
-                // NOTE: this may need to change if we add a non-guided shot mode
-                bool shot_mode = (!is_zero(packet.param1) && (blimp.control_mode == Mode::Number::GUIDED || blimp.control_mode == Mode::Number::GUIDED_NOGPS));
-
-                if (!shot_mode) {
-#if MODE_BRAKE_ENABLED == ENABLED
-                    if (blimp.set_mode(Mode::Number::BRAKE, ModeReason::GCS_COMMAND)) {
-                        blimp.mode_brake.timeout_to_loiter_ms(2500);
-                    } else {
-                        blimp.set_mode(Mode::Number::ALT_HOLD, ModeReason::GCS_COMMAND);
-                    }
-#else
-                    blimp.set_mode(Mode::Number::ALT_HOLD, ModeReason::GCS_COMMAND);
-#endif
-                } else {
-                    // SoloLink is expected to handle pause in shots
-                }
-            }
+            // blimp.set_mode(Mode::Number::LAND, ModeReason::GCS_COMMAND);
         }
         return MAV_RESULT_ACCEPTED;
     }
@@ -939,26 +764,6 @@ MAV_RESULT GCS_MAVLINK_Blimp::handle_command_long_packet(const mavlink_command_l
     default:
         return GCS_MAVLINK::handle_command_long_packet(packet);
     }
-}
-
-void GCS_MAVLINK_Blimp::handle_mount_message(const mavlink_message_t &msg)
-{
-    switch (msg.msgid) {
-#if HAL_MOUNT_ENABLED
-    case MAVLINK_MSG_ID_MOUNT_CONTROL:
-        if (!blimp.camera_mount.has_pan_control()) {
-            // if the mount doesn't do pan control then yaw the entire vehicle instead:
-            blimp.flightmode->auto_yaw.set_fixed_yaw(
-                mavlink_msg_mount_control_get_input_c(&msg) * 0.01f,
-                0.0f,
-                0,
-                0);
-
-            break;
-        }
-#endif
-    }
-    GCS_MAVLINK::handle_mount_message(msg);
 }
 
 void GCS_MAVLINK_Blimp::handleMessage(const mavlink_message_t &msg)
@@ -1023,257 +828,210 @@ void GCS_MAVLINK_Blimp::handleMessage(const mavlink_message_t &msg)
         break;
     }
 
-#if MODE_GUIDED_ENABLED == ENABLED
-    case MAVLINK_MSG_ID_SET_ATTITUDE_TARGET:   // MAV ID: 82
-    {
-        // decode packet
-        mavlink_set_attitude_target_t packet;
-        mavlink_msg_set_attitude_target_decode(&msg, &packet);
+// #if MODE_GUIDED_ENABLED == ENABLED
+//     case MAVLINK_MSG_ID_SET_ATTITUDE_TARGET:   // MAV ID: 82
+//     {
+//         // decode packet
+//         mavlink_set_attitude_target_t packet;
+//         mavlink_msg_set_attitude_target_decode(&msg, &packet);
 
-        // exit if vehicle is not in Guided mode or Auto-Guided mode
-        if (!blimp.flightmode->in_guided_mode()) {
-            break;
-        }
+//         // exit if vehicle is not in Guided mode or Auto-Guided mode
+//         if (!blimp.flightmode->in_guided_mode()) {
+//             break;
+//         }
 
-        // ensure type_mask specifies to use attitude and thrust
-        if ((packet.type_mask & ((1<<7)|(1<<6))) != 0) {
-            break;
-        }
+//         // ensure type_mask specifies to use attitude and thrust
+//         if ((packet.type_mask & ((1<<7)|(1<<6))) != 0) {
+//             break;
+//         }
 
-        // check if the message's thrust field should be interpreted as a climb rate or as thrust
-        const bool use_thrust = blimp.g2.dev_options.get() & DevOptionSetAttitudeTarget_ThrustAsThrust;
+//         // check if the message's thrust field should be interpreted as a climb rate or as thrust
+//         const bool use_thrust = blimp.g2.dev_options.get() & DevOptionSetAttitudeTarget_ThrustAsThrust;
 
-        float climb_rate_or_thrust;
-        if (use_thrust) {
-            // interpret thrust as thrust
-            climb_rate_or_thrust = constrain_float(packet.thrust, -1.0f, 1.0f);
-        } else {
-            // convert thrust to climb rate
-            packet.thrust = constrain_float(packet.thrust, 0.0f, 1.0f);
-            if (is_equal(packet.thrust, 0.5f)) {
-                climb_rate_or_thrust = 0.0f;
-            } else if (packet.thrust > 0.5f) {
-                // climb at up to WPNAV_SPEED_UP
-                climb_rate_or_thrust = (packet.thrust - 0.5f) * 2.0f * blimp.wp_nav->get_default_speed_up();
-            } else {
-                // descend at up to WPNAV_SPEED_DN
-                climb_rate_or_thrust = (0.5f - packet.thrust) * 2.0f * -fabsf(blimp.wp_nav->get_default_speed_down());
-            }
-        }
+//         float climb_rate_or_thrust;
+//         if (use_thrust) {
+//             // interpret thrust as thrust
+//             climb_rate_or_thrust = constrain_float(packet.thrust, -1.0f, 1.0f);
+//         } else {
+//             // convert thrust to climb rate
+//             packet.thrust = constrain_float(packet.thrust, 0.0f, 1.0f);
+//             if (is_equal(packet.thrust, 0.5f)) {
+//                 climb_rate_or_thrust = 0.0f;
+//             } else if (packet.thrust > 0.5f) {
+//                 // climb at up to WPNAV_SPEED_UP
+//                 climb_rate_or_thrust = (packet.thrust - 0.5f) * 2.0f * blimp.wp_nav->get_default_speed_up();
+//             } else {
+//                 // descend at up to WPNAV_SPEED_DN
+//                 climb_rate_or_thrust = (0.5f - packet.thrust) * 2.0f * -fabsf(blimp.wp_nav->get_default_speed_down());
+//             }
+//         }
 
-        // if the body_yaw_rate field is ignored, use the commanded yaw position
-        // otherwise use the commanded yaw rate
-        bool use_yaw_rate = false;
-        if ((packet.type_mask & (1<<2)) == 0) {
-            use_yaw_rate = true;
-        }
+//         // if the body_yaw_rate field is ignored, use the commanded yaw position
+//         // otherwise use the commanded yaw rate
+//         bool use_yaw_rate = false;
+//         if ((packet.type_mask & (1<<2)) == 0) {
+//             use_yaw_rate = true;
+//         }
 
-        blimp.mode_guided.set_angle(Quaternion(packet.q[0],packet.q[1],packet.q[2],packet.q[3]),
-                climb_rate_or_thrust, use_yaw_rate, packet.body_yaw_rate, use_thrust);
+//         blimp.mode_guided.set_angle(Quaternion(packet.q[0],packet.q[1],packet.q[2],packet.q[3]),
+//                 climb_rate_or_thrust, use_yaw_rate, packet.body_yaw_rate, use_thrust);
 
-        break;
-    }
+//         break;
+//     }
 
-    case MAVLINK_MSG_ID_SET_POSITION_TARGET_LOCAL_NED:     // MAV ID: 84
-    {
-        // decode packet
-        mavlink_set_position_target_local_ned_t packet;
-        mavlink_msg_set_position_target_local_ned_decode(&msg, &packet);
+//     case MAVLINK_MSG_ID_SET_POSITION_TARGET_LOCAL_NED:     // MAV ID: 84
+//     {
+//         // decode packet
+//         mavlink_set_position_target_local_ned_t packet;
+//         mavlink_msg_set_position_target_local_ned_decode(&msg, &packet);
 
-        // exit if vehicle is not in Guided mode or Auto-Guided mode
-        if (!blimp.flightmode->in_guided_mode()) {
-            break;
-        }
+//         // exit if vehicle is not in Guided mode or Auto-Guided mode
+//         if (!blimp.flightmode->in_guided_mode()) {
+//             break;
+//         }
 
-        // check for supported coordinate frames
-        if (packet.coordinate_frame != MAV_FRAME_LOCAL_NED &&
-            packet.coordinate_frame != MAV_FRAME_LOCAL_OFFSET_NED &&
-            packet.coordinate_frame != MAV_FRAME_BODY_NED &&
-            packet.coordinate_frame != MAV_FRAME_BODY_OFFSET_NED) {
-            break;
-        }
+//         // check for supported coordinate frames
+//         if (packet.coordinate_frame != MAV_FRAME_LOCAL_NED &&
+//             packet.coordinate_frame != MAV_FRAME_LOCAL_OFFSET_NED &&
+//             packet.coordinate_frame != MAV_FRAME_BODY_NED &&
+//             packet.coordinate_frame != MAV_FRAME_BODY_OFFSET_NED) {
+//             break;
+//         }
 
-        bool pos_ignore      = packet.type_mask & MAVLINK_SET_POS_TYPE_MASK_POS_IGNORE;
-        bool vel_ignore      = packet.type_mask & MAVLINK_SET_POS_TYPE_MASK_VEL_IGNORE;
-        bool acc_ignore      = packet.type_mask & MAVLINK_SET_POS_TYPE_MASK_ACC_IGNORE;
-        bool yaw_ignore      = packet.type_mask & MAVLINK_SET_POS_TYPE_MASK_YAW_IGNORE;
-        bool yaw_rate_ignore = packet.type_mask & MAVLINK_SET_POS_TYPE_MASK_YAW_RATE_IGNORE;
+//         bool pos_ignore      = packet.type_mask & MAVLINK_SET_POS_TYPE_MASK_POS_IGNORE;
+//         bool vel_ignore      = packet.type_mask & MAVLINK_SET_POS_TYPE_MASK_VEL_IGNORE;
+//         bool acc_ignore      = packet.type_mask & MAVLINK_SET_POS_TYPE_MASK_ACC_IGNORE;
+//         bool yaw_ignore      = packet.type_mask & MAVLINK_SET_POS_TYPE_MASK_YAW_IGNORE;
+//         bool yaw_rate_ignore = packet.type_mask & MAVLINK_SET_POS_TYPE_MASK_YAW_RATE_IGNORE;
 
-        // exit immediately if acceleration provided
-        if (!acc_ignore) {
-            break;
-        }
+//         // exit immediately if acceleration provided
+//         if (!acc_ignore) {
+//             break;
+//         }
 
-        // prepare position
-        Vector3f pos_vector;
-        if (!pos_ignore) {
-            // convert to cm
-            pos_vector = Vector3f(packet.x * 100.0f, packet.y * 100.0f, -packet.z * 100.0f);
-            // rotate to body-frame if necessary
-            if (packet.coordinate_frame == MAV_FRAME_BODY_NED ||
-                packet.coordinate_frame == MAV_FRAME_BODY_OFFSET_NED) {
-                blimp.rotate_body_frame_to_NE(pos_vector.x, pos_vector.y);
-            }
-            // add body offset if necessary
-            if (packet.coordinate_frame == MAV_FRAME_LOCAL_OFFSET_NED ||
-                packet.coordinate_frame == MAV_FRAME_BODY_NED ||
-                packet.coordinate_frame == MAV_FRAME_BODY_OFFSET_NED) {
-                pos_vector += blimp.inertial_nav.get_position();
-            }
-        }
+//         // prepare position
+//         Vector3f pos_vector;
+//         if (!pos_ignore) {
+//             // convert to cm
+//             pos_vector = Vector3f(packet.x * 100.0f, packet.y * 100.0f, -packet.z * 100.0f);
+//             // rotate to body-frame if necessary
+//             if (packet.coordinate_frame == MAV_FRAME_BODY_NED ||
+//                 packet.coordinate_frame == MAV_FRAME_BODY_OFFSET_NED) {
+//                 blimp.rotate_body_frame_to_NE(pos_vector.x, pos_vector.y);
+//             }
+//             // add body offset if necessary
+//             if (packet.coordinate_frame == MAV_FRAME_LOCAL_OFFSET_NED ||
+//                 packet.coordinate_frame == MAV_FRAME_BODY_NED ||
+//                 packet.coordinate_frame == MAV_FRAME_BODY_OFFSET_NED) {
+//                 pos_vector += blimp.inertial_nav.get_position();
+//             }
+//         }
 
-        // prepare velocity
-        Vector3f vel_vector;
-        if (!vel_ignore) {
-            // convert to cm
-            vel_vector = Vector3f(packet.vx * 100.0f, packet.vy * 100.0f, -packet.vz * 100.0f);
-            // rotate to body-frame if necessary
-            if (packet.coordinate_frame == MAV_FRAME_BODY_NED || packet.coordinate_frame == MAV_FRAME_BODY_OFFSET_NED) {
-                blimp.rotate_body_frame_to_NE(vel_vector.x, vel_vector.y);
-            }
-        }
+//         // prepare velocity
+//         Vector3f vel_vector;
+//         if (!vel_ignore) {
+//             // convert to cm
+//             vel_vector = Vector3f(packet.vx * 100.0f, packet.vy * 100.0f, -packet.vz * 100.0f);
+//             // rotate to body-frame if necessary
+//             if (packet.coordinate_frame == MAV_FRAME_BODY_NED || packet.coordinate_frame == MAV_FRAME_BODY_OFFSET_NED) {
+//                 blimp.rotate_body_frame_to_NE(vel_vector.x, vel_vector.y);
+//             }
+//         }
 
-        // prepare yaw
-        float yaw_cd = 0.0f;
-        bool yaw_relative = false;
-        float yaw_rate_cds = 0.0f;
-        if (!yaw_ignore) {
-            yaw_cd = ToDeg(packet.yaw) * 100.0f;
-            yaw_relative = packet.coordinate_frame == MAV_FRAME_BODY_NED || packet.coordinate_frame == MAV_FRAME_BODY_OFFSET_NED;
-        }
-        if (!yaw_rate_ignore) {
-            yaw_rate_cds = ToDeg(packet.yaw_rate) * 100.0f;
-        }
+//         // prepare yaw
+//         float yaw_cd = 0.0f;
+//         bool yaw_relative = false;
+//         float yaw_rate_cds = 0.0f;
+//         if (!yaw_ignore) {
+//             yaw_cd = ToDeg(packet.yaw) * 100.0f;
+//             yaw_relative = packet.coordinate_frame == MAV_FRAME_BODY_NED || packet.coordinate_frame == MAV_FRAME_BODY_OFFSET_NED;
+//         }
+//         if (!yaw_rate_ignore) {
+//             yaw_rate_cds = ToDeg(packet.yaw_rate) * 100.0f;
+//         }
 
-        // send request
-        if (!pos_ignore && !vel_ignore) {
-            blimp.mode_guided.set_destination_posvel(pos_vector, vel_vector, !yaw_ignore, yaw_cd, !yaw_rate_ignore, yaw_rate_cds, yaw_relative);
-        } else if (pos_ignore && !vel_ignore) {
-            blimp.mode_guided.set_velocity(vel_vector, !yaw_ignore, yaw_cd, !yaw_rate_ignore, yaw_rate_cds, yaw_relative);
-        } else if (!pos_ignore && vel_ignore) {
-            blimp.mode_guided.set_destination(pos_vector, !yaw_ignore, yaw_cd, !yaw_rate_ignore, yaw_rate_cds, yaw_relative);
-        }
+//         // send request
+//         if (!pos_ignore && !vel_ignore) {
+//             blimp.mode_guided.set_destination_posvel(pos_vector, vel_vector, !yaw_ignore, yaw_cd, !yaw_rate_ignore, yaw_rate_cds, yaw_relative);
+//         } else if (pos_ignore && !vel_ignore) {
+//             blimp.mode_guided.set_velocity(vel_vector, !yaw_ignore, yaw_cd, !yaw_rate_ignore, yaw_rate_cds, yaw_relative);
+//         } else if (!pos_ignore && vel_ignore) {
+//             blimp.mode_guided.set_destination(pos_vector, !yaw_ignore, yaw_cd, !yaw_rate_ignore, yaw_rate_cds, yaw_relative);
+//         }
 
-        break;
-    }
+//         break;
+//     }
 
-    case MAVLINK_MSG_ID_SET_POSITION_TARGET_GLOBAL_INT:    // MAV ID: 86
-    {
-        // decode packet
-        mavlink_set_position_target_global_int_t packet;
-        mavlink_msg_set_position_target_global_int_decode(&msg, &packet);
+//     case MAVLINK_MSG_ID_SET_POSITION_TARGET_GLOBAL_INT:    // MAV ID: 86
+//     {
+//         // decode packet
+//         mavlink_set_position_target_global_int_t packet;
+//         mavlink_msg_set_position_target_global_int_decode(&msg, &packet);
 
-        // exit if vehicle is not in Guided mode or Auto-Guided mode
-        if (!blimp.flightmode->in_guided_mode()) {
-            break;
-        }
+//         // exit if vehicle is not in Guided mode or Auto-Guided mode
+//         if (!blimp.flightmode->in_guided_mode()) {
+//             break;
+//         }
 
-        bool pos_ignore      = packet.type_mask & MAVLINK_SET_POS_TYPE_MASK_POS_IGNORE;
-        bool vel_ignore      = packet.type_mask & MAVLINK_SET_POS_TYPE_MASK_VEL_IGNORE;
-        bool acc_ignore      = packet.type_mask & MAVLINK_SET_POS_TYPE_MASK_ACC_IGNORE;
-        bool yaw_ignore      = packet.type_mask & MAVLINK_SET_POS_TYPE_MASK_YAW_IGNORE;
-        bool yaw_rate_ignore = packet.type_mask & MAVLINK_SET_POS_TYPE_MASK_YAW_RATE_IGNORE;
+//         bool pos_ignore      = packet.type_mask & MAVLINK_SET_POS_TYPE_MASK_POS_IGNORE;
+//         bool vel_ignore      = packet.type_mask & MAVLINK_SET_POS_TYPE_MASK_VEL_IGNORE;
+//         bool acc_ignore      = packet.type_mask & MAVLINK_SET_POS_TYPE_MASK_ACC_IGNORE;
+//         bool yaw_ignore      = packet.type_mask & MAVLINK_SET_POS_TYPE_MASK_YAW_IGNORE;
+//         bool yaw_rate_ignore = packet.type_mask & MAVLINK_SET_POS_TYPE_MASK_YAW_RATE_IGNORE;
 
-        // exit immediately if acceleration provided
-        if (!acc_ignore) {
-            break;
-        }
+//         // exit immediately if acceleration provided
+//         if (!acc_ignore) {
+//             break;
+//         }
 
-        // extract location from message
-        Location loc;
-        if (!pos_ignore) {
-            // sanity check location
-            if (!check_latlng(packet.lat_int, packet.lon_int)) {
-                break;
-            }
-            Location::AltFrame frame;
-            if (!mavlink_coordinate_frame_to_location_alt_frame((MAV_FRAME)packet.coordinate_frame, frame)) {
-                // unknown coordinate frame
-                break;
-            }
-            loc = {packet.lat_int, packet.lon_int, int32_t(packet.alt*100), frame};
-        }
+//         // extract location from message
+//         Location loc;
+//         if (!pos_ignore) {
+//             // sanity check location
+//             if (!check_latlng(packet.lat_int, packet.lon_int)) {
+//                 break;
+//             }
+//             Location::AltFrame frame;
+//             if (!mavlink_coordinate_frame_to_location_alt_frame((MAV_FRAME)packet.coordinate_frame, frame)) {
+//                 // unknown coordinate frame
+//                 break;
+//             }
+//             loc = {packet.lat_int, packet.lon_int, int32_t(packet.alt*100), frame};
+//         }
 
-        // prepare yaw
-        float yaw_cd = 0.0f;
-        bool yaw_relative = false;
-        float yaw_rate_cds = 0.0f;
-        if (!yaw_ignore) {
-            yaw_cd = ToDeg(packet.yaw) * 100.0f;
-            yaw_relative = packet.coordinate_frame == MAV_FRAME_BODY_NED || packet.coordinate_frame == MAV_FRAME_BODY_OFFSET_NED;
-        }
-        if (!yaw_rate_ignore) {
-            yaw_rate_cds = ToDeg(packet.yaw_rate) * 100.0f;
-        }
+//         // prepare yaw
+//         float yaw_cd = 0.0f;
+//         bool yaw_relative = false;
+//         float yaw_rate_cds = 0.0f;
+//         if (!yaw_ignore) {
+//             yaw_cd = ToDeg(packet.yaw) * 100.0f;
+//             yaw_relative = packet.coordinate_frame == MAV_FRAME_BODY_NED || packet.coordinate_frame == MAV_FRAME_BODY_OFFSET_NED;
+//         }
+//         if (!yaw_rate_ignore) {
+//             yaw_rate_cds = ToDeg(packet.yaw_rate) * 100.0f;
+//         }
 
-        // send targets to the appropriate guided mode controller
-        if (!pos_ignore && !vel_ignore) {
-            // convert Location to vector from ekf origin for posvel controller
-            if (loc.get_alt_frame() == Location::AltFrame::ABOVE_TERRAIN) {
-                // posvel controller does not support alt-above-terrain
-                break;
-            }
-            Vector3f pos_neu_cm;
-            if (!loc.get_vector_from_origin_NEU(pos_neu_cm)) {
-                break;
-            }
-            blimp.mode_guided.set_destination_posvel(pos_neu_cm, Vector3f(packet.vx * 100.0f, packet.vy * 100.0f, -packet.vz * 100.0f), !yaw_ignore, yaw_cd, !yaw_rate_ignore, yaw_rate_cds, yaw_relative);
-        } else if (pos_ignore && !vel_ignore) {
-            blimp.mode_guided.set_velocity(Vector3f(packet.vx * 100.0f, packet.vy * 100.0f, -packet.vz * 100.0f), !yaw_ignore, yaw_cd, !yaw_rate_ignore, yaw_rate_cds, yaw_relative);
-        } else if (!pos_ignore && vel_ignore) {
-            blimp.mode_guided.set_destination(loc, !yaw_ignore, yaw_cd, !yaw_rate_ignore, yaw_rate_cds, yaw_relative);
-        }
+//         // send targets to the appropriate guided mode controller
+//         if (!pos_ignore && !vel_ignore) {
+//             // convert Location to vector from ekf origin for posvel controller
+//             if (loc.get_alt_frame() == Location::AltFrame::ABOVE_TERRAIN) {
+//                 // posvel controller does not support alt-above-terrain
+//                 break;
+//             }
+//             Vector3f pos_neu_cm;
+//             if (!loc.get_vector_from_origin_NEU(pos_neu_cm)) {
+//                 break;
+//             }
+//             blimp.mode_guided.set_destination_posvel(pos_neu_cm, Vector3f(packet.vx * 100.0f, packet.vy * 100.0f, -packet.vz * 100.0f), !yaw_ignore, yaw_cd, !yaw_rate_ignore, yaw_rate_cds, yaw_relative);
+//         } else if (pos_ignore && !vel_ignore) {
+//             blimp.mode_guided.set_velocity(Vector3f(packet.vx * 100.0f, packet.vy * 100.0f, -packet.vz * 100.0f), !yaw_ignore, yaw_cd, !yaw_rate_ignore, yaw_rate_cds, yaw_relative);
+//         } else if (!pos_ignore && vel_ignore) {
+//             blimp.mode_guided.set_destination(loc, !yaw_ignore, yaw_cd, !yaw_rate_ignore, yaw_rate_cds, yaw_relative);
+//         }
 
-        break;
-    }
-#endif
-
-#if HIL_MODE != HIL_MODE_DISABLED
-    case MAVLINK_MSG_ID_HIL_STATE:          // MAV ID: 90
-    {
-        mavlink_hil_state_t packet;
-        mavlink_msg_hil_state_decode(&msg, &packet);
-
-        // sanity check location
-        if (!check_latlng(packet.lat, packet.lon)) {
-            break;
-        }
-
-        // set gps hil sensor
-        Location loc;
-        loc.lat = packet.lat;
-        loc.lng = packet.lon;
-        loc.alt = packet.alt/10;
-        Vector3f vel(packet.vx, packet.vy, packet.vz);
-        vel *= 0.01f;
-
-        gps.setHIL(0, AP_GPS::GPS_OK_FIX_3D,
-                   packet.time_usec/1000,
-                   loc, vel, 10, 0);
-
-        // rad/sec
-        Vector3f gyros;
-        gyros.x = packet.rollspeed;
-        gyros.y = packet.pitchspeed;
-        gyros.z = packet.yawspeed;
-
-        // m/s/s
-        Vector3f accels;
-        accels.x = packet.xacc * (GRAVITY_MSS/1000.0f);
-        accels.y = packet.yacc * (GRAVITY_MSS/1000.0f);
-        accels.z = packet.zacc * (GRAVITY_MSS/1000.0f);
-
-        ins.set_gyro(0, gyros);
-
-        ins.set_accel(0, accels);
-
-        AP::baro().setHIL(packet.alt*0.001f);
-        blimp.compass.setHIL(0, packet.roll, packet.pitch, packet.yaw);
-        blimp.compass.setHIL(1, packet.roll, packet.pitch, packet.yaw);
-
-        break;
-    }
-#endif //  HIL_MODE != HIL_MODE_DISABLED
+//         break;
+//     }
+// #endif
 
     case MAVLINK_MSG_ID_RADIO:
     case MAVLINK_MSG_ID_RADIO_STATUS:       // MAV ID: 109
@@ -1282,17 +1040,8 @@ void GCS_MAVLINK_Blimp::handleMessage(const mavlink_message_t &msg)
         break;
     }
 
-#if PRECISION_LANDING == ENABLED
-    case MAVLINK_MSG_ID_LANDING_TARGET:
-        blimp.precland.handle_msg(msg);
-        break;
-#endif
-
     case MAVLINK_MSG_ID_TERRAIN_DATA:
     case MAVLINK_MSG_ID_TERRAIN_CHECK:
-#if AP_TERRAIN_AVAILABLE && AC_TERRAIN
-        blimp.terrain.handle_data(chan, msg);
-#endif
         break;
 
     case MAVLINK_MSG_ID_SET_HOME_POSITION:
@@ -1319,17 +1068,8 @@ void GCS_MAVLINK_Blimp::handleMessage(const mavlink_message_t &msg)
     case MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_CFG:
     case MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_DYNAMIC:
     case MAVLINK_MSG_ID_UAVIONIX_ADSB_TRANSCEIVER_HEALTH_REPORT:
-#if HAL_ADSB_ENABLED
-        blimp.adsb.handle_message(chan, msg);
-#endif
         break;
-
-#if TOY_MODE_ENABLED == ENABLED
-    case MAVLINK_MSG_ID_NAMED_VALUE_INT:
-        blimp.g2.toy_mode.handle_message(msg);
-        break;
-#endif
-        
+      
     default:
         handle_common_message(msg);
         break;
@@ -1340,18 +1080,18 @@ void GCS_MAVLINK_Blimp::handleMessage(const mavlink_message_t &msg)
 MAV_RESULT GCS_MAVLINK_Blimp::handle_flight_termination(const mavlink_command_long_t &packet) {
     MAV_RESULT result = MAV_RESULT_FAILED;
 
-#if ADVANCED_FAILSAFE == ENABLED
-    if (GCS_MAVLINK::handle_flight_termination(packet) != MAV_RESULT_ACCEPTED) {
-#endif
+// #if ADVANCED_FAILSAFE == ENABLED
+//     if (GCS_MAVLINK::handle_flight_termination(packet) != MAV_RESULT_ACCEPTED) {
+// #endif
         if (packet.param1 > 0.5f) {
             blimp.arming.disarm(AP_Arming::Method::TERMINATION);
             result = MAV_RESULT_ACCEPTED;
         }
-#if ADVANCED_FAILSAFE == ENABLED
-    } else {
-        result = MAV_RESULT_ACCEPTED;
-    }
-#endif
+// #if ADVANCED_FAILSAFE == ENABLED
+//     } else {
+//         result = MAV_RESULT_ACCEPTED;
+//     }
+// #endif
 
     return result;
 }
@@ -1375,9 +1115,6 @@ uint64_t GCS_MAVLINK_Blimp::capabilities() const
             MAV_PROTOCOL_CAPABILITY_SET_POSITION_TARGET_GLOBAL_INT |
             MAV_PROTOCOL_CAPABILITY_FLIGHT_TERMINATION |
             MAV_PROTOCOL_CAPABILITY_SET_ATTITUDE_TARGET |
-#if AP_TERRAIN_AVAILABLE && AC_TERRAIN
-            (blimp.terrain.enabled() ? MAV_PROTOCOL_CAPABILITY_TERRAIN : 0) |
-#endif
             GCS_MAVLINK::capabilities());
 }
 

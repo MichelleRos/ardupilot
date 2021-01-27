@@ -29,10 +29,6 @@ void Blimp::set_home_to_current_location_inflight() {
         if (!set_home(temp_loc, false)) {
             return;
         }
-        // we have successfully set AHRS home, set it for SmartRTL
-#if MODE_SMARTRTL_ENABLED == ENABLED
-        g2.smart_rtl.set_home(true);
-#endif
     }
 }
 
@@ -44,10 +40,6 @@ bool Blimp::set_home_to_current_location(bool lock) {
         if (!set_home(temp_loc, lock)) {
             return false;
         }
-        // we have successfully set AHRS home, set it for SmartRTL
-#if MODE_SMARTRTL_ENABLED == ENABLED
-        g2.smart_rtl.set_home(true);
-#endif
         return true;
     }
     return false;
@@ -81,15 +73,15 @@ bool Blimp::set_home(const Location& loc, bool lock)
         // record home is set
         AP::logger().Write_Event(LogEvent::SET_HOME);
 
-#if MODE_AUTO_ENABLED == ENABLED
-        // log new home position which mission library will pull from ahrs
-        if (should_log(MASK_LOG_CMD)) {
-            AP_Mission::Mission_Command temp_cmd;
-            if (mode_auto.mission.read_cmd_from_storage(0, temp_cmd)) {
-                logger.Write_Mission_Cmd(mode_auto.mission, temp_cmd);
-            }
-        }
-#endif
+// #if MODE_AUTO_ENABLED == ENABLED
+//         // log new home position which mission library will pull from ahrs
+//         if (should_log(MASK_LOG_CMD)) {
+//             AP_Mission::Mission_Command temp_cmd;
+//             if (mode_auto.mission.read_cmd_from_storage(0, temp_cmd)) {
+//                 logger.Write_Mission_Cmd(mode_auto.mission, temp_cmd);
+//             }
+//         }
+// #endif
     }
 
     // lock home position
