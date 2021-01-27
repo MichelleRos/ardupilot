@@ -513,7 +513,7 @@ MAV_RESULT GCS_MAVLINK_Blimp::handle_command_do_set_roi(const Location &roi_loc)
     if (!roi_loc.check_latlng()) {
         return MAV_RESULT_FAILED;
     }
-    blimp.flightmode->auto_yaw.set_roi(roi_loc);
+    // blimp.flightmode->auto_yaw.set_roi(roi_loc);
     return MAV_RESULT_ACCEPTED;
 }
 
@@ -603,12 +603,12 @@ MAV_RESULT GCS_MAVLINK_Blimp::handle_command_long_packet(const mavlink_command_l
         // param6 : longitude   (not supported)
         // param7 : altitude [metres]
 
-        float takeoff_alt = packet.param7 * 100;      // Convert m to cm
+        // float takeoff_alt = packet.param7 * 100;      // Convert m to cm
 
-        if (!blimp.flightmode->do_user_takeoff(takeoff_alt, is_zero(packet.param3))) {
-            return MAV_RESULT_FAILED;
+        // if (!blimp.flightmode->do_user_takeoff(takeoff_alt, is_zero(packet.param3))) {
+        //     return MAV_RESULT_FAILED;
         //MIR Do I need this?
-        }
+        // }
         return MAV_RESULT_ACCEPTED;
     }
 

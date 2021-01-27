@@ -10,7 +10,7 @@ bool Blimp::failsafe_option(FailsafeOption opt) const
 {
     return (g2.fs_options & (uint32_t)opt);
 }
-
+*/
 void Blimp::failsafe_radio_on_event()
 {
     AP::logger().Write_Error(LogErrorSubsystem::FAILSAFE_RADIO, LogErrorCode::FAILSAFE_OCCURRED);
@@ -71,7 +71,7 @@ void Blimp::failsafe_radio_off_event()
     AP::logger().Write_Error(LogErrorSubsystem::FAILSAFE_RADIO, LogErrorCode::FAILSAFE_RESOLVED);
     gcs().send_text(MAV_SEVERITY_WARNING, "Radio Failsafe Cleared");
 }
-*/
+
 void Blimp::handle_battery_failsafe(const char *type_str, const int8_t action)
 {
     AP::logger().Write_Error(LogErrorSubsystem::FAILSAFE_BATT, LogErrorCode::FAILSAFE_OCCURRED);
