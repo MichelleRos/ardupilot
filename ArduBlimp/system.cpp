@@ -122,7 +122,7 @@ void Blimp::init_ardupilot()
     serial_manager.set_blocking_writes_all(false);
 
     // enable CPU failsafe
-    failsafe_enable();
+    // failsafe_enable();
 
     ins.set_log_raw_bit(MASK_LOG_IMU_RAW);
 

@@ -3,10 +3,6 @@
 //t is timestep
 //B,F,R,L = 1,2,3,4
 void Fins::output(){ //assumes scaling -1 to 1 for each. Throttle is height control, hence neccessity for negative.
-    // roll;
-    // p;
-    // _y;
-    // _t;
     // _time;
     
     //+ve roll is right, +ve pitch is forward, +ve yaw is right, +ve throttle is up
@@ -50,6 +46,14 @@ void Fins::output(){ //assumes scaling -1 to 1 for each. Throttle is height cont
     _pos4 = _amp4*sinf(_omega*_time) + _maxAmp + _offset4;
     // fin4.write(pos4);
 }
+
+// Fins::output_min(){
+//     roll_out = 0;
+//     pitch_out = 0;
+//     throttle_out = 0;
+//     yaw_out = 0;
+//     Fins::output();
+// }
 
 Fins::Fins(uint16_t loop_rate, uint16_t speed_hz){
     _loop_rate = loop_rate;

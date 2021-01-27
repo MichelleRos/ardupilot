@@ -264,7 +264,7 @@ private:
     // Battery Sensors
     AP_BattMonitor battery{MASK_LOG_CURRENT,
                            FUNCTOR_BIND_MEMBER(&Blimp::handle_battery_failsafe, void, const char*, const int8_t),
-                           _failsafe_priorities};
+                           _failsafe_priorities}; //MIR might need soon
 
     // Altitude
     int32_t baro_alt;            // barometer altitude in cm above home
@@ -431,7 +431,7 @@ private:
     void failsafe_terrain_check();
     void failsafe_terrain_set_status(bool data_ok);
     void failsafe_terrain_on_event();
-    void gpsglitch_check();
+    // void gpsglitch_check();
     // void set_mode_RTL_or_land_with_pause(ModeReason reason);
     // void set_mode_SmartRTL_or_RTL(ModeReason reason);
     // void set_mode_SmartRTL_or_land_with_pause(ModeReason reason);
@@ -444,16 +444,6 @@ private:
 
     // fence.cpp
     void fence_check();
-
-    // heli.cpp
-    void heli_init();
-    void check_dynamic_flight(void);
-    bool should_use_landing_swash() const;
-    void update_heli_control_dynamics(void);
-    void heli_update_landing_swash();
-    float get_pilot_desired_rotor_speed() const;
-    void heli_update_rotor_speed_targets();
-    void heli_update_autorotation();
 
     // inertia.cpp
     void read_inertia();
@@ -468,8 +458,8 @@ private:
     // landing_gear.cpp
     void landinggear_update();
 
-    // standby.cpp
-    void standby_update();
+    // // standby.cpp
+    // void standby_update();
 
     // Log.cpp
     void Log_Write_Control_Tuning();

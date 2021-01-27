@@ -114,7 +114,7 @@ void RC_Channel_Blimp::do_aux_function(const aux_func_t ch_option, const AuxSwit
         case AUX_FUNC::SAVE_TRIM:
             if ((ch_flag == AuxSwitchPos::HIGH) &&
                 (blimp.control_mode <= Mode::Number::MANUAL) &&
-                (blimp.channel_throttle->get_control_in() == 0)) {
+                (blimp.channel_down->get_control_in() == 0)) {
                 blimp.save_trim();
             }
             break;
@@ -130,7 +130,7 @@ void RC_Channel_Blimp::do_aux_function(const aux_func_t ch_option, const AuxSwit
 //                 }
 
 //                 // do not allow saving the first waypoint with zero throttle
-//                 if ((blimp.mode_auto.mission.num_commands() == 0) && (blimp.channel_throttle->get_control_in() == 0)) {
+//                 if ((blimp.mode_auto.mission.num_commands() == 0) && (blimp.channel_down->get_control_in() == 0)) {
 //                     return;
 //                 }
 
@@ -155,7 +155,7 @@ void RC_Channel_Blimp::do_aux_function(const aux_func_t ch_option, const AuxSwit
 //                 cmd.content.location = blimp.current_loc;
 
 //                 // if throttle is above zero, create waypoint command
-//                 if (blimp.channel_throttle->get_control_in() > 0) {
+//                 if (blimp.channel_down->get_control_in() > 0) {
 //                     cmd.id = MAV_CMD_NAV_WAYPOINT;
 //                 } else {
 //                     // with zero throttle, create LAND command
@@ -195,8 +195,8 @@ void RC_Channel_Blimp::do_aux_function(const aux_func_t ch_option, const AuxSwit
 void Blimp::save_trim()
 {
     // save roll and pitch trim
-    float roll_trim = ToRad((float)channel_roll->get_control_in()/100.0f);
-    float pitch_trim = ToRad((float)channel_pitch->get_control_in()/100.0f);
+    float roll_trim = ToRad((float)channel_right->get_control_in()/100.0f);
+    float pitch_trim = ToRad((float)channel_front->get_control_in()/100.0f);
     ahrs.add_trim(roll_trim, pitch_trim);
     AP::logger().Write_Event(LogEvent::SAVE_TRIM);
     gcs().send_text(MAV_SEVERITY_INFO, "Trim saved");
@@ -240,10 +240,10 @@ void Blimp::auto_trim()
         auto_trim_counter--;
 
         // calculate roll trim adjustment
-        float roll_trim_adjustment = ToRad((float)channel_roll->get_control_in() / 4000.0f);
+        float roll_trim_adjustment = ToRad((float)channel_right->get_control_in() / 4000.0f);
 
         // calculate pitch trim adjustment
-        float pitch_trim_adjustment = ToRad((float)channel_pitch->get_control_in() / 4000.0f);
+        float pitch_trim_adjustment = ToRad((float)channel_front->get_control_in() / 4000.0f);
 
         // add trim to ahrs object
         // save to eeprom on last iteration

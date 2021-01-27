@@ -149,7 +149,7 @@ bool AP_Arming_Blimp::parameter_checks(bool display_failure)
         // failsafe parameter checks
         if (blimp.g.failsafe_throttle) {
             // check throttle min is above throttle failsafe trigger and that the trigger is above ppm encoder's loss-of-signal value of 900
-            if (blimp.channel_throttle->get_radio_min() <= blimp.g.failsafe_throttle_value+10 || blimp.g.failsafe_throttle_value < 910) {
+            if (blimp.channel_down->get_radio_min() <= blimp.g.failsafe_throttle_value+10 || blimp.g.failsafe_throttle_value < 910) {
                 check_failed(ARMING_CHECK_PARAMETERS, display_failure, "Check FS_THR_VALUE");
                 return false;
             }
@@ -214,7 +214,7 @@ bool AP_Arming_Blimp::pilot_throttle_checks(bool display_failure)
     // check throttle is above failsafe throttle
     // this is near the bottom to allow other failures to be displayed before checking pilot throttle
     if ((checks_to_perform == ARMING_CHECK_ALL) || (checks_to_perform & ARMING_CHECK_RC)) {
-        if (blimp.g.failsafe_throttle != FS_THR_DISABLED && blimp.channel_throttle->get_radio_in() < blimp.g.failsafe_throttle_value) {
+        if (blimp.g.failsafe_throttle != FS_THR_DISABLED && blimp.channel_down->get_radio_in() < blimp.g.failsafe_throttle_value) {
             const char *failmsg = "Throttle below Failsafe";
             check_failed(ARMING_CHECK_RC, display_failure, "%s", failmsg);
             return false;

@@ -22,11 +22,11 @@ void Blimp::compass_cal_update()
     static uint32_t compass_cal_stick_gesture_begin = 0;
 
     if (compass.is_calibrating()) {
-        if (channel_yaw->get_control_in() < -4000 && channel_throttle->get_control_in() > 900) {
+        if (channel_yaw->get_control_in() < -4000 && channel_down->get_control_in() > 900) {
             compass.cancel_calibration_all();
         }
     } else {
-        bool stick_gesture_detected = compass_cal_stick_gesture_begin != 0 && !motors->armed() && channel_yaw->get_control_in() > 4000 && channel_throttle->get_control_in() > 900;
+        bool stick_gesture_detected = compass_cal_stick_gesture_begin != 0 && !motors->armed() && channel_yaw->get_control_in() > 4000 && channel_down->get_control_in() > 900;
         uint32_t tnow = millis();
 
         if (!stick_gesture_detected) {

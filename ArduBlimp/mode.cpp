@@ -176,38 +176,30 @@ void Mode::update_navigation()
     run_autopilot();
 }
 
-// get_pilot_desired_angle - transform pilot's roll or pitch input into a desired lean angle
 // returns desired angle in centi-degrees
-void Mode::get_pilot_desired_accelerations(float &roll_out, float &pitch_out, float angle_max, float angle_limit) const
+void Mode::get_pilot_desired_accelerations(float &right_out, float &front_out) const
 {
     // throttle failsafe check
     if (blimp.failsafe.radio || !blimp.ap.rc_receiver_present) {
-        roll_out = 0;
-        pitch_out = 0;
+        right_out = 0;
+        front_out = 0;
         return;
     }
     // fetch roll and pitch inputs
-    roll_out = channel_roll->get_control_in();
-    pitch_out = channel_pitch->get_control_in();
+    right_out = channel_right->get_control_in();
+    front_out = channel_front->get_control_in();
 
-    // limit max lean angle
-    angle_limit = constrain_float(angle_limit, 1000.0f, angle_max);
 
-    // scale roll and pitch inputs to ANGLE_MAX parameter range
-    float scaler = angle_max/(float)ROLL_PITCH_YAW_INPUT_MAX;
-    roll_out *= scaler;
-    pitch_out *= scaler;
-
-    // do circular limit
-    float total_in = norm(pitch_out, roll_out);
-    if (total_in > angle_limit) {
-        float ratio = angle_limit / total_in;
-        roll_out *= ratio;
-        pitch_out *= ratio;
-    }
+    // // do circular limit
+    // float total_in = norm(pitch_out, roll_out);
+    // if (total_in > angle_limit) {
+    //     float ratio = angle_limit / total_in;
+    //     roll_out *= ratio;
+    //     pitch_out *= ratio;
+    // }
 
     // do lateral tilt to euler roll conversion
-    roll_out = (18000/M_PI) * atanf(cosf(pitch_out*(M_PI/18000))*tanf(roll_out*(M_PI/18000)));
+    // roll_out = (18000/M_PI) * atanf(cosf(pitch_out*(M_PI/18000))*tanf(roll_out*(M_PI/18000)));
 
     // roll_out and pitch_out are returned
 }
@@ -420,7 +412,7 @@ float Mode::throttle_hover() const
 float Mode::get_pilot_desired_throttle() const
 {
     const float thr_mid = throttle_hover();
-    int16_t throttle_control = channel_throttle->get_control_in();
+    int16_t throttle_control = channel_down->get_control_in();
 
     int16_t mid_stick = blimp.get_throttle_mid();
     // protect against unlikely divide by zero
