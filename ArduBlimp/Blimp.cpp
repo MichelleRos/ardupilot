@@ -32,7 +32,7 @@ const AP_Scheduler::Task Blimp::scheduler_tasks[] = {
     SCHED_TASK(rc_loop,              100,    130),
     SCHED_TASK(throttle_loop,         50,     75),
     SCHED_TASK_CLASS(AP_GPS, &blimp.gps, update, 50, 200),
-    // SCHED_TASK(update_batt_compass,   10,    120),
+    SCHED_TASK(update_batt_compass,   10,    120),
     SCHED_TASK_CLASS(RC_Channels,          (RC_Channels*)&blimp.g2.rc_channels,      read_aux_all,    10,     50),
     SCHED_TASK(arm_motors_check,      10,     50),
     // SCHED_TASK(auto_disarm_check,     10,     50),
@@ -199,7 +199,7 @@ void Blimp::rc_loop()
 void Blimp::throttle_loop()
 {
     // update throttle_low_comp value (controls priority of throttle vs attitude control)
-    update_throttle_mix();
+    // update_throttle_mix();
 
     // check auto_armed status
     update_auto_armed();
@@ -286,7 +286,7 @@ void Blimp::three_hz_loop()
     failsafe_gcs_check();
 
     // check if we've lost terrain data
-    failsafe_terrain_check();
+    // failsafe_terrain_check();
 }
 
 // one_hz_loop - runs at 1Hz

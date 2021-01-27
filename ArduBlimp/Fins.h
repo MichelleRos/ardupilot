@@ -91,6 +91,10 @@ public:
 
     // get_spool_state - get current spool state
     enum SpoolState  get_spool_state(void) const { return _spool_state; }
+
+    void set_loop_rate(uint16_t loop_rate){ _loop_rate = loop_rate;}
+
+    void output_min();
     
     bool armed(){ return true; } //MIR temp
 

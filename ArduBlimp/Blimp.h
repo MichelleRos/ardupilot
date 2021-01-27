@@ -428,9 +428,9 @@ private:
     void failsafe_gcs_check();
     void failsafe_gcs_on_event(void);
     void failsafe_gcs_off_event(void);
-    void failsafe_terrain_check();
-    void failsafe_terrain_set_status(bool data_ok);
-    void failsafe_terrain_on_event();
+    // void failsafe_terrain_check();
+    // void failsafe_terrain_set_status(bool data_ok);
+    // void failsafe_terrain_on_event();
     // void gpsglitch_check();
     // void set_mode_RTL_or_land_with_pause(ModeReason reason);
     // void set_mode_SmartRTL_or_RTL(ModeReason reason);
@@ -453,7 +453,7 @@ private:
     void update_land_detector();
     void set_land_complete(bool b);
     void set_land_complete_maybe(bool b);
-    void update_throttle_mix();
+    // void update_throttle_mix();
 
     // landing_gear.cpp
     void landinggear_update();
@@ -517,7 +517,7 @@ private:
     void read_radio();
     void set_throttle_and_failsafe(uint16_t throttle_pwm);
     void set_throttle_zero_flag(int16_t throttle_control);
-    void radio_passthrough_to_motors();
+    // void radio_passthrough_to_motors();
     int16_t get_throttle_mid(void);
 
     // sensors.cpp

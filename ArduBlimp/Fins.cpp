@@ -1,6 +1,11 @@
 #include "Blimp.h"
 
-//t is timestep
+//constructor
+Fins::Fins(uint16_t loop_rate, uint16_t speed_hz){
+    _loop_rate = loop_rate;
+    _omega = 0.3; //MIR
+}
+
 //B,F,R,L = 1,2,3,4
 void Fins::output(){ //assumes scaling -1 to 1 for each. Throttle is height control, hence neccessity for negative.
     // _time;
@@ -47,17 +52,12 @@ void Fins::output(){ //assumes scaling -1 to 1 for each. Throttle is height cont
     // fin4.write(pos4);
 }
 
-// Fins::output_min(){
-//     roll_out = 0;
-//     pitch_out = 0;
-//     throttle_out = 0;
-//     yaw_out = 0;
-//     Fins::output();
-// }
-
-Fins::Fins(uint16_t loop_rate, uint16_t speed_hz){
-    _loop_rate = loop_rate;
-    _omega = 0.3; //MIR
+void Fins::output_min(){
+    roll_out = 0;
+    pitch_out = 0;
+    throttle_out = 0;
+    yaw_out = 0;
+    Fins::output();
 }
 
 void AP_Motors::rc_write(uint8_t chan, uint16_t pwm) //how do I use this one?

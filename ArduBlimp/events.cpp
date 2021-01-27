@@ -97,7 +97,6 @@ void Blimp::handle_battery_failsafe(const char *type_str, const int8_t action)
     do_failsafe_action(desired_action, ModeReason::BATTERY_FAILSAFE);
 
 }
-/*
 // failsafe_gcs_check - check for ground station failsafe
 void Blimp::failsafe_gcs_check()
 {
@@ -129,7 +128,7 @@ void Blimp::failsafe_gcs_check()
         failsafe_gcs_on_event();
     }
 }
-
+/*
 // failsafe_gcs_on_event - actions to take when GCS contact is lost
 void Blimp::failsafe_gcs_on_event(void)
 {
