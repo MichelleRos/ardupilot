@@ -203,10 +203,6 @@ void Blimp::throttle_loop()
 
     // check auto_armed status
     update_auto_armed();
-
-    // compensate for ground effect (if enabled)
-    update_ground_effect_detector();
-    update_ekf_terrain_height_stable();
 }
 
 // update_batt_compass - read battery and compass
@@ -257,16 +253,11 @@ void Blimp::ten_hz_logging_loop()
     if (should_log(MASK_LOG_RCOUT)) {
         logger.Write_RCOUT();
     }
-    if (should_log(MASK_LOG_NTUN) && (flightmode->requires_GPS() || landing_with_GPS())) {
-        pos_control->write_log();
-    }
     if (should_log(MASK_LOG_IMU) || should_log(MASK_LOG_IMU_FAST) || should_log(MASK_LOG_IMU_RAW)) {
         logger.Write_Vibration();
     }
-    if (should_log(MASK_LOG_CTUN)) {
-        attitude_control->control_monitor_log();
-    }
 }
+
 
 // twentyfive_hz_logging - should be run at 25hz
 void Blimp::twentyfive_hz_logging()
@@ -296,9 +287,6 @@ void Blimp::three_hz_loop()
 
     // check if we've lost terrain data
     failsafe_terrain_check();
-
-    // update ch6 in flight tuning
-    tuning();
 }
 
 // one_hz_loop - runs at 1Hz
@@ -315,18 +303,10 @@ void Blimp::one_hz_loop()
         ahrs.update_orientation();
 
         update_using_interlock();
-
-        // check the user hasn't updated the frame class or type
-        motors->set_frame_class_and_type((Fins::motor_frame_class)g2.frame_class.get(), (Fins::motor_frame_type)g.frame_type.get());
-        // set all throttle channel settings
-        motors->set_throttle_range(channel_throttle->get_radio_min(), channel_throttle->get_radio_max());
     }
 
     // update assigned functions and enable auxiliary servos
     SRV_Channels::enable_aux_servos();
-
-    // log terrain data
-    terrain_logging();
 
     AP_Notify::flags.flying = !ap.land_complete;
 }
@@ -395,7 +375,7 @@ Blimp::Blimp(void)
     rc_throttle_control_in_filter(1.0f),
     inertial_nav(ahrs),
     param_loader(var_info),
-    flightmode(&mode_stabilize)
+    flightmode(&mode_manual)
 {
     // init sensor error logging flags
     sensor_health.baro = true;

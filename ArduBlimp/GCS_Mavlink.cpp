@@ -505,11 +505,6 @@ void GCS_MAVLINK_Blimp::handle_command_ack(const mavlink_message_t &msg)
 
 MAV_RESULT GCS_MAVLINK_Blimp::_handle_command_preflight_calibration(const mavlink_command_long_t &packet)
 {
-    if (is_equal(packet.param6,1.0f)) {
-        // compassmot calibration
-        return blimp.mavlink_compassmot(*this);
-    }
-
     return GCS_MAVLINK::_handle_command_preflight_calibration(packet);
 }
 
@@ -525,12 +520,6 @@ MAV_RESULT GCS_MAVLINK_Blimp::handle_command_do_set_roi(const Location &roi_loc)
 
 MAV_RESULT GCS_MAVLINK_Blimp::handle_preflight_reboot(const mavlink_command_long_t &packet)
 {
-    // reject reboot if user has also specified they want the "Auto" ESC calibration on next reboot
-    if (blimp.g.esc_calibrate == (uint8_t)Blimp::ESCCalibrationModes::ESCCAL_AUTO) {
-        send_text(MAV_SEVERITY_CRITICAL, "Reboot rejected, ESC cal on reboot");
-        return MAV_RESULT_FAILED;
-    }
-
     // call parent
     return GCS_MAVLINK::handle_preflight_reboot(packet);
 }
@@ -573,21 +562,6 @@ MAV_RESULT GCS_MAVLINK_Blimp::handle_command_int_do_reposition(const mavlink_com
         return MAV_RESULT_DENIED; // failed as the location is not valid
     }
 
-    // we need to do this first, as we don't want to change the flight mode unless we can also set the target
-    if (!blimp.mode_guided.set_destination(request_location, false, 0, false, 0)) {
-        return MAV_RESULT_FAILED;
-    }
-
-    if (!blimp.flightmode->in_guided_mode()) {
-        if (!blimp.set_mode(Mode::Number::GUIDED, ModeReason::GCS_COMMAND)) {
-            return MAV_RESULT_FAILED;
-        }
-        // the position won't have been loaded if we had to change the flight mode, so load it again
-        if (!blimp.mode_guided.set_destination(request_location, false, 0, false, 0)) {
-            return MAV_RESULT_FAILED;
-        }
-    }
-
     return MAV_RESULT_ACCEPTED;
 }
 
@@ -595,13 +569,6 @@ MAV_RESULT GCS_MAVLINK_Blimp::handle_command_int_packet(const mavlink_command_in
 {
     switch(packet.command) {
     case MAV_CMD_DO_FOLLOW:
-#if MODE_FOLLOW_ENABLED == ENABLED
-        // param1: sysid of target to follow
-        if ((packet.param1 > 0) && (packet.param1 <= 255)) {
-            blimp.g2.follow.set_target_sysid((uint8_t)packet.param1);
-            return MAV_RESULT_ACCEPTED;
-        }
-#endif
         return MAV_RESULT_UNSUPPORTED;
 
     case MAV_CMD_DO_REPOSITION:
@@ -615,16 +582,6 @@ MAV_RESULT GCS_MAVLINK_Blimp::handle_command_mount(const mavlink_command_long_t 
 {
     // if the mount doesn't do pan control then yaw the entire vehicle instead:
     switch (packet.command) {
-#if HAL_MOUNT_ENABLED
-    case MAV_CMD_DO_MOUNT_CONTROL:
-        if (!blimp.camera_mount.has_pan_control()) {
-            blimp.flightmode->auto_yaw.set_fixed_yaw(
-                (float)packet.param3 * 0.01f,
-                0.0f,
-                0,0);
-        }
-        break;
-#endif
     default:
         break;
     }
@@ -693,74 +650,6 @@ MAV_RESULT GCS_MAVLINK_Blimp::handle_command_long_packet(const mavlink_command_l
         }
         return MAV_RESULT_FAILED;
 
-    case MAV_CMD_DO_CHANGE_SPEED:
-        // param1 : unused
-        // param2 : new speed in m/s
-        // param3 : unused
-        // param4 : unused
-        if (packet.param2 > 0.0f) {
-            if (packet.param1 > 2.9f) { // 3 = speed down
-                blimp.wp_nav->set_speed_down(packet.param2 * 100.0f);
-            } else if (packet.param1 > 1.9f) { // 2 = speed up
-                blimp.wp_nav->set_speed_up(packet.param2 * 100.0f);
-            } else {
-                blimp.wp_nav->set_speed_xy(packet.param2 * 100.0f);
-            }
-            return MAV_RESULT_ACCEPTED;
-        }
-        return MAV_RESULT_FAILED;
-
-// #if MODE_AUTO_ENABLED == ENABLED
-//     case MAV_CMD_MISSION_START:
-//         if (blimp.motors->armed() &&
-//             blimp.set_mode(Mode::Number::AUTO, ModeReason::GCS_COMMAND)) {
-//             blimp.set_auto_armed(true);
-//             if (blimp.mode_auto.mission.state() != AP_Mission::MISSION_RUNNING) {
-//                 blimp.mode_auto.mission.start_or_resume();
-//             }
-//             return MAV_RESULT_ACCEPTED;
-//         }
-//         return MAV_RESULT_FAILED;
-// #endif
-
-
-    case MAV_CMD_DO_MOTOR_TEST:
-        // param1 : motor sequence number (a number from 1 to max number of motors on the vehicle)
-        // param2 : throttle type (0=throttle percentage, 1=PWM, 2=pilot throttle channel pass-through. See MOTOR_TEST_THROTTLE_TYPE enum)
-        // param3 : throttle (range depends upon param2)
-        // param4 : timeout (in seconds)
-        // param5 : num_motors (in sequence)
-        // param6 : motor test order
-        return blimp.mavlink_motor_test_start(*this,
-                                               (uint8_t)packet.param1,
-                                               (uint8_t)packet.param2,
-                                               packet.param3,
-                                               packet.param4,
-                                               (uint8_t)packet.param5);
-
-
-        // set mode to Loiter or fall back to AltHold
-    //     if (!blimp.set_mode(Mode::Number::LOITER, ModeReason::GCS_COMMAND)) {
-    //         blimp.set_mode(Mode::Number::ALT_HOLD, ModeReason::GCS_COMMAND);
-    //     }
-    //     return MAV_RESULT_ACCEPTED;
-    // }
-
-        if (!blimp.motors->armed()) {
-            // if disarmed, arm motors
-            blimp.arming.arm(AP_Arming::Method::MAVLINK);
-        } else if (blimp.ap.land_complete) {
-            // // if armed and landed, takeoff
-            // if (blimp.set_mode(Mode::Number::LOITER, ModeReason::GCS_COMMAND)) {
-            //     blimp.flightmode->do_user_takeoff(packet.param1*100, true);
-            // }
-        } else {
-            // if flying, land
-            // blimp.set_mode(Mode::Number::LAND, ModeReason::GCS_COMMAND);
-        }
-        return MAV_RESULT_ACCEPTED;
-    }
-
     default:
         return GCS_MAVLINK::handle_command_long_packet(packet);
     }
@@ -768,27 +657,6 @@ MAV_RESULT GCS_MAVLINK_Blimp::handle_command_long_packet(const mavlink_command_l
 
 void GCS_MAVLINK_Blimp::handleMessage(const mavlink_message_t &msg)
 {
-    // for mavlink SET_POSITION_TARGET messages
-    constexpr uint32_t MAVLINK_SET_POS_TYPE_MASK_POS_IGNORE =
-        POSITION_TARGET_TYPEMASK_X_IGNORE |
-        POSITION_TARGET_TYPEMASK_Y_IGNORE |
-        POSITION_TARGET_TYPEMASK_Z_IGNORE;
-
-    constexpr uint32_t MAVLINK_SET_POS_TYPE_MASK_VEL_IGNORE =
-        POSITION_TARGET_TYPEMASK_VX_IGNORE |
-        POSITION_TARGET_TYPEMASK_VY_IGNORE |
-        POSITION_TARGET_TYPEMASK_VZ_IGNORE;
-
-    constexpr uint32_t MAVLINK_SET_POS_TYPE_MASK_ACC_IGNORE =
-        POSITION_TARGET_TYPEMASK_AX_IGNORE |
-        POSITION_TARGET_TYPEMASK_AY_IGNORE |
-        POSITION_TARGET_TYPEMASK_AZ_IGNORE;
-
-    constexpr uint32_t MAVLINK_SET_POS_TYPE_MASK_YAW_IGNORE =
-        POSITION_TARGET_TYPEMASK_YAW_IGNORE;
-    constexpr uint32_t MAVLINK_SET_POS_TYPE_MASK_YAW_RATE_IGNORE =
-        POSITION_TARGET_TYPEMASK_YAW_RATE_IGNORE;
-
     switch (msg.msgid) {
 
     case MAVLINK_MSG_ID_HEARTBEAT:      // MAV ID: 0
@@ -796,35 +664,6 @@ void GCS_MAVLINK_Blimp::handleMessage(const mavlink_message_t &msg)
         // We keep track of the last time we received a heartbeat from our GCS for failsafe purposes
         if (msg.sysid != blimp.g.sysid_my_gcs) break;
         blimp.failsafe.last_heartbeat_ms = AP_HAL::millis();
-        break;
-    }
-
-    case MAVLINK_MSG_ID_MANUAL_CONTROL:
-    {
-        if (msg.sysid != blimp.g.sysid_my_gcs) {
-            break; // only accept control from our gcs
-        }
-
-        mavlink_manual_control_t packet;
-        mavlink_msg_manual_control_decode(&msg, &packet);
-
-        if (packet.target != blimp.g.sysid_this_mav) {
-            break; // only accept control aimed at us
-        }
-
-        if (packet.z < 0) { // Blimp doesn't do negative thrust
-            break;
-        }
-
-        uint32_t tnow = AP_HAL::millis();
-
-        manual_override(blimp.channel_roll, packet.y, 1000, 2000, tnow);
-        manual_override(blimp.channel_pitch, packet.x, 1000, 2000, tnow, true);
-        manual_override(blimp.channel_throttle, packet.z, 0, 1000, tnow);
-        manual_override(blimp.channel_yaw, packet.r, 1000, 2000, tnow);
-
-        // a manual control message is considered to be a 'heartbeat' from the ground station for failsafe purposes
-        blimp.failsafe.last_heartbeat_ms = tnow;
         break;
     }
 

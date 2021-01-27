@@ -40,6 +40,14 @@ public:
         // SPOOLING_DOWN = 4,                     // decreasing maximum throttle while stabilizing
     };
 
+    bool initialised_ok() const {
+        return true;
+    }
+
+    bool armed(bool arm_enable) {
+        return true;
+    }
+
 protected:
     // internal variables
     uint16_t            _loop_rate;                 // rate in Hz at which output() function is called (normally 400hz)

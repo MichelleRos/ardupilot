@@ -188,7 +188,7 @@ bool AP_Arming_Blimp::parameter_checks(bool display_failure)
         // if (!blimp.attitude_control->pre_arm_checks("ATC", failure_msg, ARRAY_SIZE(failure_msg))) {
         //     check_failed(ARMING_CHECK_PARAMETERS, display_failure, "Bad parameter: %s", failure_msg);
         //     return false;
-        }
+        //}
     }
 
     return true;
@@ -314,33 +314,8 @@ bool AP_Arming_Blimp::mandatory_gps_checks(bool display_failure)
             return false;
         }
     } else  {
-            // return true if GPS is not required
-            return true;
-        }
-    }
-
-    // check for GPS glitch (as reported by EKF)
-    nav_filter_status filt_status;
-    if (ahrs.get_filter_status(filt_status)) {
-        if (filt_status.flags.gps_glitching) {
-            check_failed(display_failure, "GPS glitching");
-            return false;
-        }
-    }
-
-    // check EKF compass variance is below failsafe threshold
-    float vel_variance, pos_variance, hgt_variance, tas_variance;
-    Vector3f mag_variance;
-    ahrs.get_variances(vel_variance, pos_variance, hgt_variance, mag_variance, tas_variance);
-    if (blimp.g.fs_ekf_thresh > 0 && mag_variance.length() >= blimp.g.fs_ekf_thresh) {
-        check_failed(display_failure, "EKF compass variance");
-        return false;
-    }
-
-    // check home and EKF origin are not too far
-    if (blimp.far_from_EKF_origin(ahrs.get_home())) {
-        check_failed(display_failure, "EKF-home variance");
-        return false;
+        // return true if GPS is not required
+        return true;
     }
 
     // if we got here all must be ok
@@ -374,85 +349,6 @@ bool AP_Arming_Blimp::alt_checks(bool display_failure)
 //  has side-effect that logging is started
 bool AP_Arming_Blimp::arm_checks(AP_Arming::Method method)
 {
-    const AP_AHRS_NavEKF &ahrs = AP::ahrs_navekf();
-
-    // always check if inertial nav has started and is ready
-    if (!ahrs.healthy()) {
-        check_failed(true, "AHRS not healthy");
-        return false;
-    }
-
-#ifndef ALLOW_ARM_NO_COMPASS
-    // if external source of heading is available, we can skip compass health check
-    if (!ahrs.is_ext_nav_used_for_yaw()) {
-        const Compass &_compass = AP::compass();
-        // check compass health
-        if (!_compass.healthy()) {
-            check_failed(true, "Compass not healthy");
-            return false;
-        }
-    }
-#endif
-
-    Mode::Number control_mode = blimp.control_mode;
-
-    // always check if the current mode allows arming
-    if (!blimp.flightmode->allows_arming(method == AP_Arming::Method::MAVLINK)) {
-        check_failed(true, "Mode not armable");
-        return false;
-    }
-
-    // always check motors
-    if (!motor_checks(true)) {
-        return false;
-    }
-
-    // succeed if arming checks are disabled
-    if (checks_to_perform == 0) {
-        return true;
-    }
-
-    // check lean angle
-    if ((checks_to_perform == ARMING_CHECK_ALL) || (checks_to_perform & ARMING_CHECK_INS)) {
-        if (degrees(acosf(ahrs.cos_roll()*ahrs.cos_pitch()))*100.0f > blimp.aparm.angle_max) {
-            check_failed(ARMING_CHECK_INS, true, "Leaning");
-            return false;
-        }
-    }
-
-    // check throttle
-    if ((checks_to_perform == ARMING_CHECK_ALL) || (checks_to_perform & ARMING_CHECK_RC)) {
-        const char *rc_item = "Throttle";
-        // check throttle is not too low - must be above failsafe throttle
-        if (blimp.g.failsafe_throttle != FS_THR_DISABLED && blimp.channel_throttle->get_radio_in() < blimp.g.failsafe_throttle_value) {
-            check_failed(ARMING_CHECK_RC, true, "%s below failsafe", rc_item);
-            return false;
-        }
-
-        // check throttle is not too high - skips checks if arming from GCS in Guided
-        if (!(method == AP_Arming::Method::MAVLINK && (control_mode == Mode::Number::GUIDED || control_mode == Mode::Number::GUIDED_NOGPS))) {
-            // above top of deadband is too always high
-            if (blimp.get_pilot_desired_climb_rate(blimp.channel_throttle->get_control_in()) > 0.0f) {
-                check_failed(ARMING_CHECK_RC, true, "%s too high", rc_item);
-                return false;
-            }
-            // in manual modes throttle must be at zero
-            if ((blimp.flightmode->has_manual_throttle() || control_mode == Mode::Number::DRIFT) && blimp.channel_throttle->get_control_in() > 0) {
-                check_failed(ARMING_CHECK_RC, true, "%s too high", rc_item);
-                return false;
-            }
-        }
-    }
-
-    // check if safety switch has been pushed
-    if (hal.util->safety_switch_state() == AP_HAL::Util::SAFETY_DISARMED) {
-        check_failed(true, "Safety Switch");
-        return false;
-    }
-
-    // superclass method should always be the last thing called; it
-    // has side-effects which would need to be cleaned up if one of
-    // our arm checks failed
     return AP_Arming::arm_checks(method);
 }
 
@@ -538,7 +434,6 @@ bool AP_Arming_Blimp::arm(const AP_Arming::Method method, const bool do_arming_c
         // remember the height when we armed
         blimp.arming_altitude_m = blimp.inertial_nav.get_altitude() * 0.01;
     }
-    blimp.update_super_simple_bearing(false);
 
     // enable gps velocity based centrefugal force compensation
     ahrs.set_correct_centrifugal(true);

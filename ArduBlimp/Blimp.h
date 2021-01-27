@@ -17,7 +17,7 @@
   This is the main Blimp class
  */
 
-#define LOGGING_ENABLED FALSE
+#define LOGGING_ENABLED 0
 
 ////////////////////////////////////////////////////////////////////////////////
 // Header includes
@@ -68,6 +68,7 @@
 // #include <AP_Parachute/AP_Parachute.h>
 // #include <AC_Sprayer/AC_Sprayer.h>
 // #include <AP_ADSB/AP_ADSB.h>
+#include <AP_Scripting/AP_Scripting.h>
 
 // Configuration
 #include "defines.h"

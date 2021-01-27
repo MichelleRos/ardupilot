@@ -15,9 +15,6 @@ void ModeManual::run()
     float target_roll, target_pitch;
     get_pilot_desired_accelerations(target_roll, target_pitch, blimp.aparm.angle_max, blimp.aparm.angle_max);
 
-    // get pilot's desired yaw rate
-    float target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->get_control_in());
-
     if (!motors->armed()) {
         // Motors should be Stopped
         motors->set_desired_spool_state(Fins::DesiredSpoolState::SHUT_DOWN);
@@ -25,10 +22,6 @@ void ModeManual::run()
         motors->set_desired_spool_state(Fins::DesiredSpoolState::THROTTLE_UNLIMITED);
     }
 
-    roll_out = target_roll;
-    pitch_out = target_pitch;
-    yaw_out = target_yaw_rate;
-    throttle_out = get_pilot_desired_throttle();
     motors->output();
 
     // // call attitude controller

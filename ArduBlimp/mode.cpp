@@ -14,7 +14,7 @@ Mode::Mode(void) :
     // wp_nav(blimp.wp_nav),
     // loiter_nav(blimp.loiter_nav),
     // pos_control(blimp.pos_control),
-    // inertial_nav(blimp.inertial_nav),
+    inertial_nav(blimp.inertial_nav),
     ahrs(blimp.ahrs),
     // attitude_control(blimp.attitude_control),
     motors(blimp.motors),
@@ -244,10 +244,8 @@ void Mode::zero_throttle_and_relax_ac(bool spool_up)
     if (spool_up) {
         motors->set_desired_spool_state(Fins::DesiredSpoolState::THROTTLE_UNLIMITED);
     } else {
-        motors->set_desired_spool_state(Fins::DesiredSpoolState::GROUND_IDLE);
+        motors->set_desired_spool_state(Fins::DesiredSpoolState::SHUT_DOWN);
     }
-    attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(0.0f, 0.0f, 0.0f);
-    attitude_control->set_throttle_out(0.0f, false, blimp.g.throttle_filt);
 }
 
 // void Mode::zero_throttle_and_hold_attitude()
