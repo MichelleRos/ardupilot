@@ -76,9 +76,7 @@
 
 #include "Fins.h"
 
-// #define AC_AttitudeControl_t AC_AttitudeControl_Multi
-// #define MOTOR_CLASS AP_MotorsMulticopter
-#define MOTOR_CLASS Fins
+// #define MOTOR_CLASS Fins
 
 #include "RC_Channel.h"         // RC Channel Library
 
@@ -327,7 +325,7 @@ private:
     void set_auto_armed(bool b);
     void set_failsafe_radio(bool b);
     void set_failsafe_gcs(bool b);
-    void update_using_interlock();
+    // void update_using_interlock();
 
     // Blimp.cpp
     void get_scheduler_tasks(const AP_Scheduler::Task *&tasks,

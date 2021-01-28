@@ -1,7 +1,5 @@
 //This class is for converting horizontal acceleration commands to fin flapping commands.
-
-#ifndef FINS_DEF
-#define FINS_DEF 1
+#pragma once
 
 #define FINS_SPEED_DEFAULT 10 //MIR what is this?
 class Fins {      //mixer.h
@@ -52,16 +50,16 @@ protected:
     // internal variables
     uint16_t            _loop_rate;                 // rate in Hz at which output() function is called (normally 400hz)
     uint16_t            _speed_hz;                  // speed in hz to send updates to motors
-    float               _roll_in;                   // desired roll control from attitude controllers, -1 ~ +1
-    float               _roll_in_ff;                // desired roll feed forward control from attitude controllers, -1 ~ +1
-    float               _pitch_in;                  // desired pitch control from attitude controller, -1 ~ +1
-    float               _pitch_in_ff;               // desired pitch feed forward control from attitude controller, -1 ~ +1
-    float               _yaw_in;                    // desired yaw control from attitude controller, -1 ~ +1
-    float               _yaw_in_ff;                 // desired yaw feed forward control from attitude controller, -1 ~ +1
+    // float               _roll_in;                   // desired roll control from attitude controllers, -1 ~ +1
+    // float               _roll_in_ff;                // desired roll feed forward control from attitude controllers, -1 ~ +1
+    // float               _pitch_in;                  // desired pitch control from attitude controller, -1 ~ +1
+    // float               _pitch_in_ff;               // desired pitch feed forward control from attitude controller, -1 ~ +1
+    // float               _yaw_in;                    // desired yaw control from attitude controller, -1 ~ +1
+    // float               _yaw_in_ff;                 // desired yaw feed forward control from attitude controller, -1 ~ +1
     float               _throttle_in;               // last throttle input from set_throttle caller
-    float               _throttle_out;              // throttle after mixing is complete
-    float               _forward_in;                // last forward input from set_forward caller
-    float               _lateral_in;                // last lateral input from set_lateral caller
+    float               _down_out;                  // throttle after mixing is complete
+    // float               _forward_in;                // last forward input from set_forward caller
+    // float               _lateral_in;                // last lateral input from set_lateral caller
     float               _throttle_avg_max;          // last throttle input from set_throttle_avg_max
     // LowPassFilterFloat  _throttle_filter;           // throttle input filter
     DesiredSpoolState   _spool_desired;             // desired spool state
@@ -79,10 +77,10 @@ protected:
 
 // private:
 public:
-    float               roll_out;                    //input roll
-    float               pitch_out;                   //input pitch
-    float               yaw_out;                     //input yaw
-    float               throttle_out;                //input throttle
+    float               right_out;                  //input right movement, negative for left, +1 to -1
+    float               front_out;                  //input front/forwards movement, negative for backwards, +1 to -1
+    float               yaw_out;                    //input yaw, +1 to -1
+    float               down_out;                   //input height control, +1 to -1
     
     
     bool _armed;             // 0 if disarmed, 1 if armed
@@ -96,7 +94,7 @@ public:
 
     void output_min();
     
-    bool armed(){ return true; } //MIR temp
+    bool armed(){ return _armed; } //MIR temp
 
     float get_throttle_hover(){ return 0; } //MIR temp
 
@@ -104,11 +102,11 @@ public:
 
     void output();
     
-    float get_throttle() {return 0.1f; }
+    float get_throttle() {return 0.1f; } //MIR temp
+    
+    void rc_write(uint8_t chan, uint16_t pwm);
 
     // set_density_ratio - sets air density as a proportion of sea level density
     void  set_air_density_ratio(float ratio) { _air_density_ratio = ratio; }
 
 };
-
-#endif

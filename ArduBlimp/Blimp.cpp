@@ -310,7 +310,7 @@ void Blimp::one_hz_loop()
         // make it possible to change ahrs orientation at runtime during initial config
         ahrs.update_orientation();
 
-        update_using_interlock();
+        // update_using_interlock();
     }
 
     // update assigned functions and enable auxiliary servos

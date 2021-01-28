@@ -135,7 +135,7 @@ protected:
     AP_InertialNav &inertial_nav;
     AP_AHRS &ahrs;
     // AC_AttitudeControl_t *&attitude_control;
-    MOTOR_CLASS *&motors;
+    Fins *&motors;
     // Fins *&motors;
     RC_Channel *&channel_right;
     RC_Channel *&channel_front;

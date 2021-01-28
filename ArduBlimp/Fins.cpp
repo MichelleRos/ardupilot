@@ -16,11 +16,11 @@ void Fins::output(){ //assumes scaling -1 to 1 for each. Throttle is height cont
     
     //MIR Must first remap values as per parameters to give correct values for servo.
 
-    if (roll_out > 0) { //right
-        _amp4 = roll_out;
+    if (right_out > 0) { //right
+        _amp4 = right_out;
         _amp3 = 0;
-    }else if (roll_out < 0) { //left
-        _amp3 = -roll_out;
+    }else if (right_out < 0) { //left
+        _amp3 = -right_out;
         _amp4 = 0;
     }else{
         _amp3 = 0;
@@ -29,11 +29,11 @@ void Fins::output(){ //assumes scaling -1 to 1 for each. Throttle is height cont
         _offset4 = 0;
     }
 
-    if (pitch_out > 0) { //forwards
-        _amp1 = pitch_out;
+    if (front_out > 0) { //forwards
+        _amp1 = front_out;
         _amp2 = 0;
-    } else if (pitch_out < 0) { //backwards
-        _amp1 = -pitch_out;
+    } else if (front_out < 0) { //backwards
+        _amp1 = -front_out;
         _amp2 = 0;
     } else {
         _amp1 = 0;
@@ -53,14 +53,14 @@ void Fins::output(){ //assumes scaling -1 to 1 for each. Throttle is height cont
 }
 
 void Fins::output_min(){
-    roll_out = 0;
-    pitch_out = 0;
-    throttle_out = 0;
+    right_out = 0;
+    front_out = 0;
+    down_out = 0;
     yaw_out = 0;
     Fins::output();
 }
 
-void AP_Motors::rc_write(uint8_t chan, uint16_t pwm) //how do I use this one?
+void Fins::rc_write(uint8_t chan, uint16_t pwm) //how do I use this one?
 {
     SRV_Channel::Aux_servo_function_t function = SRV_Channels::get_motor_function(chan);
     SRV_Channels::set_output_pwm(function, pwm);
