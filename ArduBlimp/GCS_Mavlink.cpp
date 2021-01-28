@@ -155,8 +155,8 @@ void GCS_MAVLINK_Blimp::send_position_target_global_int()
 // #endif
 // }
 
-// void GCS_MAVLINK_Blimp::send_nav_controller_output() const
-// {
+void GCS_MAVLINK_Blimp::send_nav_controller_output() const
+{
 //     if (!blimp.ap.initialised) {
 //         return;
 //     }
@@ -172,7 +172,7 @@ void GCS_MAVLINK_Blimp::send_position_target_global_int()
 //         blimp.pos_control->get_alt_error() * 1.0e-2f,
 //         0,
 //         flightmode->crosstrack_error() * 1.0e-2f);
-// }
+}
 
 float GCS_MAVLINK_Blimp::vfr_hud_airspeed() const
 {
@@ -641,11 +641,11 @@ MAV_RESULT GCS_MAVLINK_Blimp::handle_command_long_packet(const mavlink_command_l
         if ((packet.param1 >= 0.0f)   &&
             (packet.param1 <= 360.0f) &&
             (is_zero(packet.param4) || is_equal(packet.param4,1.0f))) {
-            blimp.flightmode->auto_yaw.set_fixed_yaw(
-                packet.param1,
-                packet.param2,
-                (int8_t)packet.param3,
-                is_positive(packet.param4));
+            // blimp.flightmode->auto_yaw.set_fixed_yaw(
+                // packet.param1,
+                // packet.param2,
+                // (int8_t)packet.param3,
+                // is_positive(packet.param4));
             return MAV_RESULT_ACCEPTED;
         }
         return MAV_RESULT_FAILED;
@@ -965,9 +965,9 @@ MAV_LANDED_STATE GCS_MAVLINK_Blimp::landed_state() const
     if (blimp.flightmode->is_landing()) {
         return MAV_LANDED_STATE_LANDING;
     }
-    if (blimp.flightmode->is_taking_off()) {
-        return MAV_LANDED_STATE_TAKEOFF;
-    }
+    // if (blimp.flightmode->is_taking_off()) {
+    //     return MAV_LANDED_STATE_TAKEOFF;
+    // }
     return MAV_LANDED_STATE_IN_AIR;
 }
 

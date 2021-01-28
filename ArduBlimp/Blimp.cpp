@@ -82,7 +82,7 @@ void Blimp::get_scheduler_tasks(const AP_Scheduler::Task *&tasks,
     log_bit = MASK_LOG_PM;
 }
 
-constexpr int8_t Blimp::_failsafe_priorities[7];
+constexpr int8_t Blimp::_failsafe_priorities[4];
 
 // Main loop - 50hz
 void Blimp::fast_loop()
@@ -128,6 +128,14 @@ void Blimp::fast_loop()
     }
 
     AP_Vehicle::fast_loop(); //just does gyro fft
+}
+
+// get_non_takeoff_throttle - a throttle somewhere between min and mid throttle which should not lead to a takeoff
+//copied in from Copter's Attitude.cpp
+float Blimp::get_non_takeoff_throttle()
+{
+    // return MAX(0,motors->get_throttle_hover()/2.0f);
+    return 0.0f; //MIR no idle throttle.
 }
 
 // start takeoff to given altitude (for use by scripting)

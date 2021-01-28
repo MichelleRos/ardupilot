@@ -65,8 +65,8 @@ public:
     virtual const char *name4() const = 0;
 
     bool do_user_takeoff(float takeoff_alt_cm, bool must_navigate);
-    virtual bool is_taking_off() const;
-    static void takeoff_stop() { takeoff.stop(); }
+    // virtual bool is_taking_off() const;
+    // static void takeoff_stop() { takeoff.stop(); }
 
     virtual bool is_landing() const { return false; }
 
@@ -118,14 +118,14 @@ protected:
     virtual float throttle_hover() const;
 
     // Alt_Hold based flight mode states used in Alt_Hold, Loiter, and Sport
-    enum AltHoldModeState {
-        AltHold_MotorStopped,
-        AltHold_Takeoff,
-        AltHold_Landed_Ground_Idle,
-        AltHold_Landed_Pre_Takeoff,
-        AltHold_Flying
-    };
-    AltHoldModeState get_alt_hold_state(float target_climb_rate_cms);
+    // enum AltHoldModeState {
+    //     AltHold_MotorStopped,
+    //     AltHold_Takeoff,
+    //     AltHold_Landed_Ground_Idle,
+    //     AltHold_Landed_Pre_Takeoff,
+    //     AltHold_Flying
+    // };
+    // AltHoldModeState get_alt_hold_state(float target_climb_rate_cms);
 
     // convenience references to avoid code churn in conversion:
     Parameters &g;
@@ -153,34 +153,34 @@ protected:
     // basically waypoint navigation with pilot yaw permitted.
 
     // user-takeoff support; takeoff state is shared across all mode instances
-    class _TakeOff {
-    public:
-        void start(float alt_cm);
-        void stop();
-        void get_climb_rates(float& pilot_climb_rate,
-                             float& takeoff_climb_rate);
-        bool triggered(float target_climb_rate) const;
+    // class _TakeOff {
+    // public:
+    //     void start(float alt_cm);
+    //     void stop();
+    //     void get_climb_rates(float& pilot_climb_rate,
+    //                          float& takeoff_climb_rate);
+    //     bool triggered(float target_climb_rate) const;
 
-        bool running() const { return _running; }
-    private:
-        bool _running;
-        float max_speed;
-        float alt_delta;
-        uint32_t start_ms;
-    };
+    //     bool running() const { return _running; }
+    // private:
+    //     bool _running;
+    //     float max_speed;
+    //     float alt_delta;
+    //     uint32_t start_ms;
+    // };
 
-    static _TakeOff takeoff;
+    // static _TakeOff takeoff;
 
-    virtual bool do_user_takeoff_start(float takeoff_alt_cm);
+    // virtual bool do_user_takeoff_start(float takeoff_alt_cm);
 
     // method shared by both Guided and Auto for takeoff.  This is
     // waypoint navigation but the user can control the yaw.
-    void auto_takeoff_run();
-    void auto_takeoff_set_start_alt(void);
+    // void auto_takeoff_run();
+    // void auto_takeoff_set_start_alt(void);
 
     // altitude above-ekf-origin below which auto takeoff does not control horizontal position
-    static bool auto_takeoff_no_nav_active;
-    static float auto_takeoff_no_nav_alt_cm;
+    // static bool auto_takeoff_no_nav_active;
+    // static float auto_takeoff_no_nav_alt_cm;
 
 public:
     // Navigation Yaw control

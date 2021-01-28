@@ -4,13 +4,13 @@
  *       This event will be called when the failsafe changes
  *       boolean failsafe reflects the current state
  */
-/*
+
 
 bool Blimp::failsafe_option(FailsafeOption opt) const
 {
     return (g2.fs_options & (uint32_t)opt);
 }
-*/
+
 void Blimp::failsafe_radio_on_event()
 {
     AP::logger().Write_Error(LogErrorSubsystem::FAILSAFE_RADIO, LogErrorCode::FAILSAFE_OCCURRED);
@@ -20,16 +20,6 @@ void Blimp::failsafe_radio_on_event()
     switch (g.failsafe_throttle) {
         case FS_THR_DISABLED:
             desired_action = Failsafe_Action_None;
-            break;
-        case FS_THR_ENABLED_ALWAYS_RTL:
-        case FS_THR_ENABLED_CONTINUE_MISSION:
-            desired_action = Failsafe_Action_RTL;
-            break;
-        case FS_THR_ENABLED_ALWAYS_SMARTRTL_OR_RTL:
-            desired_action = Failsafe_Action_SmartRTL;
-            break;
-        case FS_THR_ENABLED_ALWAYS_SMARTRTL_OR_LAND:
-            desired_action = Failsafe_Action_SmartRTL_Land;
             break;
         case FS_THR_ENABLED_ALWAYS_LAND:
             desired_action = Failsafe_Action_Land;
@@ -114,7 +104,7 @@ void Blimp::failsafe_gcs_check()
     if (last_gcs_update_ms < gcs_timeout_ms && failsafe.gcs) {
         // Recovery from a GCS failsafe
         set_failsafe_gcs(false);
-        failsafe_gcs_off_event();
+        // failsafe_gcs_off_event();
 
     } else if (last_gcs_update_ms < gcs_timeout_ms && !failsafe.gcs) {
         // No problem, do nothing
@@ -125,7 +115,7 @@ void Blimp::failsafe_gcs_check()
     } else if (last_gcs_update_ms > gcs_timeout_ms && !failsafe.gcs) {
         // New GCS failsafe event, trigger events
         set_failsafe_gcs(true);
-        failsafe_gcs_on_event();
+        // failsafe_gcs_on_event();
     }
 }
 /*
@@ -319,22 +309,15 @@ void Blimp::set_mode_SmartRTL_or_RTL(ModeReason reason)
         AP_Notify::events.failsafe_mode_change = 1;
     }
 }
-
+*/
 bool Blimp::should_disarm_on_failsafe() {
     if (ap.in_arming_delay) {
         return true;
     }
 
     switch (control_mode) {
-        case Mode::Number::STABILIZE:
-        case Mode::Number::ACRO:
-            // if throttle is zero OR vehicle is landed disarm motors
-            return ap.throttle_zero || ap.land_complete;
-        case Mode::Number::AUTO:
-            // if mission has not started AND vehicle is landed, disarm motors
-            return !ap.auto_armed && ap.land_complete;
+        case Mode::Number::MANUAL:
         default:
-            // used for AltHold, Guided, Loiter, RTL, Circle, Drift, Sport, Flip, Autotune, PosHold
             // if landed disarm
             return ap.land_complete;
     }
@@ -350,29 +333,9 @@ void Blimp::do_failsafe_action(Failsafe_Action action, ModeReason reason){
         case Failsafe_Action_Land:
             set_mode_land_with_pause(reason);
             break;
-        case Failsafe_Action_RTL:
-            set_mode_RTL_or_land_with_pause(reason);
-            break;
-        case Failsafe_Action_SmartRTL:
-            set_mode_SmartRTL_or_RTL(reason);
-            break;
-        case Failsafe_Action_SmartRTL_Land:
-            set_mode_SmartRTL_or_land_with_pause(reason);
-            break;
         case Failsafe_Action_Terminate: {
-#if ADVANCED_FAILSAFE == ENABLED
-            g2.afs.gcs_terminate(true, "Failsafe");
-#else
             arming.disarm(AP_Arming::Method::FAILSAFE_ACTION_TERMINATE);
-#endif
         }
         break;
     }
-
-#if GRIPPER_ENABLED == ENABLED
-    if (failsafe_option(FailsafeOption::RELEASE_GRIPPER)) {
-        blimp.g2.gripper.release();
-    }
-#endif
 }
-*/

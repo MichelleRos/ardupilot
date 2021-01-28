@@ -156,11 +156,11 @@ void Blimp::exit_mode(Mode *&old_flightmode,
     // smooth throttle transition when switching from manual to automatic flight modes
     if (old_flightmode->has_manual_throttle() && !new_flightmode->has_manual_throttle() && motors->armed() && !ap.land_complete) {
         // this assumes all manual flight modes use get_pilot_desired_throttle to translate pilot input to output throttle
-        set_accel_throttle_I_from_pilot_throttle();
+        // set_accel_throttle_I_from_pilot_throttle();
     }
 
     // cancel any takeoffs in progress
-    old_flightmode->takeoff_stop();
+    // old_flightmode->takeoff_stop();
 }
 
 // notify_flight_mode - sets notify object based on current flight mode.  Only used for OreoLED notify device
@@ -204,24 +204,24 @@ void Mode::get_pilot_desired_accelerations(float &right_out, float &front_out) c
     // roll_out and pitch_out are returned
 }
 
-bool Mode::_TakeOff::triggered(const float target_climb_rate) const
-{
-    if (!blimp.ap.land_complete) {
-        // can't take off if we're already flying
-        return false;
-    }
-    if (target_climb_rate <= 0.0f) {
-        // can't takeoff unless we want to go up...
-        return false;
-    }
+// bool Mode::_TakeOff::triggered(const float target_climb_rate) const
+// {
+//     if (!blimp.ap.land_complete) {
+//         // can't take off if we're already flying
+//         return false;
+//     }
+//     if (target_climb_rate <= 0.0f) {
+//         // can't takeoff unless we want to go up...
+//         return false;
+//     }
 
-    if (blimp.motors->get_spool_state() != Fins::SpoolState::THROTTLE_UNLIMITED) {
-        // hold aircraft on the ground until rotor speed runup has finished
-        return false;
-    }
+//     if (blimp.motors->get_spool_state() != Fins::SpoolState::THROTTLE_UNLIMITED) {
+//         // hold aircraft on the ground until rotor speed runup has finished
+//         return false;
+//     }
 
-    return true;
-}
+//     return true;
+// }
 
 bool Mode::is_disarmed_or_landed() const
 {

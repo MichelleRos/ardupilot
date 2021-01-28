@@ -108,9 +108,9 @@ void Blimp::init_ardupilot()
 
     startup_INS_ground();
 
-// #ifdef ENABLE_SCRIPTING
-//     g2.scripting.init();
-// #endif // ENABLE_SCRIPTING
+#ifdef ENABLE_SCRIPTING
+    g2.scripting.init();
+#endif // ENABLE_SCRIPTING
 
     // set landed flags
     // set_land_complete(true);

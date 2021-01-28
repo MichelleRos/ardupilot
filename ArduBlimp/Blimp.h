@@ -264,7 +264,7 @@ private:
     // Battery Sensors
     AP_BattMonitor battery{MASK_LOG_CURRENT,
                            FUNCTOR_BIND_MEMBER(&Blimp::handle_battery_failsafe, void, const char*, const int8_t),
-                           _failsafe_priorities}; //MIR might need soon
+                           _failsafe_priorities};
 
     // Altitude
     int32_t baro_alt;            // barometer altitude in cm above home
@@ -317,9 +317,6 @@ private:
     enum Failsafe_Action {
         Failsafe_Action_None           = 0,
         Failsafe_Action_Land           = 1,
-        Failsafe_Action_RTL            = 2,
-        Failsafe_Action_SmartRTL       = 3,
-        Failsafe_Action_SmartRTL_Land  = 4,
         Failsafe_Action_Terminate      = 5
     };
 
@@ -335,9 +332,6 @@ private:
     static constexpr int8_t _failsafe_priorities[] = {
                                                       Failsafe_Action_Terminate,
                                                       Failsafe_Action_Land,
-                                                      Failsafe_Action_RTL,
-                                                      Failsafe_Action_SmartRTL_Land,
-                                                      Failsafe_Action_SmartRTL,
                                                       Failsafe_Action_None,
                                                       -1 // the priority list must end with a sentinel of -1
                                                      };
@@ -380,7 +374,7 @@ private:
     // void update_throttle_hover();
     float get_pilot_desired_climb_rate(float throttle_control);
     float get_non_takeoff_throttle();
-    void set_accel_throttle_I_from_pilot_throttle();
+    // void set_accel_throttle_I_from_pilot_throttle();
     void rotate_body_frame_to_NE(float &x, float &y);
     uint16_t get_pilot_speed_dn();
 
@@ -426,15 +420,10 @@ private:
     void failsafe_radio_off_event();
     void handle_battery_failsafe(const char* type_str, const int8_t action);
     void failsafe_gcs_check();
-    void failsafe_gcs_on_event(void);
-    void failsafe_gcs_off_event(void);
-    // void failsafe_terrain_check();
-    // void failsafe_terrain_set_status(bool data_ok);
-    // void failsafe_terrain_on_event();
+    // void failsafe_gcs_on_event(void); //MIR will probably need these two soon.
+    // void failsafe_gcs_off_event(void);
     // void gpsglitch_check();
     // void set_mode_RTL_or_land_with_pause(ModeReason reason);
-    // void set_mode_SmartRTL_or_RTL(ModeReason reason);
-    // void set_mode_SmartRTL_or_land_with_pause(ModeReason reason);
     bool should_disarm_on_failsafe();
     void do_failsafe_action(Failsafe_Action action, ModeReason reason);
 
