@@ -18,6 +18,10 @@
 #error CONFIG_HAL_BOARD must be defined to build ArduBlimp
 #endif
 
+#ifndef ADVANCED_FAILSAFE
+# define ADVANCED_FAILSAFE DISABLED
+#endif
+
 //////////////////////////////////////////////////////////////////////////////
 // HIL_MODE                                 OPTIONAL
 
