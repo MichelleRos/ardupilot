@@ -1,5 +1,6 @@
-//This class is for converting horizontal acceleration commands to fin flapping commands.
+//This class converts horizontal acceleration commands to fin flapping commands.
 #pragma once
+#include <AP_Notify/AP_Notify.h>      // Notify library
 
 #define FINS_SPEED_DEFAULT 10 //MIR what is this?
 class Fins {      //mixer.h
@@ -42,9 +43,14 @@ public:
         return true;
     }
 
-    bool armed(bool arm_enable) {
-        return true;
+    void armed(bool arm) {
+        if (arm != _armed){
+            _armed = arm;
+            AP_Notify::flags.armed = arm;
+        }
+        
     }
+    bool armed() const { return _armed; }
 
 protected:
     // internal variables
@@ -74,6 +80,7 @@ protected:
     float              _pos1, _pos2, _pos3, _pos4;  //servo positions
     float              _omega, _maxAmp; 
 
+    bool _armed;             // 0 if disarmed, 1 if armed
 
 // private:
 public:
@@ -83,7 +90,6 @@ public:
     float               down_out;                   //input height control, +1 to -1
     
     
-    bool _armed;             // 0 if disarmed, 1 if armed
     bool _interlock;         // 1 if the motor interlock is enabled (i.e. motors run), 0 if disabled (motors don't run)
     bool _initialised_ok;    // 1 if initialisation was successful
 
@@ -94,8 +100,6 @@ public:
 
     void output_min();
     
-    bool armed(){ return _armed; } //MIR temp
-
     float get_throttle_hover(){ return 0; } //MIR temp
 
     void set_desired_spool_state(DesiredSpoolState spool);
