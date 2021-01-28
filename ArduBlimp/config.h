@@ -478,11 +478,6 @@
  # define YAW_LOOK_AHEAD_MIN_SPEED  100             // minimum ground speed in cm/s required before blimp is aimed at ground course
 #endif
 
-// Super Simple mode
-#ifndef SUPER_SIMPLE_RADIUS
- # define SUPER_SIMPLE_RADIUS       1000
-#endif
-
 //////////////////////////////////////////////////////////////////////////////
 // Stabilize Rate Control
 //

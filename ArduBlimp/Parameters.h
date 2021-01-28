@@ -240,7 +240,6 @@ public:
         k_param_ch7_option_old,
         k_param_auto_slew_rate,     // deprecated - can be deleted
         k_param_rangefinder_type_old,     // deprecated
-        k_param_super_simple = 155,
         k_param_axis_enabled = 157, // deprecated - remove with next eeprom number change
         k_param_copter_leds_mode,   // deprecated - remove with next eeprom number change
         k_param_ahrs, // AHRS group // 159
@@ -287,7 +286,6 @@ public:
         k_param_throttle_fs_action,     // remove
         k_param_failsafe_throttle_value,
         k_param_throttle_trim,          // remove
-        k_param_esc_calibrate,
         k_param_radio_tuning,
         k_param_radio_tuning_high_old,   // unused
         k_param_radio_tuning_low_old,    // unused
@@ -309,7 +307,6 @@ public:
         k_param_flight_mode4,
         k_param_flight_mode5,
         k_param_flight_mode6,
-        k_param_simple_modes,
         k_param_flight_mode_chan,
         k_param_initial_mode,
 
@@ -392,7 +389,6 @@ public:
     AP_Int8         failsafe_gcs;               // ground station failsafe behavior
     AP_Int16        gps_hdop_good;              // GPS Hdop value at or below this value represent a good position
 
-    AP_Int8         super_simple;
     AP_Int16        rtl_alt_final;
     AP_Int16        rtl_climb_min;              // rtl minimum climb in cm
 
@@ -423,14 +419,12 @@ public:
     AP_Int8         flight_mode4;
     AP_Int8         flight_mode5;
     AP_Int8         flight_mode6;
-    AP_Int8         simple_modes;
     AP_Int8         flight_mode_chan;
     AP_Int8         initial_mode;
 
     // Misc
     //
     AP_Int32        log_bitmask;
-    AP_Int8         esc_calibrate;
     AP_Int8         radio_tuning;
     AP_Int8         frame_type;
     AP_Int8         disarm_delay;

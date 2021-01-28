@@ -171,7 +171,6 @@ private:
     typedef union {
         struct {
             uint8_t unused1                 : 1; // 0
-            uint8_t unused_was_simple_mode  : 2; // 1,2
             uint8_t pre_arm_rc_check        : 1; // 3       // true if rc input pre-arm checks have been completed successfully
             uint8_t pre_arm_check           : 1; // 4       // true if all pre-arm checks (rc, accel calibration, gps lock) have been performed
             uint8_t auto_armed              : 1; // 5       // stops auto missions from beginning until throttle is raised
@@ -243,21 +242,6 @@ private:
     int32_t _home_bearing;
     uint32_t _home_distance;
 
-    // SIMPLE Mode
-    // Used to track the orientation of the vehicle for Simple mode. This value is reset at each arming
-    // or in SuperSimple mode when the vehicle leaves a 20m radius from home.
-    // enum class SimpleMode {
-    //     NONE = 0,
-    //     SIMPLE = 1,
-    //     SUPERSIMPLE = 2,
-    // } simple_mode;
-
-    // float simple_cos_yaw;
-    // float simple_sin_yaw;
-    // int32_t super_simple_last_bearing;
-    // float super_simple_cos_yaw;
-    // float super_simple_sin_yaw;
-
     // Stores initial bearing when armed - initial simple bearing is modified in super simple mode so not suitable
     int32_t initial_armed_bearing;
 
@@ -300,9 +284,6 @@ private:
 
     // last valid RC input time
     uint32_t last_radio_update_ms;
-
-    // last esc calibration notification update
-    uint32_t esc_calibration_notify_update_ms;
 
     // Top-level logic
     // setup the var_info table
@@ -365,7 +346,6 @@ private:
     void twentyfive_hz_logging();
     void three_hz_loop();
     void one_hz_loop();
-    void init_simple_bearing();
     void read_AHRS(void);
     void update_altitude();
 
@@ -406,13 +386,6 @@ private:
     void failsafe_ekf_off_event(void);
     void check_ekf_reset();
     void check_vibration();
-
-    // esc_calibration.cpp
-    void esc_calibration_startup_check();
-    void esc_calibration_passthrough();
-    void esc_calibration_auto();
-    void esc_calibration_notify();
-    void esc_calibration_setup();
 
     // events.cpp
     bool failsafe_option(FailsafeOption opt) const;

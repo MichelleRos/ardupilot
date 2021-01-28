@@ -246,7 +246,6 @@ public:
     // class.
     float get_pilot_desired_climb_rate(float throttle_control);
     float get_non_takeoff_throttle(void);
-    void update_simple_mode(void);
     bool set_mode(Mode::Number mode, ModeReason reason);
     void set_land_complete(bool b);
     GCS_Blimp &gcs();

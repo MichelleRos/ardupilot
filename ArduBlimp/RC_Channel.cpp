@@ -60,9 +60,6 @@ void RC_Channel_Blimp::init_aux_function(const aux_func_t ch_option, const AuxSw
     // the following functions do not need to be initialised:
     case AUX_FUNC::MANUAL:
         break;
-    // case AUX_FUNC::SUPERSIMPLE_MODE:
-    //     do_aux_function(ch_option, ch_flag);
-    //     break;
     default:
         RC_Channel::init_aux_function(ch_option, ch_flag);
         break;

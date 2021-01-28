@@ -8,9 +8,6 @@
 // should be called at 100hz or more
 void ModeManual::run()
 {
-    // apply simple mode transform to pilot inputs
-    update_simple_mode();
-
     // convert pilot input to lean angles
     float target_right, target_front;
     get_pilot_desired_accelerations(target_right, target_front);
