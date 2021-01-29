@@ -1,57 +1,71 @@
 #include "Blimp.h"
 
+//most of these will become parameters...
+//put here instead of Fins.h so that it can be changed without having to recompile the entire vehicle
+#define MIN_AMP 0
+#define MAX_AMP 75
+#define MAX_OFF MAX_AMP/2 //in degrees for now - will need to be adjusted to what the servo output function needs.
+#define OMEGA 0.5 //MIR later change to double omega when using height control (do a check for offset high & then increase omega)
+
 //constructor
 Fins::Fins(uint16_t loop_rate, uint16_t speed_hz){
     _loop_rate = loop_rate;
-    _omega = 0.3; //MIR
 }
 
-//B,F,R,L = 1,2,3,4
-void Fins::output(){ //assumes scaling -1 to 1 for each. Throttle is height control, hence neccessity for negative.
+void Fins::setup_fins(){
+    add_fin(0, 0, -1, 0, 0.5, 0, 0, 0, 0.5);
+    add_fin(1, 0, 1, 0, 0.5, 0, 0, 0, -0.5);
+    add_fin(2, -1, 0, 0.5, 0, 0, 0, 0.5, 0);
+    add_fin(3, 1, 0, 0.5, 0, 0, 0, -0.5, 0);
+}
+
+void Fins::add_fin(int8_t fin_num, float right_amp_fac, float front_amp_fac, float yaw_amp_fac, float down_amp_fac,
+                                   float right_off_fac, float front_off_fac, float yaw_off_fac, float down_off_fac){
+
+    // ensure valid fin number is provided
+    if (fin_num >= 0 && fin_num < NUM_FINS) {
+
+        // set amplitude factors
+        _right_amp_factor[fin_num] = right_amp_fac;
+        _front_amp_factor[fin_num] = front_amp_fac;
+        _yaw_amp_factor[fin_num] = yaw_amp_fac;
+        _down_amp_factor[fin_num] = down_amp_fac;
+
+        // set offset factors
+        _right_off_factor[fin_num] = right_off_fac;
+        _front_off_factor[fin_num] = front_off_fac;
+        _yaw_off_factor[fin_num] = yaw_off_fac;
+        _down_off_factor[fin_num] = down_off_fac;
+
+        //no check to see if this was successful
+        GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "MIR: Fin added.");
+    }
+}
+
+//B,F,R,L = 0,1,2,3
+void Fins::output(){ 
+    //assumes scaling -1 to 1 for each
     // _time;
-    
-    //+ve roll is right, +ve pitch is forward, +ve yaw is right, +ve throttle is up
     //offset is -1 to 1
     //amplitude & omega is 0 to 1
-    
-    //MIR Must first remap values as per parameters to give correct values for servo.
 
-    if (right_out > 0) { //right
-        _amp4 = right_out;
-        _amp3 = 0;
-    }else if (right_out < 0) { //left
-        _amp3 = -right_out;
-        _amp4 = 0;
-    }else{
-        _amp3 = 0;
-        _amp4 = 0;
-        _offset3 = 0;
-        _offset4 = 0;
+    for (int8_t i=0; i>NUM_FINS; i++){
+        
+        //calculating amplitudes and offsets
+        _amp[i] = _right_amp_factor[i]*right_out + _front_amp_factor[i]*front_out + _yaw_amp_factor[i]*yaw_out + _down_amp_factor[i]*down_out;
+        _off[i] = _right_off_factor[i]*right_out + _front_off_factor[i]*front_out + _yaw_off_factor[i]*yaw_out + _down_off_factor[i]*down_out;
+
+        //scaling to amounts for servo
+        // _amp[i] = max(0,mapf(_amp[i], -1, 1, MIN_AMP, MAX_AMP));
+        // _off[i] = max(0,mapf(_off[i], -1, 1, -MAX_OFF, MAX_OFF));
+        // not sure about this maths...
+        // using max(0,x) function to ensure amplitudes don't go -ve
+
+        // finding and outputting current position for each servo from sine wave  
+        _pos[i]= _amp[i]*sinf(OMEGA*_time) + MAX_AMP + _off[i];
+        // fin1.write(pos1);                         //outputting  to servos - use rc_write
     }
-
-    if (front_out > 0) { //forwards
-        _amp1 = front_out;
-        _amp2 = 0;
-    } else if (front_out < 0) { //backwards
-        _amp1 = -front_out;
-        _amp2 = 0;
-    } else {
-        _amp1 = 0;
-        _amp2 = 0;
-        _offset1 = 0;
-        _offset2 = 0;
-    }    
-    
-    _pos1 = _amp1*sinf(_omega*_time) + _maxAmp + _offset1; //finding current position for each servo from sine wave
-    // fin1.write(pos1);                         //outputting  to servos
-    _pos2 = _amp2*sinf(_omega*_time) + _maxAmp + _offset2;
-    // fin2.write(pos2);
-    _pos3 = _amp3*sinf(_omega*_time) + _maxAmp + _offset3;
-    // fin3.write(pos3);
-    _pos4 = _amp4*sinf(_omega*_time) + _maxAmp + _offset4;
-    // fin4.write(pos4);
 }
-
 void Fins::output_min(){
     right_out = 0;
     front_out = 0;
@@ -60,7 +74,8 @@ void Fins::output_min(){
     Fins::output();
 }
 
-void Fins::rc_write(uint8_t chan, uint16_t pwm) //how do I use this one?
+// how do I use this one?
+void Fins::rc_write(uint8_t chan, uint16_t pwm) 
 {
     SRV_Channel::Aux_servo_function_t function = SRV_Channels::get_motor_function(chan);
     SRV_Channels::set_output_pwm(function, pwm);
@@ -69,7 +84,7 @@ void Fins::rc_write(uint8_t chan, uint16_t pwm) //how do I use this one?
 void Fins::set_desired_spool_state(DesiredSpoolState spool)
 {
     if (_armed || (spool == DesiredSpoolState::SHUT_DOWN)) {
-        //Set DesiredSpoolState only if it is either armed or it wants to shut down.
+        // Set DesiredSpoolState only if it is either armed or it wants to shut down.
         _spool_desired = spool;
     }
 };

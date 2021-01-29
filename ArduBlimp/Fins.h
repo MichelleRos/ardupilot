@@ -1,9 +1,19 @@
 //This class converts horizontal acceleration commands to fin flapping commands.
 #pragma once
+// #include <AP_Common/AP_Common.h>
+// #include <AP_Math/AP_Math.h>        // ArduPilot Mega Vector/Matrix math Library
 #include <AP_Notify/AP_Notify.h>      // Notify library
+#include <SRV_Channel/SRV_Channel.h>
+// #include <Filter/Filter.h>         // filter library
+// #include <AP_HAL/AP_HAL.h>
+// #include <GCS_MAVLink/GCS.h>
+
+extern const AP_HAL::HAL& hal;
+
 
 #define FINS_SPEED_DEFAULT 10 //MIR what is this?
-class Fins {      //mixer.h
+#define NUM_FINS 4
+class Fins {
 public:
     friend class Blimp;
     Fins(void);
@@ -75,12 +85,21 @@ protected:
 
     float               _time;                       //current timestep
 
-    float              _amp1, _amp2, _amp3, _amp4;  //amplitudes
-    float              _offset1, _offset2, _offset3, _offset4; //offsets
-    float              _pos1, _pos2, _pos3, _pos4;  //servo positions
-    float              _omega, _maxAmp; 
-
     bool _armed;             // 0 if disarmed, 1 if armed
+
+    float              _amp[NUM_FINS];  //amplitudes
+    float              _off[NUM_FINS]; //offsets
+    float              _pos[NUM_FINS];  //servo positions
+
+    float               _right_amp_factor[NUM_FINS]; 
+    float               _front_amp_factor[NUM_FINS];
+    float               _yaw_amp_factor[NUM_FINS];
+    float               _down_amp_factor[NUM_FINS];
+
+    float               _right_off_factor[NUM_FINS]; 
+    float               _front_off_factor[NUM_FINS];
+    float               _yaw_off_factor[NUM_FINS];
+    float               _down_off_factor[NUM_FINS];
 
 // private:
 public:
@@ -96,10 +115,23 @@ public:
     // get_spool_state - get current spool state
     enum SpoolState  get_spool_state(void) const { return _spool_state; }
 
+    float mapf(float x, float in_min, float in_max, float out_min, float out_max) {
+        return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min; }
+
+    float max(float one, float two){
+        if (one >= two) return one;
+        else return two;
+    }
+
     void set_loop_rate(uint16_t loop_rate){ _loop_rate = loop_rate;}
 
     void output_min();
+
+    void add_fin(int8_t fin_num, float right_amp_fac, float front_amp_fac, float yaw_amp_fac, float down_amp_fac,
+                                   float right_off_fac, float front_off_fac, float yaw_off_fac, float down_off_fac);
     
+    void setup_fins();
+
     float get_throttle_hover(){ return 0; } //MIR temp
 
     void set_desired_spool_state(DesiredSpoolState spool);
