@@ -272,6 +272,7 @@ bool GCS_MAVLINK_Blimp::try_send_message(enum ap_message id)
     case MSG_SERVO_OUT:
     case MSG_AOA_SSA:
     case MSG_LANDING:
+    case MSG_ADSB_VEHICLE:
         // unused
         break;
 
