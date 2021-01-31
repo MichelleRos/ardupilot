@@ -34,8 +34,8 @@ Blimp::Blimp(const char *frame_str) :
 void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &rot_accel, Vector3f &body_accel)
 {
     float fin_back  = filtered_servo_angle(input, 0);
-    float fin_front  = filtered_servo_angle(input, 1);
-    float fin_right  = filtered_servo_angle(input, 2);
+    float fin_front = filtered_servo_angle(input, 1);
+    float fin_right = filtered_servo_angle(input, 2);
     float fin_left  = filtered_servo_angle(input, 3);
 
     ::printf("FINS (%.1f %.1f %.1f %.1f)\n",
