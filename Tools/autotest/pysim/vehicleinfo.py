@@ -177,6 +177,17 @@ class VehicleInfo(object):
             },
         },
     },
+    "ArduBlimp": {
+        "default_frame": "quad",
+        "frames": {
+            # BLIMP
+            "quad": {
+                "model": "+",
+                "waf_target": "bin/ardublimp",
+                "default_params_filename": "default_params/copter.parm",
+            },
+        },
+    },
     "ArduPlane": {
         "default_frame": "plane",
         "frames": {
