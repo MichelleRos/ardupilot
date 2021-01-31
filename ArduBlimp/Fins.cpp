@@ -12,11 +12,18 @@ Fins::Fins(uint16_t loop_rate, uint16_t speed_hz){
     _loop_rate = loop_rate;
 }
 
+#define FIN_SCALE_MAX 4500
+
 void Fins::setup_fins(){
     add_fin(0, 0, -1, 0, 0.5, 0, 0, 0, 0.5);
     add_fin(1, 0, 1, 0, 0.5, 0, 0, 0, -0.5);
     add_fin(2, -1, 0, 0.5, 0, 0, 0, 0.5, 0);
     add_fin(3, 1, 0, 0.5, 0, 0, 0, -0.5, 0);
+
+    SRV_Channels::set_angle(SRV_Channel::k_motor1, FIN_SCALE_MAX);
+    SRV_Channels::set_angle(SRV_Channel::k_motor2, FIN_SCALE_MAX);
+    SRV_Channels::set_angle(SRV_Channel::k_motor3, FIN_SCALE_MAX);
+    SRV_Channels::set_angle(SRV_Channel::k_motor4, FIN_SCALE_MAX);
 }
 
 void Fins::add_fin(int8_t fin_num, float right_amp_fac, float front_amp_fac, float yaw_amp_fac, float down_amp_fac,
@@ -43,13 +50,14 @@ void Fins::add_fin(int8_t fin_num, float right_amp_fac, float front_amp_fac, flo
 }
 
 //B,F,R,L = 0,1,2,3
-void Fins::output(){ 
+void Fins::output()
+{
     //assumes scaling -1 to 1 for each
     // _time;
     //offset is -1 to 1
     //amplitude & omega is 0 to 1
 
-    for (int8_t i=0; i>NUM_FINS; i++){
+    for (int8_t i=0; i<NUM_FINS; i++){
         
         //calculating amplitudes and offsets
         _amp[i] = _right_amp_factor[i]*right_out + _front_amp_factor[i]*front_out + _yaw_amp_factor[i]*yaw_out + _down_amp_factor[i]*down_out;
@@ -65,20 +73,23 @@ void Fins::output(){
         _pos[i]= _amp[i]*sinf(OMEGA*_time) + MAX_AMP + _off[i];
         // fin1.write(pos1);                         //outputting  to servos - use rc_write
     }
+
+
+    for (uint8_t i=0; i<NUM_FINS; i++) {
+        const float rate_hz = 0.2 * (i+1);
+        const float phase = AP_HAL::micros() * 1.0e-6;
+        float fin = sinf(phase * rate_hz * 2 * M_PI);
+        SRV_Channels::set_output_scaled(SRV_Channels::get_motor_function(i), fin * FIN_SCALE_MAX);
+    }
 }
+
+
 void Fins::output_min(){
     right_out = 0;
     front_out = 0;
     down_out = 0;
     yaw_out = 0;
     Fins::output();
-}
-
-// how do I use this one?
-void Fins::rc_write(uint8_t chan, uint16_t pwm) 
-{
-    SRV_Channel::Aux_servo_function_t function = SRV_Channels::get_motor_function(chan);
-    SRV_Channels::set_output_pwm(function, pwm);
 }
 
 void Fins::set_desired_spool_state(DesiredSpoolState spool)

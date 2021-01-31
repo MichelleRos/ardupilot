@@ -124,6 +124,9 @@ void Blimp::init_ardupilot()
 
     ins.set_log_raw_bit(MASK_LOG_IMU_RAW);
 
+    // setup fin output
+    motors->setup_fins();
+
     // enable output to motors
     if (arming.rc_calibration_checks(true)) {
         enable_motor_output();
