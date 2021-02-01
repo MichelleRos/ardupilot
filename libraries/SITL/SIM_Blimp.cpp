@@ -42,7 +42,6 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &rot_accel
              fin_back, fin_front, fin_right, fin_left);
 }
 
-
 /*
   update the blimp simulation by one time step
  */

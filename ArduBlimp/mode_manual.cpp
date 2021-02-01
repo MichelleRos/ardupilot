@@ -19,5 +19,7 @@ void ModeManual::run()
         motors->set_desired_spool_state(Fins::DesiredSpoolState::THROTTLE_UNLIMITED);
     }
 
-    motors->output(); //MIR need to add sending direction & throttle commands.
+
+
+    // motors->output(); //MIR need to add sending direction & throttle commands.
 }

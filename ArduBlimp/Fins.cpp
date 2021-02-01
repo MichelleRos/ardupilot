@@ -5,20 +5,20 @@
 #define MIN_AMP 0
 #define MAX_AMP 75
 #define MAX_OFF MAX_AMP/2 //in degrees for now - will need to be adjusted to what the servo output function needs.
-#define OMEGA 0.5 //MIR later change to double omega when using height control (do a check for offset high & then increase omega)
+#define FREQ_HZ 0.5 //MIR later change to double omega when using height control (do a check for offset high & then increase omega)
 
 //constructor
 Fins::Fins(uint16_t loop_rate, uint16_t speed_hz){
     _loop_rate = loop_rate;
 }
 
-#define FIN_SCALE_MAX 4500
+#define FIN_SCALE_MAX 1000
 
 void Fins::setup_fins(){
-    add_fin(0, 0, -1, 0, 0.5, 0, 0, 0, 0.5);
-    add_fin(1, 0, 1, 0, 0.5, 0, 0, 0, -0.5);
-    add_fin(2, -1, 0, 0.5, 0, 0, 0, 0.5, 0);
-    add_fin(3, 1, 0, 0.5, 0, 0, 0, -0.5, 0);
+    add_fin(0,  0, -1,   0, 0.5,  0,  0,   0,  0.5);
+    add_fin(1,  0,  1,   0, 0.5,  0,  0,   0, -0.5);
+    add_fin(2, -1,  0, 0.5,   0,  0,  0, 0.5,    0);
+    add_fin(3,  1,  0, 0.5,   0,  0,  0, -0.5,   0);
 
     SRV_Channels::set_angle(SRV_Channel::k_motor1, FIN_SCALE_MAX);
     SRV_Channels::set_angle(SRV_Channel::k_motor2, FIN_SCALE_MAX);
@@ -57,11 +57,25 @@ void Fins::output()
     //offset is -1 to 1
     //amplitude & omega is 0 to 1
 
+    if (!_armed) {
+        // set everything to zero so fins stop moving
+        right_out = 0;
+        front_out = 0;
+        down_out = 0;
+        yaw_out = 0;
+    }
+
+    front_out = 1; //MIR debug why fins don't move with down_out = -1
+    
+    _time = AP_HAL::micros() * 1.0e-6;
+
     for (int8_t i=0; i<NUM_FINS; i++){
         
         //calculating amplitudes and offsets
-        _amp[i] = _right_amp_factor[i]*right_out + _front_amp_factor[i]*front_out + _yaw_amp_factor[i]*yaw_out + _down_amp_factor[i]*down_out;
+        _amp[i] =  max(0,_right_amp_factor[i]*right_out + _front_amp_factor[i]*front_out + _yaw_amp_factor[i]*yaw_out + _down_amp_factor[i]*down_out);
         _off[i] = _right_off_factor[i]*right_out + _front_off_factor[i]*front_out + _yaw_off_factor[i]*yaw_out + _down_off_factor[i]*down_out;
+        // average over non-zero values
+
 
         //scaling to amounts for servo
         // _amp[i] = max(0,mapf(_amp[i], -1, 1, MIN_AMP, MAX_AMP));
@@ -70,19 +84,21 @@ void Fins::output()
         // using max(0,x) function to ensure amplitudes don't go -ve
 
         // finding and outputting current position for each servo from sine wave  
-        _pos[i]= _amp[i]*sinf(OMEGA*_time) + MAX_AMP + _off[i];
-        // fin1.write(pos1);                         //outputting  to servos - use rc_write
-    }
 
 
-    for (uint8_t i=0; i<NUM_FINS; i++) {
-        const float rate_hz = 0.2 * (i+1);
-        const float phase = AP_HAL::micros() * 1.0e-6;
-        float fin = sinf(phase * rate_hz * 2 * M_PI);
-        SRV_Channels::set_output_scaled(SRV_Channels::get_motor_function(i), fin * FIN_SCALE_MAX);
+        _pos[i]= _amp[i]*sinf(FREQ_HZ * _time * 2 * M_PI) + _off[i]; //removed +MAX_AMP because output can do -ve numbers
+        SRV_Channels::set_output_scaled(SRV_Channels::get_motor_function(i), _pos[i] * FIN_SCALE_MAX);
     }
+
+    GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "MIR: Fin added.");
+
+    // for (uint8_t i=0; i<NUM_FINS; i++) {
+    //     const float rate_hz = 0.2 * (i+1);
+    //     const float phase = AP_HAL::micros() * 1.0e-6;
+    //     float fin = sinf(phase * rate_hz * 2 * M_PI);
+    //     SRV_Channels::set_output_scaled(SRV_Channels::get_motor_function(i), fin * FIN_SCALE_MAX);
+    // }
 }
-
 
 void Fins::output_min(){
     right_out = 0;

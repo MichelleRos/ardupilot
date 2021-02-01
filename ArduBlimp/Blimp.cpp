@@ -117,11 +117,6 @@ void Blimp::fast_loop()
     // Skip for now since Blimp won't land
     // update_land_and_crash_detectors();
 
-// #if HAL_MOUNT_ENABLED
-//     // camera mount's fast update
-//     camera_mount.update_fast();
-// #endif
-
     // log sensor health
     if (should_log(MASK_LOG_ANY)) {
         Log_Sensor_Health();

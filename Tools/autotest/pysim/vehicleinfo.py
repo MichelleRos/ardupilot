@@ -184,7 +184,7 @@ class VehicleInfo(object):
             "quad": {
                 "model": "+",
                 "waf_target": "bin/ardublimp",
-                "default_params_filename": "default_params/copter.parm",
+                "default_params_filename": "default_params/blimp.parm",
             },
         },
     },
