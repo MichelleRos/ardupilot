@@ -21,10 +21,10 @@ void Blimp::init_rc_in()
     channel_yaw      = rc().channel(rcmap.yaw()-1);
 
     // set rc channel ranges
-    channel_right->set_angle(ROLL_PITCH_YAW_INPUT_MAX);
-    channel_front->set_angle(ROLL_PITCH_YAW_INPUT_MAX);
-    channel_yaw->set_angle(ROLL_PITCH_YAW_INPUT_MAX);
-    channel_down->set_range(1000);
+    channel_right->set_angle(RC_SCALE);
+    channel_front->set_angle(RC_SCALE);
+    channel_yaw->set_angle(RC_SCALE);
+    channel_down->set_angle(RC_SCALE);
 
     // set default dead zones
     default_dead_zones();

@@ -13,6 +13,7 @@ extern const AP_HAL::HAL& hal;
 
 #define FINS_SPEED_DEFAULT 10 //MIR what is this?
 #define NUM_FINS 4
+#define RC_SCALE 1000
 class Fins {
 public:
     friend class Blimp;

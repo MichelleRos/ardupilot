@@ -134,7 +134,7 @@ void Blimp::init_ardupilot()
 
     // attempt to switch to MANUAL, if this fails then switch to Land
     if (!set_mode((enum Mode::Number)g.initial_mode.get(), ModeReason::INITIALISED)) {
-        // set mode to STABILIZE will trigger mode change notification to pilot
+        // set mode to MANUAL will trigger mode change notification to pilot
         set_mode(Mode::Number::MANUAL, ModeReason::UNAVAILABLE);
     } else {
         // alert pilot to mode change

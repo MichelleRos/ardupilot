@@ -2,10 +2,8 @@
 
 //most of these will become parameters...
 //put here instead of Fins.h so that it can be changed without having to recompile the entire vehicle
-#define MIN_AMP 0
-#define MAX_AMP 75
-#define MAX_OFF MAX_AMP/2 //in degrees for now - will need to be adjusted to what the servo output function needs.
-#define FREQ_HZ 0.1 //MIR later change to double omega when using height control (do a check for offset high & then increase omega)
+
+#define FREQ_HZ 0.3 //MIR later change to double omega when using height control (do a check for offset high & then increase omega)
 
 //constructor
 Fins::Fins(uint16_t loop_rate, uint16_t speed_hz){
@@ -16,10 +14,10 @@ Fins::Fins(uint16_t loop_rate, uint16_t speed_hz){
 
 void Fins::setup_fins(){
           //amp r   f   d     y,off r   f   d      y
-    add_fin(0,  0, -1, 0.5,   0,    0,  0, 0.5,    0);
-    add_fin(1,  0,  1, 0.5,   0,    0,  0, 0.5,    0);
-    add_fin(2, -1,  0,   0, 0.5,    0,  0,   0,  0.5);
-    add_fin(3,  1,  0,   0, 0.5,    0,  0,   0, -0.5);
+    add_fin(0,  0,  1, 0.5,   0,    0,  0,  0.5,    0);
+    add_fin(1,  0, -1, 0.5,   0,    0,  0, -0.5,    0);
+    add_fin(2, -1,  0,   0, 0.5,    0,  0,    0,  0.5);
+    add_fin(3,  1,  0,   0, 0.5,    0,  0,    0, -0.5);
 
     SRV_Channels::set_angle(SRV_Channel::k_motor1, FIN_SCALE_MAX);
     SRV_Channels::set_angle(SRV_Channel::k_motor2, FIN_SCALE_MAX);
@@ -64,17 +62,23 @@ void Fins::output()
         // set everything to zero so fins stop moving
         right_out = 0;
         front_out = 0;
-        down_out = 0;
-        yaw_out = 0;
+        down_out  = 0;
+        yaw_out   = 0;
     }
 
-    down_out = -1; //MIR debug why fins don't move with down_out = -1
+    right_out /= RC_SCALE;
+    front_out /= RC_SCALE;
+    down_out  /= RC_SCALE;
+    yaw_out   /= RC_SCALE;
     
     _time = AP_HAL::micros() * 1.0e-6;
 
     for (int8_t i=0; i<NUM_FINS; i++){ 
-        _amp[i] =  max(0,_right_amp_factor[i]*right_out) + max(0,_front_amp_factor[i]*front_out) + fabsf(_yaw_amp_factor[i]*yaw_out) + fabsf(_down_amp_factor[i]*down_out);
-        _off[i] = _right_off_factor[i]*right_out + _front_off_factor[i]*front_out + _yaw_off_factor[i]*yaw_out + _down_off_factor[i]*down_out;
+        _amp[i] =  max(0,_right_amp_factor[i]*right_out) + max(0,_front_amp_factor[i]*front_out) + 
+            fabsf(_down_amp_factor[i]*down_out) + fabsf(_yaw_amp_factor[i]*yaw_out);
+        _off[i] = _right_off_factor[i]*right_out + _front_off_factor[i]*front_out + 
+            _down_off_factor[i]*down_out + _yaw_off_factor[i]*yaw_out;
+
         // average over non-zero values
         //calculating amplitudes and offsets
         // _num_added = 0;
