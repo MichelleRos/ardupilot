@@ -93,14 +93,16 @@ protected:
 
     float               _right_amp_factor[NUM_FINS]; 
     float               _front_amp_factor[NUM_FINS];
-    float               _yaw_amp_factor[NUM_FINS];
     float               _down_amp_factor[NUM_FINS];
+    float               _yaw_amp_factor[NUM_FINS]; 
 
     float               _right_off_factor[NUM_FINS]; 
     float               _front_off_factor[NUM_FINS];
-    float               _yaw_off_factor[NUM_FINS];
     float               _down_off_factor[NUM_FINS];
-
+    float               _yaw_off_factor[NUM_FINS];
+    
+    bool              _added[4];
+    int8_t            _num_added;
 // private:
 public:
     float               right_out;                  //input right movement, negative for left, +1 to -1
