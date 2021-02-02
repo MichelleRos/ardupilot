@@ -79,61 +79,30 @@ void Fins::output()
         _off[i] = _right_off_factor[i]*right_out + _front_off_factor[i]*front_out + 
             _down_off_factor[i]*down_out + _yaw_off_factor[i]*yaw_out;
 
-        // average over non-zero values
-        //calculating amplitudes and offsets
-        // _num_added = 0;
-        // if (max(0,_right_amp_factor[i]*right_out) > 0.0f) {
-        //     _amp[i] += max(0,_right_amp_factor[i]*right_out);
-        //     _added[0] = 1;
-        //     _num_added += 1;
-        // } else _added[0] = 0;
-        
-        // if (max(0,_front_amp_factor[i]*front_out) > 0.0f) {
-        //     _amp[i] += max(0,_front_amp_factor[i]*front_out);
-        //     _added[1] = 1;
-        //     _num_added += 1;
-        // } else _added[1] = 0;
-        
-        // if (fabsf(_down_amp_factor[i]*down_out)   > 0.01f) { //small number because floating point.
-        //     _amp[i] += fabsf(_down_amp_factor[i]*down_out);
-        //     _added[2] = 1;
-        //     _num_added += 1;
-        // } else _added[2] = 0;
-        
-        // if (fabsf(_yaw_amp_factor[i]*yaw_out)     > 0.01f) {
-        //     _amp[i] +=  fabsf(_yaw_amp_factor[i]*yaw_out);
-        //     _added[3] = 1;
-        //     _num_added += 1;
-        // } else _added[3] = 0;            
+        _num_added = 0;
+        if (max(0,_right_amp_factor[i]*right_out) > 0.0f) {
+            _num_added++;
+        }
+        if (max(0,_front_amp_factor[i]*front_out) > 0.0f) {
+            _num_added++;
+        }
+        if (fabsf(_down_amp_factor[i]*down_out) > 0.0f) {
+            _num_added++;
+        }
+        if (fabsf(_yaw_amp_factor[i]*yaw_out) > 0.0f) {
+            _num_added++;
+        }
 
-        // if (_added[0]) _off[i] += _right_off_factor[i]*right_out;
-        // if (_added[1]) _off[i] += _front_off_factor[i]*front_out;
-        // if (_added[2]) _off[i] += _down_off_factor[i]*down_out;
-        // if (_added[3]) _off[i] += _yaw_off_factor[i]*yaw_out;
-
-        // if (_num_added > 0) _off[i] = _off[i]/_num_added;
-        // GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "MIR: Num added is %f", static_cast<double>(_num_added));
-        // ::printf("FINS2 (%.1f %.1f %.1f)\n", (float)i, _amp[i], _off[i]);
-
-        //scaling to amounts for servo
-        // _amp[i] = max(0,mapf(_amp[i], -1, 1, MIN_AMP, MAX_AMP));
-        // _off[i] = max(0,mapf(_off[i], -1, 1, -MAX_OFF, MAX_OFF));
-        // not sure about this maths...
-        // using max(0,x) function to ensure amplitudes don't go -ve
+        if (_num_added > 0) {
+            _amp[i] = _amp[i]/_num_added;
+            _off[i] = _off[i]/_num_added;
+        }
+        // GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "MIR: Num %d added is %d", i, _num_added);
 
         // finding and outputting current position for each servo from sine wave  
-
-
         _pos[i]= _amp[i]*sinf(FREQ_HZ * _time * 2 * M_PI) + _off[i]; //removed +MAX_AMP because output can do -ve numbers
         SRV_Channels::set_output_scaled(SRV_Channels::get_motor_function(i), _pos[i] * FIN_SCALE_MAX);
     }
-
-    // for (uint8_t i=0; i<NUM_FINS; i++) {
-    //     const float rate_hz = 0.2 * (i+1);
-    //     const float phase = AP_HAL::micros() * 1.0e-6;
-    //     float fin = sinf(phase * rate_hz * 2 * M_PI);
-    //     SRV_Channels::set_output_scaled(SRV_Channels::get_motor_function(i), fin * FIN_SCALE_MAX);
-    // }
 }
 
 void Fins::output_min(){
