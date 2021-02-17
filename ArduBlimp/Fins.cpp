@@ -3,19 +3,14 @@
 //most of these will become parameters...
 //put here instead of Fins.h so that it can be changed without having to recompile the entire vehicle
 
-#define FREQ_HZ 0.3 //MIR later change to double omega when using height control (do a check for offset high & then increase omega)
-
-//constructor
-Fins::Fins(uint16_t loop_rate, uint16_t speed_hz){
-    _loop_rate = loop_rate;
-}
+#define FREQ_HZ 0.9 //MIR later change to double omega when using height control (do a check for offset high & then increase omega)
 
 #define FIN_SCALE_MAX 1000
 
 void Fins::setup_fins(){
           //amp r   f   d     y,off r   f   d      y
-    add_fin(0,  0,  1, 0.5,   0,    0,  0,  0.5,    0);
-    add_fin(1,  0, -1, 0.5,   0,    0,  0, -0.5,    0);
+    add_fin(0,  0, -1, 0.5,   0,    0,  0,  0.5,    0);
+    add_fin(1,  0,  1, 0.5,   0,    0,  0, -0.5,    0);
     add_fin(2, -1,  0,   0, 0.5,    0,  0,    0,  0.5);
     add_fin(3,  1,  0,   0, 0.5,    0,  0,    0, -0.5);
 
@@ -44,20 +39,12 @@ void Fins::add_fin(int8_t fin_num, float right_amp_fac, float front_amp_fac, flo
         _front_off_factor[fin_num] = front_off_fac;
         _down_off_factor[fin_num] = down_off_fac;
         _yaw_off_factor[fin_num] = yaw_off_fac;  
-
-        //no check to see if this was successful
-        // GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "MIR: Fin added.");
     }
 }
 
 //B,F,R,L = 0,1,2,3
 void Fins::output()
 {
-    //assumes scaling -1 to 1 for each
-    // _time;
-    //offset is -1 to 1
-    //amplitude & omega is 0 to 1
-
     if (!_armed) {
         // set everything to zero so fins stop moving
         right_out = 0;
@@ -97,9 +84,14 @@ void Fins::output()
             _amp[i] = _amp[i]/_num_added;
             _off[i] = _off[i]/_num_added;
         }
-        // GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "MIR: Num %d added is %d", i, _num_added);
 
-        // finding and outputting current position for each servo from sine wave  
+        //double speed fins if offset at max... MIR
+        // if (_amp[i] <= 0.5) {
+            // _freq_mult = 1.0f/_off[i];
+        // }
+        
+        // finding and outputting current position for each servo from sine wave 
+        // blimp.g2.fins_freq_hz 
         _pos[i]= _amp[i]*sinf(FREQ_HZ * _time * 2 * M_PI) + _off[i]; //removed +MAX_AMP because output can do -ve numbers
         SRV_Channels::set_output_scaled(SRV_Channels::get_motor_function(i), _pos[i] * FIN_SCALE_MAX);
     }
