@@ -10,14 +10,13 @@
 
 extern const AP_HAL::HAL& hal;
 
-
-#define FINS_SPEED_DEFAULT 10 //MIR what is this?
+// #define FINS_SPEED_DEFAULT 10 //MIR what is this?
 #define NUM_FINS 4
 #define RC_SCALE 1000
 class Fins {
 public:
     friend class Blimp;
-    Fins(void);
+    // Fins(void);
 
     enum motor_frame_class {
         MOTOR_FRAME_UNDEFINED = 0,
@@ -27,8 +26,15 @@ public:
         MOTOR_FRAME_TYPE_AIRFISH = 1,
     };
 
-    // Constructor
-    Fins(uint16_t loop_rate, uint16_t speed_hz = FINS_SPEED_DEFAULT);
+    //constructor
+    Fins(uint16_t loop_rate){
+    // Fins(){
+        _loop_rate = loop_rate;
+        // AP_Param::setup_object_defaults(this, var_info);       
+    }
+
+    // var_info for holding Parameter information
+    static const struct AP_Param::GroupInfo        var_info[];
 
     // singleton support
     // static Fins    *get_singleton(void) { return _singleton; }
@@ -102,8 +108,7 @@ protected:
     float               _down_off_factor[NUM_FINS];
     float               _yaw_off_factor[NUM_FINS];
     
-    bool              _added[4];
-    int8_t            _num_added;
+    int8_t              _num_added;
 // private:
 public:
     float               right_out;                  //input right movement, negative for left, +1 to -1
@@ -111,6 +116,7 @@ public:
     float               yaw_out;                    //input yaw, +1 to -1
     float               down_out;                   //input height control, +1 to -1
     
+    float               freq_hz;
     
     bool _interlock;         // 1 if the motor interlock is enabled (i.e. motors run), 0 if disabled (motors don't run)
     bool _initialised_ok;    // 1 if initialisation was successful
@@ -118,8 +124,8 @@ public:
     // get_spool_state - get current spool state
     enum SpoolState  get_spool_state(void) const { return _spool_state; }
 
-    float mapf(float x, float in_min, float in_max, float out_min, float out_max) {
-        return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min; }
+    // float mapf(float x, float in_min, float in_max, float out_min, float out_max) {
+    //     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min; }
 
     float max(float one, float two){
         if (one >= two) return one;

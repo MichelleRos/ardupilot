@@ -365,6 +365,7 @@ public:
         // 254,255: reserved
 
         k_param_vehicle = 257, // vehicle common block of parameters
+        // k_param_fins_freq_hz = 258, // fin flap freq
 
         // the k_param_* space is 9-bits in size
         // 511: reserved
@@ -522,6 +523,9 @@ public:
     AP_Int32 fs_options;
 
     AP_Float fs_gcs_timeout;
+
+    //Frequency that fins flap
+    // AP_Float fins_freq_hz;
 
 };
 

@@ -674,6 +674,13 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("FS_GCS_TIMEOUT", 42, ParametersG2, fs_gcs_timeout, 5),
 
+    // // @Param: FINS_FREQ_HZ
+    // // @DisplayName: Fin flapping speed
+    // // @Description: Used to change speed that the fins flap at.
+    // // @Values: float
+    // // @User: Standard
+    // GSCALAR(fins_freq_hz, "FINS_FREQ_HZ", 0.9f),
+
     AP_GROUPEND
 };
 
