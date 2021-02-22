@@ -8,11 +8,11 @@
 #define FIN_SCALE_MAX 1000
 
 void Fins::setup_fins(){
-          //amp r   f   d     y,off r   f   d      y
-    add_fin(0,  0, -1, 0.5,   0,    0,  0,  0.5,    0);
-    add_fin(1,  0,  1, 0.5,   0,    0,  0, -0.5,    0);
-    add_fin(2, -1,  0,   0, 0.5,    0,  0,    0,  0.5);
-    add_fin(3,  1,  0,   0, 0.5,    0,  0,    0, -0.5);
+          //amp r   f   d     y,off r   f   d      y               right, front, down, yaw
+    add_fin(0,  0, -1, 0.5,   0,    0,  0, -0.5,    0); //Back(?)
+    add_fin(1,  0,  1, 0.5,   0,    0,  0, -0.5,    0); //Front(?)
+    add_fin(2, -1,  0,   0, 0.5,    0,  0,    0,  0.5); //Right
+    add_fin(3,  1,  0,   0, 0.5,    0,  0,    0, -0.5); //Left
 
     SRV_Channels::set_angle(SRV_Channel::k_motor1, FIN_SCALE_MAX);
     SRV_Channels::set_angle(SRV_Channel::k_motor2, FIN_SCALE_MAX);
@@ -100,11 +100,12 @@ void Fins::output()
 void Fins::output_min(){
     right_out = 0;
     front_out = 0;
-    down_out = 0;
-    yaw_out = 0;
+    down_out  = 0;
+    yaw_out   = 0;
     Fins::output();
 }
 
+// MIR - Probably want to completely get rid of the desired spool state thing.
 void Fins::set_desired_spool_state(DesiredSpoolState spool)
 {
     if (_armed || (spool == DesiredSpoolState::SHUT_DOWN)) {

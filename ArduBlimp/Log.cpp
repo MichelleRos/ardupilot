@@ -26,9 +26,9 @@ struct PACKED log_Control_Tuning {
 void Blimp::Log_Write_Control_Tuning()
 {
     // get terrain altitude
-    float terr_alt = 0.0f;
-    float des_alt_m = 0.0f;
-    int16_t target_climb_rate_cms = 0;
+    // float terr_alt = 0.0f;
+    // float des_alt_m = 0.0f;
+    // int16_t target_climb_rate_cms = 0;
     // if (!flightmode->has_manual_throttle()) {
     //     des_alt_m = pos_control->get_alt_target() / 100.0f;
     //     target_climb_rate_cms = pos_control->get_vel_target_z();
@@ -37,41 +37,41 @@ void Blimp::Log_Write_Control_Tuning()
     // get surface tracking alts
     // float desired_rangefinder_alt;
     // if (!surface_tracking.get_target_dist_for_logging(desired_rangefinder_alt)) {
-        desired_rangefinder_alt = AP::logger().quiet_nan();
+        // desired_rangefinder_alt = AP::logger().quiet_nan();
     // }
 
-    struct log_Control_Tuning pkt = {
-        LOG_PACKET_HEADER_INIT(LOG_CONTROL_TUNING_MSG),
-        time_us             : AP_HAL::micros64(),
-        throttle_in         : attitude_control->get_throttle_in(),
-        angle_boost         : attitude_control->angle_boost(),
-        throttle_out        : motors->get_throttle(),
-        throttle_hover      : motors->get_throttle_hover(),
-        desired_alt         : des_alt_m,
-        inav_alt            : inertial_nav.get_altitude() / 100.0f,
-        baro_alt            : baro_alt,
-        desired_rangefinder_alt : desired_rangefinder_alt,
-        rangefinder_alt     : surface_tracking.get_dist_for_logging(),
-        terr_alt            : terr_alt,
-        target_climb_rate   : target_climb_rate_cms,
-        climb_rate          : int16_t(inertial_nav.get_velocity_z()) // float -> int16_t
-    };
-    logger.WriteBlock(&pkt, sizeof(pkt));
+    // struct log_Control_Tuning pkt = {
+    //     LOG_PACKET_HEADER_INIT(LOG_CONTROL_TUNING_MSG),
+    //     time_us             : AP_HAL::micros64(),
+    //     throttle_in         : attitude_control->get_throttle_in(),
+    //     angle_boost         : attitude_control->angle_boost(),
+    //     throttle_out        : motors->get_throttle(),
+    //     throttle_hover      : motors->get_throttle_hover(),
+    //     desired_alt         : des_alt_m,
+    //     inav_alt            : inertial_nav.get_altitude() / 100.0f,
+    //     baro_alt            : baro_alt,
+    //     desired_rangefinder_alt : desired_rangefinder_alt,
+    //     rangefinder_alt     : surface_tracking.get_dist_for_logging(),
+    //     terr_alt            : terr_alt,
+    //     target_climb_rate   : target_climb_rate_cms,
+    //     climb_rate          : int16_t(inertial_nav.get_velocity_z()) // float -> int16_t
+    // };
+    // logger.WriteBlock(&pkt, sizeof(pkt));
 }
 
 // Write an attitude packet
 void Blimp::Log_Write_Attitude()
 {
-    Vector3f targets = attitude_control->get_att_target_euler_cd();
-    targets.z = wrap_360_cd(targets.z);
-    logger.Write_Attitude(targets);
-    logger.Write_Rate(ahrs_view, *motors, *attitude_control, *pos_control);
-    if (should_log(MASK_LOG_PID)) {
-        logger.Write_PID(LOG_PIDR_MSG, attitude_control->get_rate_roll_pid().get_pid_info());
-        logger.Write_PID(LOG_PIDP_MSG, attitude_control->get_rate_pitch_pid().get_pid_info());
-        logger.Write_PID(LOG_PIDY_MSG, attitude_control->get_rate_yaw_pid().get_pid_info());
-        // logger.Write_PID(LOG_PIDA_MSG, pos_control->get_accel_z_pid().get_pid_info() );
-    }
+    // // Vector3f targets = attitude_control->get_att_target_euler_cd();
+    // targets.z = wrap_360_cd(targets.z);
+    // logger.Write_Attitude(targets);
+    // logger.Write_Rate(ahrs_view, *motors, *attitude_control, *pos_control);
+    // if (should_log(MASK_LOG_PID)) {
+    //     logger.Write_PID(LOG_PIDR_MSG, attitude_control->get_rate_roll_pid().get_pid_info());
+    //     logger.Write_PID(LOG_PIDP_MSG, attitude_control->get_rate_pitch_pid().get_pid_info());
+    //     logger.Write_PID(LOG_PIDY_MSG, attitude_control->get_rate_yaw_pid().get_pid_info());
+    //     // logger.Write_PID(LOG_PIDA_MSG, pos_control->get_accel_z_pid().get_pid_info() );
+    // }
 }
 
 // Write an EKF and POS packet
@@ -97,15 +97,15 @@ struct PACKED log_MotBatt {
 // Write an rate packet
 void Blimp::Log_Write_MotBatt()
 {
-    struct log_MotBatt pkt_mot = {
-        LOG_PACKET_HEADER_INIT(LOG_MOTBATT_MSG),
-        time_us         : AP_HAL::micros64(),
-        lift_max        : (float)(motors->get_lift_max()),
-        bat_volt        : (float)(motors->get_batt_voltage_filt()),
-        bat_res         : (float)(battery.get_resistance()),
-        th_limit        : (float)(motors->get_throttle_limit())
-    };
-    logger.WriteBlock(&pkt_mot, sizeof(pkt_mot));
+    // struct log_MotBatt pkt_mot = {
+    //     LOG_PACKET_HEADER_INIT(LOG_MOTBATT_MSG),
+    //     time_us         : AP_HAL::micros64(),
+    //     lift_max        : (float)(motors->get_lift_max()),
+    //     bat_volt        : (float)(motors->get_batt_voltage_filt()),
+    //     bat_res         : (float)(battery.get_resistance()),
+    //     th_limit        : (float)(motors->get_throttle_limit())
+    // };
+    // logger.WriteBlock(&pkt_mot, sizeof(pkt_mot));
 }
 
 struct PACKED log_Data_Int16t {
@@ -330,31 +330,6 @@ void Blimp::Log_Write_SysID_Setup(uint8_t systemID_axis, float waveform_magnitud
 #endif
 }
 
-#if FRAME_CONFIG == HELI_FRAME
-struct PACKED log_Heli {
-    LOG_PACKET_HEADER;
-    uint64_t time_us;
-    float    desired_rotor_speed;
-    float    main_rotor_speed;
-    float    governor_output;
-    float    control_output;
-};
-
-// Write an helicopter packet
-void Blimp::Log_Write_Heli()
-{
-    struct log_Heli pkt_heli = {
-        LOG_PACKET_HEADER_INIT(LOG_HELI_MSG),
-        time_us                 : AP_HAL::micros64(),
-        desired_rotor_speed     : motors->get_desired_rotor_speed(),
-        main_rotor_speed        : motors->get_main_rotor_speed(),
-        governor_output         : motors->get_governor_output(),
-        control_output          : motors->get_control_output(),
-    };
-    logger.WriteBlock(&pkt_heli, sizeof(pkt_heli));
-}
-#endif
-
 // // guided target logging
 // struct PACKED log_GuidedTarget {
 //     LOG_PACKET_HEADER;
@@ -506,19 +481,19 @@ const struct LogStructure Blimp::log_structure[] = {
     { LOG_SYSIDS_MSG, sizeof(log_SysIdS),
       "SIDS", "QBfffffff",  "TimeUS,Ax,Mag,FSt,FSp,TFin,TC,TR,TFout", "s--ssssss", "F--------" },
 
-// @LoggerMessage: GUID
-// @Description: Guided mode target information
-// @Field: TimeUS: Time since system startup
-// @Field: Type: Type of guided mode
-// @Field: pX: Target position, X-Axis
-// @Field: pY: Target position, Y-Axis
-// @Field: pZ: Target position, Z-Axis
-// @Field: vX: Target velocity, X-Axis
-// @Field: vY: Target velocity, Y-Axis
-// @Field: vZ: Target velocity, Z-Axis
+// // @LoggerMessage: GUID
+// // @Description: Guided mode target information
+// // @Field: TimeUS: Time since system startup
+// // @Field: Type: Type of guided mode
+// // @Field: pX: Target position, X-Axis
+// // @Field: pY: Target position, Y-Axis
+// // @Field: pZ: Target position, Z-Axis
+// // @Field: vX: Target velocity, X-Axis
+// // @Field: vY: Target velocity, Y-Axis
+// // @Field: vZ: Target velocity, Z-Axis
 
-    { LOG_GUIDEDTARGET_MSG, sizeof(log_GuidedTarget),
-      "GUID",  "QBffffff",    "TimeUS,Type,pX,pY,pZ,vX,vY,vZ", "s-mmmnnn", "F-BBBBBB" },
+//     { LOG_GUIDEDTARGET_MSG, sizeof(log_GuidedTarget),
+//       "GUID",  "QBffffff",    "TimeUS,Type,pX,pY,pZ,vX,vY,vZ", "s-mmmnnn", "F-BBBBBB" },
 };
 
 void Blimp::Log_Write_Vehicle_Startup_Messages()
