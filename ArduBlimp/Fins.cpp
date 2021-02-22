@@ -8,7 +8,7 @@
 #define FIN_SCALE_MAX 1000
 
 void Fins::setup_fins(){
-          //amp r   f   d     y,off r   f   d      y               right, front, down, yaw
+          //amp r   f   d     y,off r   f   d      y              right, front, down, yaw    amplitude, offset
     add_fin(0,  0, -1, 0.5,   0,    0,  0, -0.5,    0); //Back(?)
     add_fin(1,  0,  1, 0.5,   0,    0,  0, -0.5,    0); //Front(?)
     add_fin(2, -1,  0,   0, 0.5,    0,  0,    0,  0.5); //Right
