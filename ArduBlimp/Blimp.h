@@ -233,7 +233,6 @@ private:
 
     // Motor Output
     Fins *motors;
-    const struct AP_Param::GroupInfo *motors_var_info;
 
     int32_t _home_bearing;
     uint32_t _home_distance;

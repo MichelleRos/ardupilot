@@ -3,10 +3,30 @@
 //most of these will become parameters...
 //put here instead of Fins.h so that it can be changed without having to recompile the entire vehicle
 
-#define FREQ_HZ 3 //MIR later change to double omega when using height control (do a check for offset high & then increase omega)
-
 #define FIN_SCALE_MAX 1000
 
+/*
+  2nd group of parameters
+ */
+const AP_Param::GroupInfo Fins::var_info[] = {
+
+    // @Param: FREQ_HZ
+    // @DisplayName: Fins frequency
+    // @Description: This is the oscillation frequency of the fins
+    // @Range: 1 10
+    // @User: Standard
+    AP_GROUPINFO("FREQ_HZ", 1, Fins, freq_hz, 3),
+
+    AP_GROUPEND
+};
+
+//constructor
+Fins::Fins(uint16_t loop_rate) :
+    _loop_rate(loop_rate)
+{
+    AP_Param::setup_object_defaults(this, var_info);
+}
+    
 void Fins::setup_fins(){
           //amp r   f   d     y,off r   f   d      y              right, front, down, yaw    amplitude, offset
     add_fin(0,  0, -1, 0.5,   0,    0,  0, -0.5,    0); //Back(?)
@@ -91,8 +111,7 @@ void Fins::output()
         // }
         
         // finding and outputting current position for each servo from sine wave 
-        // blimp.g2.fins_freq_hz 
-        _pos[i]= _amp[i]*sinf(FREQ_HZ * _time * 2 * M_PI) + _off[i]; //removed +MAX_AMP because output can do -ve numbers
+        _pos[i]= _amp[i]*sinf(freq_hz * _time * 2 * M_PI) + _off[i]; //removed +MAX_AMP because output can do -ve numbers
         SRV_Channels::set_output_scaled(SRV_Channels::get_motor_function(i), _pos[i] * FIN_SCALE_MAX);
     }
 }

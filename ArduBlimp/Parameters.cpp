@@ -544,6 +544,10 @@ const AP_Param::Info Blimp::var_info[] = {
     // @Path: Parameters.cpp
     GOBJECT(g2, "",  ParametersG2),
 
+    // @Group: FINS_
+    // @Path: Fins.cpp
+    GOBJECTPTR(motors, "FINS_", Fins),
+
     // @Group:
     // @Path: ../libraries/AP_Vehicle/AP_Vehicle.cpp
     { AP_PARAM_GROUP, "", Parameters::k_param_vehicle, (const void *)&blimp, {group_info : AP_Vehicle::var_info} },
@@ -673,13 +677,6 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     // @Increment: 1
     // @User: Standard
     AP_GROUPINFO("FS_GCS_TIMEOUT", 42, ParametersG2, fs_gcs_timeout, 5),
-
-    // // @Param: FINS_FREQ_HZ
-    // // @DisplayName: Fin flapping speed
-    // // @Description: Used to change speed that the fins flap at.
-    // // @Values: float
-    // // @User: Standard
-    // GSCALAR(fins_freq_hz, "FINS_FREQ_HZ", 0.9f),
 
     AP_GROUPEND
 };

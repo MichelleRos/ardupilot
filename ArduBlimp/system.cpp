@@ -315,13 +315,12 @@ void Blimp::allocate_motors(void)
         case Fins::MOTOR_FRAME_AIRFISH:
         default:
             motors = new Fins(blimp.scheduler.get_loop_rate_hz());
-            // motors_var_info = Fins::var_info; //MIR need to deal with this.
             break;
     }
     if (motors == nullptr) {
         AP_HAL::panic("Unable to allocate FRAME_CLASS=%u", (unsigned)g2.frame_class.get());
     }
-    AP_Param::load_object_from_eeprom(motors, motors_var_info);
+    AP_Param::load_object_from_eeprom(motors, Fins::var_info);
 
     // const struct AP_Param::GroupInfo *ac_var_info;
 

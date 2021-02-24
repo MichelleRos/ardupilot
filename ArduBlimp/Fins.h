@@ -27,11 +27,7 @@ public:
     };
 
     //constructor
-    Fins(uint16_t loop_rate){
-    // Fins(){
-        _loop_rate = loop_rate;
-        // AP_Param::setup_object_defaults(this, var_info);       
-    }
+    Fins(uint16_t loop_rate);
 
     // var_info for holding Parameter information
     static const struct AP_Param::GroupInfo        var_info[];
@@ -71,7 +67,7 @@ public:
 
 protected:
     // internal variables
-    uint16_t            _loop_rate;                 // rate in Hz at which output() function is called (normally 400hz)
+    const uint16_t      _loop_rate;                 // rate in Hz at which output() function is called (normally 400hz)
     uint16_t            _speed_hz;                  // speed in hz to send updates to motors
     // float               _roll_in;                   // desired roll control from attitude controllers, -1 ~ +1
     // float               _roll_in_ff;                // desired roll feed forward control from attitude controllers, -1 ~ +1
@@ -115,9 +111,9 @@ public:
     float               front_out;                  //input front/forwards movement, negative for backwards, +1 to -1
     float               yaw_out;                    //input yaw, +1 to -1
     float               down_out;                   //input height control, +1 to -1
-    
-    float               freq_hz;
-    
+
+    AP_Float               freq_hz;
+
     bool _interlock;         // 1 if the motor interlock is enabled (i.e. motors run), 0 if disabled (motors don't run)
     bool _initialised_ok;    // 1 if initialisation was successful
 
@@ -131,8 +127,6 @@ public:
         if (one >= two) return one;
         else return two;
     }
-
-    void set_loop_rate(uint16_t loop_rate){ _loop_rate = loop_rate;}
 
     void output_min();
 

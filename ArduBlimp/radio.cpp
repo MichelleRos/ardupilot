@@ -36,7 +36,6 @@ void Blimp::init_rc_in()
  // init_rc_out -- initialise motors
 void Blimp::init_rc_out()
 {
-    // motors->set_loop_rate(scheduler.get_loop_rate_hz()); //MIR may ne
     // motors->init((AP_Motors::motor_frame_class)g2.frame_class.get(), (AP_Motors::motor_frame_type)g.frame_type.get());
     // MIR will need motors->init later when we switch to other fin config.
 
