@@ -90,9 +90,10 @@ protected:
 
     bool _armed;             // 0 if disarmed, 1 if armed
 
-    float              _amp[NUM_FINS];  //amplitudes
+    float              _amp[NUM_FINS]; //amplitudes
     float              _off[NUM_FINS]; //offsets
-    float              _pos[NUM_FINS];  //servo positions
+    float              _omm[NUM_FINS]; //omega multiplier
+    float              _pos[NUM_FINS]; //servo positions
 
     float               _right_amp_factor[NUM_FINS]; 
     float               _front_amp_factor[NUM_FINS];
@@ -112,7 +113,8 @@ public:
     float               yaw_out;                    //input yaw, +1 to -1
     float               down_out;                   //input height control, +1 to -1
 
-    AP_Float               freq_hz;
+    AP_Float            freq_hz;
+    AP_Int8             turbo_mode;
 
     bool _interlock;         // 1 if the motor interlock is enabled (i.e. motors run), 0 if disabled (motors don't run)
     bool _initialised_ok;    // 1 if initialisation was successful

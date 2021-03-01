@@ -17,6 +17,13 @@ const AP_Param::GroupInfo Fins::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("FREQ_HZ", 1, Fins, freq_hz, 3),
 
+    // @Param: TURBO_MODE
+    // @DisplayName: Enable turbo mode
+    // @Description: Enables double speed on high offset.
+    // @Range: 0 1
+    // @User: Standard
+    AP_GROUPINFO("TURBO_MODE", 2, Fins, turbo_mode, 0),
+
     AP_GROUPEND
 };
 
@@ -85,6 +92,7 @@ void Fins::output()
             fabsf(_down_amp_factor[i]*down_out) + fabsf(_yaw_amp_factor[i]*yaw_out);
         _off[i] = _right_off_factor[i]*right_out + _front_off_factor[i]*front_out + 
             _down_off_factor[i]*down_out + _yaw_off_factor[i]*yaw_out;
+        _omm[i] = 1;
 
         _num_added = 0;
         if (max(0,_right_amp_factor[i]*right_out) > 0.0f) {
@@ -108,13 +116,15 @@ void Fins::output()
             _amp[i] = 1 - fabsf(_off[i]);
         }
 
+        if(turbo_mode){
         //double speed fins if offset at max... MIR
-        // if (_amp[i] <= 0.5) {
-            // _freq_mult = 1.0f/_off[i];
-        // }
+            if (_amp[i] <= 0.6 && fabsf(_off[i]) >= 0.4) {
+                _omm[i] = 2;
+            }
+        }
 
         // finding and outputting current position for each servo from sine wave 
-        _pos[i]= _amp[i]*sinf(freq_hz * _time * 2 * M_PI) + _off[i]; //removed +MAX_AMP because output can do -ve numbers
+        _pos[i]= _amp[i]*sinf(freq_hz * _omm[i] * _time * 2 * M_PI) + _off[i]; //removed +MAX_AMP because output can do -ve numbers
         SRV_Channels::set_output_scaled(SRV_Channels::get_motor_function(i), _pos[i] * FIN_SCALE_MAX);
     }
 
