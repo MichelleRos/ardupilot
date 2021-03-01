@@ -124,7 +124,7 @@ void Fins::output()
         }
 
         // finding and outputting current position for each servo from sine wave 
-        _pos[i]= _amp[i]*sinf(freq_hz * _omm[i] * _time * 2 * M_PI) + _off[i]; //removed +MAX_AMP because output can do -ve numbers
+        _pos[i]= _amp[i]*cosf(freq_hz * _omm[i] * _time * 2 * M_PI) + _off[i]; //removed +MAX_AMP because output can do -ve numbers
         SRV_Channels::set_output_scaled(SRV_Channels::get_motor_function(i), _pos[i] * FIN_SCALE_MAX);
     }
 
