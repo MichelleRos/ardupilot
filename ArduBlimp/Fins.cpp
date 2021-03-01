@@ -80,7 +80,7 @@ void Fins::output()
     
     _time = AP_HAL::micros() * 1.0e-6;
 
-    for (int8_t i=0; i<NUM_FINS; i++){ 
+    for (int8_t i=0; i<NUM_FINS; i++) { 
         _amp[i] =  max(0,_right_amp_factor[i]*right_out) + max(0,_front_amp_factor[i]*front_out) + 
             fabsf(_down_amp_factor[i]*down_out) + fabsf(_yaw_amp_factor[i]*yaw_out);
         _off[i] = _right_off_factor[i]*right_out + _front_off_factor[i]*front_out + 
@@ -101,15 +101,18 @@ void Fins::output()
         }
 
         if (_num_added > 0) {
-            _amp[i] = _amp[i]/_num_added;
-            _off[i] = _off[i]/_num_added;
+            _off[i] = _off[i]/_num_added; //average the offsets
+        }
+
+        if ((_amp[i]+fabsf(_off[i])) > 1) {
+            _amp[i] = 1 - fabsf(_off[i]);
         }
 
         //double speed fins if offset at max... MIR
         // if (_amp[i] <= 0.5) {
             // _freq_mult = 1.0f/_off[i];
         // }
-        
+
         // finding and outputting current position for each servo from sine wave 
         _pos[i]= _amp[i]*sinf(freq_hz * _time * 2 * M_PI) + _off[i]; //removed +MAX_AMP because output can do -ve numbers
         SRV_Channels::set_output_scaled(SRV_Channels::get_motor_function(i), _pos[i] * FIN_SCALE_MAX);
