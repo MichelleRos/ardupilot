@@ -117,6 +117,9 @@ void Fins::output()
         _pos[i]= _amp[i]*sinf(freq_hz * _time * 2 * M_PI) + _off[i]; //removed +MAX_AMP because output can do -ve numbers
         SRV_Channels::set_output_scaled(SRV_Channels::get_motor_function(i), _pos[i] * FIN_SCALE_MAX);
     }
+
+    ::printf("FINS (amp %.1f %.1f %.1f %.1f   off %.1f %.1f %.1f %.1f   omm %.1f %.1f %.1f %.1f)\n",
+        _amp[0], _amp[1], _amp[2], _amp[3], _off[0], _off[1], _off[2], _off[3], _omm[0], _omm[1], _omm[2], _omm[3]);
 }
 
 void Fins::output_min(){
