@@ -15,7 +15,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef CONFIG_HAL_BOARD
-#error CONFIG_HAL_BOARD must be defined to build ArduBlimp
+#error CONFIG_HAL_BOARD must be defined to build Blimp
 #endif
 
 #ifndef ADVANCED_FAILSAFE

@@ -16,7 +16,7 @@
  */
 
 /*
- *  ArduBlimp parameter definitions
+ *  Blimp parameter definitions
  *
  */
 

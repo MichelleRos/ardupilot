@@ -50,7 +50,7 @@
 #include <AP_Airspeed/AP_Airspeed.h>        // needed for AHRS build
 #include <AP_Vehicle/AP_Vehicle.h>         // needed for AHRS build
 #include <AP_InertialNav/AP_InertialNav.h>     // ArduPilot Mega inertial navigation library
-// #include <AC_WPNav/AC_WPNav.h>           // ArduBlimp waypoint navigation library
+// #include <AC_WPNav/AC_WPNav.h>           // Blimp waypoint navigation library
 // #include <AC_WPNav/AC_Loiter.h>
 // #include <AC_WPNav/AC_Circle.h>          // circle navigation library
 // #include <AP_Declination/AP_Declination.h>     // ArduPilot Mega Declination Helper Library
