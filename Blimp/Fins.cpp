@@ -1,6 +1,6 @@
 #include "Blimp.h"
 
-// This is the scale used for RC inputs so that they can be scaled to the float point values used in the sin wave code.
+// This is the scale used for RC inputs so that they can be scaled to the float point values used in the sine wave code.
 #define FIN_SCALE_MAX 1000
 
 /*
