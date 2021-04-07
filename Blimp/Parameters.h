@@ -187,13 +187,8 @@ public:
         //
         // 220: PI/D Controllers
         //
-        k_param_acro_rp_p = 221,
-        k_param_acro_balance_roll,
-        k_param_acro_balance_pitch,
-        k_param_acro_yaw_p,
-        k_param_fs_ekf_action,
+        k_param_fs_ekf_action = 220,
         k_param_rtl_climb_min,
-        k_param_rpm_sensor,
         k_param_arming, // 252  - AP_Arming
         k_param_logger = 253, // 253 - Logging Group
 
