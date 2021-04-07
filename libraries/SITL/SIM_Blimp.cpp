@@ -52,7 +52,12 @@ void Blimp::update(const struct sitl_input &input)
 
     Vector3f rot_accel;
 
-    calculate_forces(input, rot_accel, accel_body);
+    for (uint8_t i=0; i<num_fins; i++) {
+      Vector3f fin_force, fin_torque;
+      calculate_fin_force(fin[i], input, fin_force, fin_torque);
+      rot_accel += fin_torque *moment_of_inertia;
+      body_accel += fin_force / mass;
+    }
 
     update_dynamics(rot_accel);
     update_external_payload(input);
@@ -63,4 +68,40 @@ void Blimp::update(const struct sitl_input &input)
 
     // update magnetic field
     update_mag_field_bf();
+}
+
+class Fins
+{
+public:
+
+  Fin():
+    servo(_servo) // what servo output drives this motor
+    {}
+
+  Vector3f position;
+  float offset;
+  float angle;
+  float velocity; //velocity of fin in the 
+
+
+}
+
+void Fin:calculate_fin_force(Fin fin, const struct sitl_input &input, Vector3f fin_force, Vector3f fin_torque){
+  
+  const float pwm = input.servos[servo];
+  float command = pwm_to_command(pwm);
+  float voltage_scale = voltage / voltage_max;
+
+  if (voltage_scale < 0.1) {
+    // battery is dead
+    rot_accel.zero();
+    thrust.zero();
+    current = 0;
+    return;
+  }
+  
+  
+  //Vector3f thrust_ned
+
+
 }
