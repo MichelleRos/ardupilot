@@ -666,6 +666,6 @@ void Blimp::load_parameters(void)
     hal.console->printf("load_all took %uus\n", (unsigned)(micros() - before));
 
     // setup AP_Param frame type flags
-    AP_Param::set_frame_type_flags(AP_PARAM_FRAME_COPTER);
+    AP_Param::set_frame_type_flags(AP_PARAM_FRAME_BLIMP);
 
 }
