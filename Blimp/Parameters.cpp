@@ -21,7 +21,6 @@
  */
 
 #define GSCALAR(v, name, def) { blimp.g.v.vtype, name, Parameters::k_param_ ## v, &blimp.g.v, {def_value : def} }
-#define ASCALAR(v, name, def) { blimp.aparm.v.vtype, name, Parameters::k_param_ ## v, (const void *)&blimp.aparm.v, {def_value : def} }
 #define GGROUP(v, name, class) { AP_PARAM_GROUP, name, Parameters::k_param_ ## v, &blimp.g.v, {group_info : class::var_info} }
 #define GOBJECT(v, name, class) { AP_PARAM_GROUP, name, Parameters::k_param_ ## v, (const void *)&blimp.v, {group_info : class::var_info} }
 #define GOBJECTPTR(v, name, class) { AP_PARAM_GROUP, name, Parameters::k_param_ ## v, (const void *)&blimp.v, {group_info : class::var_info}, AP_PARAM_FLAG_POINTER }
@@ -271,14 +270,6 @@ const AP_Param::Info Blimp::var_info[] = {
     // @Range: 0 127
     // @User: Advanced
     GSCALAR(disarm_delay, "DISARM_DELAY",           AUTO_DISARMING_DELAY),
-
-    // @Param: ANGLE_MAX
-    // @DisplayName: Angle Max
-    // @Description: Maximum lean angle in all flight modes
-    // @Units: cdeg
-    // @Range: 1000 8000
-    // @User: Advanced
-    ASCALAR(angle_max, "ANGLE_MAX",                 DEFAULT_ANGLE_MAX),
 
     // @Param: PHLD_BRAKE_RATE
     // @DisplayName: PosHold braking rate

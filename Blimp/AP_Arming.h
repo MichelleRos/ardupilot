@@ -6,7 +6,6 @@ class AP_Arming_Blimp : public AP_Arming
 {
 public:
     friend class Blimp;
-    friend class ToyMode;
 
     AP_Arming_Blimp() : AP_Arming()
     {

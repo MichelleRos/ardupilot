@@ -190,39 +190,7 @@ void Mode::get_pilot_desired_accelerations(float &right_out, float &front_out) c
     right_out = channel_right->get_control_in();
     front_out = channel_front->get_control_in();
 
-
-    // // do circular limit
-    // float total_in = norm(pitch_out, roll_out);
-    // if (total_in > angle_limit) {
-    //     float ratio = angle_limit / total_in;
-    //     roll_out *= ratio;
-    //     pitch_out *= ratio;
-    // }
-
-    // do lateral tilt to euler roll conversion
-    // roll_out = (18000/M_PI) * atanf(cosf(pitch_out*(M_PI/18000))*tanf(roll_out*(M_PI/18000)));
-
-    // roll_out and pitch_out are returned
 }
-
-// bool Mode::_TakeOff::triggered(const float target_climb_rate) const
-// {
-//     if (!blimp.ap.land_complete) {
-//         // can't take off if we're already flying
-//         return false;
-//     }
-//     if (target_climb_rate <= 0.0f) {
-//         // can't takeoff unless we want to go up...
-//         return false;
-//     }
-
-//     if (blimp.motors->get_spool_state() != Fins::SpoolState::THROTTLE_UNLIMITED) {
-//         // hold aircraft on the ground until rotor speed runup has finished
-//         return false;
-//     }
-
-//     return true;
-// }
 
 bool Mode::is_disarmed_or_landed() const
 {
@@ -240,39 +208,6 @@ void Mode::zero_throttle_and_relax_ac(bool spool_up)
         motors->set_desired_spool_state(Fins::DesiredSpoolState::SHUT_DOWN);
     }
 }
-
-// void Mode::zero_throttle_and_hold_attitude()
-// {
-//     // run attitude controller
-//     attitude_control->input_rate_bf_roll_pitch_yaw(0.0f, 0.0f, 0.0f);
-//     attitude_control->set_throttle_out(0.0f, false, blimp.g.throttle_filt);
-// }
-
-// void Mode::make_safe_spool_down()
-// {
-//     // command aircraft to initiate the shutdown process
-//     motors->set_desired_spool_state(Fins::DesiredSpoolState::GROUND_IDLE);
-//     switch (motors->get_spool_state()) {
-
-//     case Fins::SpoolState::SHUT_DOWN:
-//     case Fins::SpoolState::GROUND_IDLE:
-//         // relax controllers during idle states
-//         // attitude_control->reset_rate_controller_I_terms_smoothly();
-//         // attitude_control->set_yaw_target_to_current_heading();
-//         break;
-
-//     case Fins::SpoolState::SPOOLING_UP:
-//     case Fins::SpoolState::THROTTLE_UNLIMITED:
-//     case Fins::SpoolState::SPOOLING_DOWN:
-//         // while transitioning though active states continue to operate normally
-//         break;
-//     }
-
-//     // pos_control->relax_alt_hold_controllers(0.0f);   // forces throttle output to go to zero
-//     // pos_control->update_z_controller();
-//     // we may need to move this out
-//     // attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(0.0f, 0.0f, 0.0f);
-// }
 
 /*
   get a height above ground estimate for landing

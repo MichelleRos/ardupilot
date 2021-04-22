@@ -155,11 +155,11 @@ class VehicleInfo(object):
         },
     },
     "Blimp": {
-        "default_frame": "quad",
+        "default_frame": "blimp",
         "frames": {
             # BLIMP
-            "quad": {
-                "model": "+",
+            "blimp": {
+                "model": "blimp",
                 "waf_target": "bin/blimp",
                 "default_params_filename": "default_params/blimp.parm",
             },

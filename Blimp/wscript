@@ -27,5 +27,4 @@ def build(bld):
         program_name='blimp',
         program_groups=['bin', 'blimp'],
         use=vehicle + '_libs',
-        defines=['FRAME_CONFIG=MULTICOPTER_FRAME'],
         )
