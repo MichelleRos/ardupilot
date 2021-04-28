@@ -269,7 +269,7 @@ private:
     // AC_Loiter *loiter_nav;
 
     // XY vel PID
-    AC_PID_2D pid_vel_xy{1, 1, 0.01, 0.7, 0.5, 3, 3, 0.02};
+    AC_PID_2D pid_vel_xy{1, 1, 0.01, 0.7, 10, 3, 3, 0.02}; //These are the defaults - P I D FF IMAX FiltHz FiltDHz DT
 
     // System Timers
     // --------------
