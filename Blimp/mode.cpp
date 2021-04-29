@@ -37,6 +37,9 @@ Mode *Blimp::mode_from_mode_num(const Mode::Number mode)
     case Mode::Number::LAND:
         ret = &mode_land;
         break;
+    case Mode::Number::VELOCITY:
+        ret = &mode_velocity;
+        break;
     default:
         break;
     }

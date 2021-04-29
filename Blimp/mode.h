@@ -15,7 +15,7 @@ public:
     enum class Number : uint8_t {
         MANUAL =        0,  // manual control similar to Copter's stabilize mode
         LAND =          1,  // currently just stops moving
-        VELOCITY =      2,  // veloctiy mode
+        VELOCITY =      2,  // velocity mode
     };
 
     // constructor

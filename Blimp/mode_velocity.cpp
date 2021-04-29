@@ -19,12 +19,16 @@ void ModeVelocity::run()
 
     Vector3f target_vel = Vector3f(desired_vel_x, desired_vel_y, 0);
 
-    blimp.pid_vel_xy.update_all(target_vel, vel_bf);
+    Vector2f actuator = blimp.pid_vel_xy.update_all(target_vel, vel_bf);
 
-    Vector2f actuator = blimp.pid_vel_xy.get_p() + blimp.pid_vel_xy.get_i() + blimp.pid_vel_xy.get_d();
+    //blimp.pid_vel_xy.get_p() + blimp.pid_vel_xy.get_i() + blimp.pid_vel_xy.get_d() + blimp.pid_vel_xy.get_ff();
 
     motors->right_out = -actuator.y;
     motors->front_out = -actuator.x;
+
+    //Currently yaw & down are simply disabled.
+    motors->yaw_out = 0;
+    motors->down_out = 0;
 
     if (!motors->armed()) {
         // Motors should be Stopped

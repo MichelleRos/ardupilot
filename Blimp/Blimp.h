@@ -522,6 +522,7 @@ private:
     Mode *flightmode;
     ModeManual mode_manual;
     ModeLand mode_land;
+    ModeVelocity mode_velocity;
 
     // mode.cpp
     Mode *mode_from_mode_num(const Mode::Number mode);
