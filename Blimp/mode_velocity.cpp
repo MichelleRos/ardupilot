@@ -21,10 +21,8 @@ void ModeVelocity::run()
 
     Vector2f actuator = blimp.pid_vel_xy.update_all(target_vel, vel_bf);
 
-    //blimp.pid_vel_xy.get_p() + blimp.pid_vel_xy.get_i() + blimp.pid_vel_xy.get_d() + blimp.pid_vel_xy.get_ff();
-
-    motors->right_out = -actuator.y;
-    motors->front_out = -actuator.x;
+    motors->right_out = actuator.y;
+    motors->front_out = actuator.x;
 
     //Currently yaw & down are simply disabled.
     motors->yaw_out = 0;
