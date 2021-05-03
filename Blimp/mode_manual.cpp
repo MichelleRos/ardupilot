@@ -3,8 +3,7 @@
  * Init and run calls for manual flight mode
  */
 
-// manual_run - runs the main manual controller
-// should be called at 100hz or more
+// Runs the main manual controller
 void ModeManual::run()
 {
 

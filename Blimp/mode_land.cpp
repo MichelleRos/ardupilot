@@ -3,11 +3,21 @@
  * Init and run calls for land flight mode
  */
 
-// manual_run - runs the main manual controller
-// should be called at 100hz or more
+// Runs the main manual controller
 void ModeLand::run()
 {
-    //stop moving
+    //Stop moving
+    motors->right_out = 0;
+    motors->front_out = 0;
+    motors->yaw_out = 0;
+    motors->down_out = 0;
+
+    if (!motors->armed()) {
+        // Motors should be Stopped
+        motors->set_desired_spool_state(Fins::DesiredSpoolState::SHUT_DOWN);
+    } else {
+        motors->set_desired_spool_state(Fins::DesiredSpoolState::THROTTLE_UNLIMITED);
+    }
 
 }
 
