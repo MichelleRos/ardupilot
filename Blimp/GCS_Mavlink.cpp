@@ -185,10 +185,11 @@ int16_t GCS_MAVLINK_Blimp::vfr_hud_throttle() const
 void GCS_MAVLINK_Blimp::send_pid_tuning()
 {
     static const PID_TUNING_AXIS axes[] = {
-        PID_TUNING_ROLL,
-        PID_TUNING_PITCH,
-        PID_TUNING_YAW,
-        PID_TUNING_ACCZ
+        //Keeping the names as per Copter's ones for now to avoid changing mavlink.
+        PID_TUNING_ROLL,    //VELX
+        PID_TUNING_PITCH,   //VELY
+        // PID_TUNING_YAW,     
+        // PID_TUNING_ACCZ     
     };
     for (uint8_t i=0; i<ARRAY_SIZE(axes); i++) {
         if (!(blimp.g.gcs_pid_mask & (1<<(axes[i]-1)))) {
@@ -198,13 +199,13 @@ void GCS_MAVLINK_Blimp::send_pid_tuning()
             return;
         }
         const AP_Logger::PID_Info *pid_info = nullptr;
-        switch (axes[i]) { //TODO This should probably become an acceleration controller?
-        // case PID_TUNING_ROLL:
-        //     pid_info = &blimp.attitude_control->get_rate_roll_pid().get_pid_info();
-        //     break;
-        // case PID_TUNING_PITCH:
-        //     pid_info = &blimp.attitude_control->get_rate_pitch_pid().get_pid_info();
-        //     break;
+        switch (axes[i]) {
+        case PID_TUNING_ROLL:
+            pid_info = &blimp.pid_vel_xy.get_pid_info_x();
+            break;
+        case PID_TUNING_PITCH:
+            pid_info = &blimp.pid_vel_xy.get_pid_info_y();
+            break;
         // case PID_TUNING_YAW:
         //     pid_info = &blimp.attitude_control->get_rate_yaw_pid().get_pid_info();
         //     break;
@@ -212,6 +213,8 @@ void GCS_MAVLINK_Blimp::send_pid_tuning()
         //     pid_info = &blimp.pos_control->get_accel_z_pid().get_pid_info();
         //     break;
         default:
+            //Shouldn't reach this.
+            GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "Error: No PID_TUNING msg.");
             continue;
         }
         if (pid_info != nullptr) {

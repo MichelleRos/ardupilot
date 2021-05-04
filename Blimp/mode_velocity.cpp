@@ -12,7 +12,7 @@ void ModeVelocity::run()
     Vector3f vel_ef;
     bool gps_avail = ahrs.get_velocity_NED(vel_ef); //earth-frame velocity
     if (!gps_avail) {
-        //TODO: Change so that it doesn't just keep trying to fly on velocity controller without GPS (while flooding the GCS).
+        //Shouldn't reach this since it should failsafe into Land mode.
         GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "Error: No GPS.");
     }
     Vector3f vel_bf = ahrs.get_rotation_body_to_ned().transposed() * vel_ef; //body-frame velocity
