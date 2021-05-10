@@ -95,8 +95,8 @@ const AP_Param::Info Blimp::var_info[] = {
     // @DisplayName: GCS PID tuning mask
     // @Description: bitmask of PIDs to send MAVLink PID_TUNING messages for
     // @User: Advanced
-    // @Values: 0:None,1:VELX,2:VELY,4:x,8:x
-    // @Bitmask: 0:VELX,1:VELY,2:x,3:x
+    // @Values: 0:None,1:VELX,2:VELY,4:POSX,8:POSY
+    // @Bitmask: 0:VELX,1:VELY,2:POSX,3:POSY
     GSCALAR(gcs_pid_mask,           "GCS_PID_MASK",     0),
 
     // @Param: FS_GCS_ENABLE
@@ -256,6 +256,13 @@ const AP_Param::Info Blimp::var_info[] = {
     // @Values: 
     // @User: Standard
     GSCALAR(max_xy_vel, "MAX_XY_VEL", 0.5),
+
+    // @Param: MAX_XY_POS
+    // @DisplayName: Max XY Position
+    // @Description: Sets the maximum XY position, in m
+    // @Values: 
+    // @User: Standard
+    GSCALAR(max_xy_pos, "MAX_XY_POS", 0.01),
 
     // @Param: RC_SPEED
     // @DisplayName: ESC Update Speed
@@ -437,6 +444,57 @@ const AP_Param::Info Blimp::var_info[] = {
     // @Increment: 0.01
     // @User: Advanced
     GOBJECT(pid_vel_xy, "VELXY_", AC_PID_2D),
+
+    // @Param: POSXY_P
+    // @DisplayName: Position (horizontal) P gain
+    // @Description: Position (horizontal) P gain.  Converts the difference between desired and actual position to a target acceleration
+    // @Range: 0.1 6.0
+    // @Increment: 0.1
+    // @User: Advanced
+
+    // @Param: POSXY_I
+    // @DisplayName: Position (horizontal) I gain
+    // @Description: Position (horizontal) I gain.  Corrects long-term difference between desired and actual position to a target acceleration
+    // @Range: 0.02 1.00
+    // @Increment: 0.01
+    // @User: Advanced
+
+    // @Param: POSXY_D
+    // @DisplayName: Position (horizontal) D gain
+    // @Description: Position (horizontal) D gain.  Corrects short-term changes in position
+    // @Range: 0.00 1.00
+    // @Increment: 0.001
+    // @User: Advanced
+
+    // @Param: POSXY_IMAX
+    // @DisplayName: Position (horizontal) integrator maximum
+    // @Description: Position (horizontal) integrator maximum.  Constrains the target acceleration that the I gain will output
+    // @Range: 0 4500
+    // @Increment: 10
+    // @Units: cm/s/s
+    // @User: Advanced
+
+    // @Param: POSXY_FILT
+    // @DisplayName: Position (horizontal) input filter
+    // @Description: Position (horizontal) input filter.  This filter (in Hz) is applied to the input for P and I terms
+    // @Range: 0 100
+    // @Units: Hz
+    // @User: Advanced
+
+    // @Param: POSXY_D_FILT
+    // @DisplayName: Position (horizontal) input filter
+    // @Description: Position (horizontal) input filter.  This filter (in Hz) is applied to the input for D term
+    // @Range: 0 100
+    // @Units: Hz
+    // @User: Advanced
+
+    // @Param: POSXY_FF
+    // @DisplayName: Position (horizontal) feed forward gain
+    // @Description: Position (horizontal) feed forward gain.  Converts the difference between desired position to a target acceleration
+    // @Range: 0 6
+    // @Increment: 0.01
+    // @User: Advanced
+    GOBJECT(pid_pos_xy, "POSXY_", AC_PID_2D),
 
     // @Group:
     // @Path: ../libraries/AP_Vehicle/AP_Vehicle.cpp

@@ -92,6 +92,7 @@ public:
 
         // PIDs
         k_param_pid_vel_xy,
+        k_param_pid_pos_xy,
 
         //
         // 90: misc2
@@ -192,7 +193,7 @@ public:
         //
         k_param_fs_ekf_action = 220,
         k_param_max_xy_vel,
-        // k_param_xy_vel_pid,
+        k_param_max_xy_pos,
         k_param_arming, // 252  - AP_Arming
         k_param_logger = 253, // 253 - Logging Group
 
@@ -248,6 +249,7 @@ public:
     AP_Int16        gcs_pid_mask;
 
     AP_Float        max_xy_vel;
+    AP_Float        max_xy_pos;
 
     AP_Int8         rtl_alt_type;
 

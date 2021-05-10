@@ -64,6 +64,9 @@ template <typename T>
 class Matrix3;
 
 template <typename T>
+class Vector2;
+
+template <typename T>
 class Vector3
 {
 
@@ -80,6 +83,11 @@ public:
     constexpr Vector3<T>(const T x0, const T y0, const T z0)
         : x(x0)
         , y(y0)
+        , z(z0) {}
+
+    constexpr Vector3<T>(const Vector2<T> &v0, const T z0)
+        : x(v0.x)
+        , y(v0.y)
         , z(z0) {}
 
     // test for equality

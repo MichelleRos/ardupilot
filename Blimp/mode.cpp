@@ -40,6 +40,9 @@ Mode *Blimp::mode_from_mode_num(const Mode::Number mode)
     case Mode::Number::VELOCITY:
         ret = &mode_velocity;
         break;
+    case Mode::Number::LOITER:
+        ret = &mode_loiter;
+        break;
     default:
         break;
     }
@@ -69,21 +72,6 @@ bool Blimp::set_mode(Mode::Number mode, ModeReason reason)
     }
 
     bool ignore_checks = !motors->armed();   // allow switching to any mode if disarmed.  We rely on the arming check to perform
-
-    // ensure vehicle doesn't leap off the ground if a user switches
-    // into a manual throttle mode from a non-manual-throttle mode
-    // (e.g. user arms in guided, raises throttle to 1300 (not enough to
-    // trigger auto takeoff), then switches into manual):
-    bool user_throttle = new_flightmode->has_manual_throttle();
-    if (!ignore_checks &&
-        ap.land_complete &&
-        user_throttle &&
-        !blimp.flightmode->has_manual_throttle() &&
-        new_flightmode->get_pilot_desired_throttle() > blimp.get_non_takeoff_throttle()) {
-        gcs().send_text(MAV_SEVERITY_WARNING, "Mode change failed: throttle too high");
-        AP::logger().Write_Error(LogErrorSubsystem::FLIGHT_MODE, LogErrorCode(mode));
-        return false;
-    }
 
     if (!ignore_checks &&
         new_flightmode->requires_GPS() &&

@@ -114,6 +114,7 @@ public:
     friend class ModeManual;
     friend class ModeLand;
     friend class ModeVelocity;
+    friend class ModeLoiter;
 
     friend class Fins;
 
@@ -268,8 +269,9 @@ private:
     // AC_WPNav *wp_nav;
     // AC_Loiter *loiter_nav;
 
-    // XY vel PID
+    // XY vel & pos PIDs
     AC_PID_2D pid_vel_xy{1, 1, 0.01, 0.7, 10, 3, 3, 0.02}; //These are the defaults - P I D FF IMAX FiltHz FiltDHz DT
+    AC_PID_2D pid_pos_xy{1, 1, 0.01, 0.7, 10, 3, 3, 0.02};
 
     // System Timers
     // --------------
@@ -326,17 +328,12 @@ private:
     void set_auto_armed(bool b);
     void set_failsafe_radio(bool b);
     void set_failsafe_gcs(bool b);
-    // void update_using_interlock();
 
     // Blimp.cpp
     void get_scheduler_tasks(const AP_Scheduler::Task *&tasks,
                              uint8_t &task_count,
                              uint32_t &log_bit) override;
     void fast_loop() override;
-    // bool start_takeoff(float alt) override;
-    // bool set_target_location(const Location& target_loc) override;
-    // bool set_target_velocity_NED(const Vector3f& vel_ned) override;
-    // bool set_target_angle_and_climbrate(float roll_deg, float pitch_deg, float yaw_deg, float climb_rate_ms, bool use_yaw_rate, float yaw_rate_degs) override;
     void rc_loop();
     void throttle_loop();
     void update_batt_compass(void);
@@ -350,16 +347,10 @@ private:
 
     // Attitude.cpp
     float get_pilot_desired_yaw_rate(int16_t stick_angle);
-    // void update_throttle_hover();
     float get_pilot_desired_climb_rate(float throttle_control);
     float get_non_takeoff_throttle();
-    // void set_accel_throttle_I_from_pilot_throttle();
     void rotate_body_frame_to_NE(float &x, float &y);
     uint16_t get_pilot_speed_dn();
-
-    // baro_ground_effect.cpp
-    // void update_ground_effect_detector(void);
-    // void update_ekf_terrain_height_stable();
 
     // commands.cpp
     void update_home_from_EKF();
@@ -367,16 +358,6 @@ private:
     bool set_home_to_current_location(bool lock) WARN_IF_UNUSED;
     bool set_home(const Location& loc, bool lock) WARN_IF_UNUSED;
     bool far_from_EKF_origin(const Location& loc);
-
-    // compassmot.cpp
-    // MAV_RESULT mavlink_compassmot(const GCS_MAVLINK &gcs_chan);
-
-    // // crash_check.cpp
-    // void crash_check();
-    // void thrust_loss_check();
-    // void parachute_check();
-    // void parachute_release();
-    // void parachute_manual_release();
 
     // ekf_check.cpp
     void ekf_check();
@@ -392,10 +373,6 @@ private:
     void failsafe_radio_off_event();
     void handle_battery_failsafe(const char* type_str, const int8_t action);
     void failsafe_gcs_check();
-    // void failsafe_gcs_on_event(void); //MIR will probably need these two soon.
-    // void failsafe_gcs_off_event(void);
-    // void gpsglitch_check();
-    // void set_mode_RTL_or_land_with_pause(ModeReason reason);
     bool should_disarm_on_failsafe();
     void do_failsafe_action(Failsafe_Action action, ModeReason reason);
 
@@ -414,13 +391,9 @@ private:
     void update_land_detector();
     void set_land_complete(bool b);
     void set_land_complete_maybe(bool b);
-    // void update_throttle_mix();
 
     // landing_gear.cpp
     void landinggear_update();
-
-    // // standby.cpp
-    // void standby_update();
 
     // Log.cpp
     void Log_Write_Control_Tuning();
@@ -457,14 +430,7 @@ private:
 
     // // motors.cpp
     void arm_motors_check();
-    // void auto_disarm_check();
     void motors_output();
-    // void lost_vehicle_check();
-
-    // navigation.cpp
-    // void run_nav_updates(void);
-    // int32_t home_bearing();
-    // uint32_t home_distance();
 
     // Parameters.cpp
     void load_parameters(void) override;
@@ -523,6 +489,7 @@ private:
     ModeManual mode_manual;
     ModeLand mode_land;
     ModeVelocity mode_velocity;
+    ModeLoiter mode_loiter;
 
     // mode.cpp
     Mode *mode_from_mode_num(const Mode::Number mode);

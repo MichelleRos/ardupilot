@@ -16,6 +16,7 @@ public:
         MANUAL =        0,  // manual control similar to Copter's stabilize mode
         LAND =          1,  // currently just stops moving
         VELOCITY =      2,  // velocity mode
+        LOITER =        3,  // loiter mode (position hold)
     };
 
     // constructor
@@ -100,12 +101,6 @@ public:
     // returns climb target_rate reduced to avoid obstacles and
     // altitude fence
     float get_avoidance_adjusted_climbrate(float target_rate);
-
-    // const Vector3f& get_desired_velocity() {
-    //     // note that position control isn't used in every mode, so
-    //     // this may return bogus data:
-    //     return pos_control->get_desired_velocity();
-    // }
 
 protected:
 
@@ -296,6 +291,49 @@ protected:
 
 private:
 
+};
+
+class ModeLoiter : public Mode
+{
+
+public:
+    // inherit constructor
+    using Mode::Mode;
+
+    virtual void init();
+    virtual void run() override;
+
+    bool requires_GPS() const override
+    {
+        return true;
+    }
+    bool has_manual_throttle() const override
+    {
+        return false;
+    }
+    bool allows_arming(bool from_gcs) const override
+    {
+        return true;
+    };
+    bool is_autopilot() const override
+    {
+        return false;
+        //TODO
+    }
+
+protected:
+
+    const char *name() const override
+    {
+        return "LOITER";
+    }
+    const char *name4() const override
+    {
+        return "LOIT";
+    }
+
+private:
+    Vector2f target_pos;
 };
 
 class ModeLand : public Mode
