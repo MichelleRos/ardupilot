@@ -84,7 +84,7 @@ void Blimp::get_scheduler_tasks(const AP_Scheduler::Task *&tasks,
 
 constexpr int8_t Blimp::_failsafe_priorities[4];
 
-// Main loop - 50hz
+// Main loop - 
 void Blimp::fast_loop()
 {
     // update INS immediately to get current gyro data populated

@@ -259,7 +259,7 @@ const AP_Param::Info Blimp::var_info[] = {
 
     // @Param: MAX_XY_POS
     // @DisplayName: Max XY Position
-    // @Description: Sets the maximum XY position, in m
+    // @Description: Sets the maximum XY position change, in m (multiply by loop rate to get m/s)
     // @Values: 
     // @User: Standard
     GSCALAR(max_xy_pos, "MAX_XY_POS", 0.01),

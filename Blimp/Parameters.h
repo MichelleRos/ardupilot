@@ -193,8 +193,8 @@ public:
         //
         k_param_fs_ekf_action = 220,
         k_param_max_xy_vel,
-        k_param_max_xy_pos,
         k_param_arming, // 252  - AP_Arming
+        k_param_max_xy_pos,
         k_param_logger = 253, // 253 - Logging Group
 
         k_param_vehicle = 257, // vehicle common block of parameters

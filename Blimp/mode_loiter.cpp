@@ -4,7 +4,7 @@
  */
 
 
- void ModeLoiter::init(){
+ void ModeLoiter::init(bool ignore_checks){
     Vector3f pos_ef;
     bool gps_avail = blimp.ahrs.get_relative_position_NED_home(pos_ef);
         if (!gps_avail) {
