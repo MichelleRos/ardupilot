@@ -4,7 +4,7 @@
  */
 
 
- void ModeLoiter::init(bool ignore_checks){
+ bool ModeLoiter::init(bool ignore_checks){
     Vector3f pos_ef;
     bool gps_avail = blimp.ahrs.get_relative_position_NED_home(pos_ef);
         if (!gps_avail) {
@@ -15,6 +15,9 @@
 
     target_pos.x = pos_bf.x;
     target_pos.y = pos_bf.y;
+
+    GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "MIR: Initted Loiter.");
+    return true;
  }
 
 //Runs the main loiter controller
