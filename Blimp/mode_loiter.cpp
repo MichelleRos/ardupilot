@@ -11,10 +11,10 @@
         //Shouldn't reach this since it should failsafe into Land mode.
         GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "Error: No GPS.");
     }
-    Vector3f pos_bf = blimp.ahrs.get_rotation_body_to_ned().transposed() * pos_ef;
+    // Vector3f pos_bf = blimp.ahrs.get_rotation_body_to_ned().transposed() * pos_ef;
 
-    target_pos.x = pos_bf.x;
-    target_pos.y = pos_bf.y;
+    target_pos.x = pos_ef.x;
+    target_pos.y = pos_ef.y;
 
     GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "MIR: Initted Loiter.");
     return true;
@@ -29,15 +29,18 @@ void ModeLoiter::run()
         //Shouldn't reach this since it should failsafe into Land mode.
         GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "Error: No GPS.");
     }
-    Vector3f pos_bf = blimp.ahrs.get_rotation_body_to_ned().transposed() * pos_ef;
+    // Vector3f pos_bf = blimp.ahrs.get_rotation_body_to_ned().transposed() * pos_ef;
 
     //TODO Perhaps put a check in here to ensure that the target doesn't get too far from the vehicle.
-    target_pos.x = target_pos.x + (channel_front->get_control_in() / float(RC_SCALE) * g.max_xy_pos);
-    target_pos.y = target_pos.y + (channel_right->get_control_in() / float(RC_SCALE) * g.max_xy_pos);
+    float pilot_fwd = channel_front->get_control_in() / float(RC_SCALE) * g.max_xy_pos;
+    float pilot_rgt = channel_right->get_control_in() / float(RC_SCALE) * g.max_xy_pos;
+    //Maths from AC_Loiter
+    target_pos.x = target_pos.x + (pilot_fwd*blimp.ahrs.cos_yaw() - pilot_rgt*blimp.ahrs.sin_yaw());
+    target_pos.y = target_pos.y + (pilot_fwd*blimp.ahrs.sin_yaw() + pilot_rgt*blimp.ahrs.cos_yaw());
     Vector3f target_pos3 = Vector3f(target_pos.x, target_pos.y, 0);
 
     //pos controller's output becomes target for velocity controller
-    Vector3f target_vel =  Vector3f(blimp.pid_pos_xy.update_all(target_pos3, pos_bf), 0);
+    Vector3f target_vel =  Vector3f(blimp.pid_pos_xy.update_all(target_pos3, pos_ef), 0);
 
     Vector3f vel_ef;
     gps_avail = ahrs.get_velocity_NED(vel_ef); //earth-frame velocity
@@ -60,7 +63,7 @@ void ModeLoiter::run()
     motors->yaw_out = 0;
     motors->down_out = 0;
 
-    AP::logger().Write_PSC(target_pos3, pos_bf, target_vel, vel_bf_xy, {0,0,0}, 0, 0);
+    AP::logger().Write_PSC(target_pos3*100.0f, pos_ef*100.0f, target_vel*100.0f, vel_bf_xy*100.0f, {0,0,0}, 0, 0);
     AP::logger().Write_PID(LOG_PIDN_MSG, blimp.pid_vel_xy.get_pid_info_x());
     AP::logger().Write_PID(LOG_PIDE_MSG, blimp.pid_vel_xy.get_pid_info_y());
     AP::logger().Write_PID(LOG_PIDR_MSG, blimp.pid_pos_xy.get_pid_info_x());
