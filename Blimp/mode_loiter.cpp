@@ -37,10 +37,10 @@ void ModeLoiter::run()
     //Maths from AC_Loiter
     target_pos.x = target_pos.x + (pilot_fwd*blimp.ahrs.cos_yaw() - pilot_rgt*blimp.ahrs.sin_yaw());
     target_pos.y = target_pos.y + (pilot_fwd*blimp.ahrs.sin_yaw() + pilot_rgt*blimp.ahrs.cos_yaw());
-    Vector3f target_pos3 = Vector3f(target_pos.x, target_pos.y, 0);
+    Vector3f target_pos3{target_pos.x, target_pos.y, 0};
 
     //pos controller's output becomes target for velocity controller
-    Vector3f target_vel =  Vector3f(blimp.pid_pos_xy.update_all(target_pos3, pos_ef), 0);
+    Vector3f target_vel{blimp.pid_pos_xy.update_all(target_pos3, pos_ef), 0};
 
     Vector3f vel_ef;
     gps_avail = ahrs.get_velocity_NED(vel_ef); //earth-frame velocity
@@ -50,9 +50,9 @@ void ModeLoiter::run()
     }
     Vector3f vel_bf = ahrs.get_rotation_body_to_ned().transposed() * vel_ef;
 
-    Vector3f vel_bf_xy = Vector3f(constrain_float(vel_bf.x, -g.max_xy_vel, g.max_xy_vel),
+    Vector3f vel_bf_xy{constrain_float(vel_bf.x, -g.max_xy_vel, g.max_xy_vel),
                                     constrain_float(vel_bf.y, -g.max_xy_vel, g.max_xy_vel),
-                                    0);
+                                    0};
 
     Vector2f actuator = blimp.pid_vel_xy.update_all(target_vel, vel_bf_xy);
 
