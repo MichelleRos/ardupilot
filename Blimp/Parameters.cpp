@@ -264,6 +264,13 @@ const AP_Param::Info Blimp::var_info[] = {
     // @User: Standard
     GSCALAR(max_xy_pos, "MAX_XY_POS", 0.01),
 
+    // @Param: SIMPLE_MODE
+    // @DisplayName: Simple mode
+    // @Description: Simple mode for Position control
+    // @Values: 0:Disabled, 1:Enabled
+    // @User: Standard
+    GSCALAR(simple_mode, "SIMPLE_MODE", 0),
+
     // @Param: RC_SPEED
     // @DisplayName: ESC Update Speed
     // @Description: This is the speed in Hertz that your ESCs will receive updates
