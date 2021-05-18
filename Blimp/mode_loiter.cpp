@@ -11,7 +11,6 @@
         //Shouldn't reach this since it should failsafe into Land mode.
         GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "Error: No GPS.");
     }
-    // Vector3f pos_bf = blimp.ahrs.get_rotation_body_to_ned().transposed() * pos_ef;
 
     target_pos.x = pos_ef.x;
     target_pos.y = pos_ef.y;
@@ -29,12 +28,10 @@ void ModeLoiter::run()
         //Shouldn't reach this since it should failsafe into Land mode.
         GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "Error: No GPS.");
     }
-    // Vector3f pos_bf = blimp.ahrs.get_rotation_body_to_ned().transposed() * pos_ef;
 
     //TODO Perhaps put a check in here to ensure that the target doesn't get too far from the vehicle.
     float pilot_fwd = channel_front->get_control_in() / float(RC_SCALE) * g.max_xy_pos;
     float pilot_rgt = channel_right->get_control_in() / float(RC_SCALE) * g.max_xy_pos;
-    //Maths from AC_Loiter
     if (g.simple_mode == 1){
         target_pos.x = target_pos.x + pilot_fwd;
         target_pos.y = target_pos.y + pilot_rgt;
