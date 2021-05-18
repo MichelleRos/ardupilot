@@ -72,11 +72,4 @@ void ModeLoiter::run()
     AP::logger().Write_PID(LOG_PIDE_MSG, blimp.pid_vel_xy.get_pid_info_y());
     AP::logger().Write_PID(LOG_PIDR_MSG, blimp.pid_pos_xy.get_pid_info_x());
     AP::logger().Write_PID(LOG_PIDP_MSG, blimp.pid_pos_xy.get_pid_info_y());
-
-    if (!motors->armed()) {
-        // Motors should be Stopped
-        motors->set_desired_spool_state(Fins::DesiredSpoolState::SHUT_DOWN);
-    } else {
-        motors->set_desired_spool_state(Fins::DesiredSpoolState::THROTTLE_UNLIMITED);
-    }
 }

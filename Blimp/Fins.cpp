@@ -145,12 +145,3 @@ void Fins::output_min()
     yaw_out   = 0;
     Fins::output();
 }
-
-// TODO - Probably want to completely get rid of the desired spool state thing.
-void Fins::set_desired_spool_state(DesiredSpoolState spool)
-{
-    if (_armed || (spool == DesiredSpoolState::SHUT_DOWN)) {
-        // Set DesiredSpoolState only if it is either armed or it wants to shut down.
-        _spool_desired = spool;
-    }
-};

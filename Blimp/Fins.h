@@ -26,16 +26,6 @@ public:
     // var_info for holding Parameter information
     static const struct AP_Param::GroupInfo        var_info[];
 
-    enum class DesiredSpoolState : uint8_t {
-        SHUT_DOWN = 0,              // all fins should move to stop
-        THROTTLE_UNLIMITED = 2,     // all fins can move as needed
-    };
-
-    enum class SpoolState : uint8_t {
-        SHUT_DOWN = 0,                      // all motors stop
-        THROTTLE_UNLIMITED = 3,             // throttle is no longer constrained by start up procedure
-    };
-
     bool initialised_ok() const
     {
         return true;
@@ -59,8 +49,6 @@ protected:
     const uint16_t      _loop_rate;                 // rate in Hz at which output() function is called (normally 400hz)
     uint16_t            _speed_hz;                  // speed in hz to send updates to motors
     float               _throttle_avg_max;          // last throttle input from set_throttle_avg_max
-    DesiredSpoolState   _spool_desired;             // desired spool state
-    SpoolState          _spool_state;               // current spool mode
 
     float               _time;                       //current timestep
 
@@ -96,12 +84,6 @@ public:
     bool _interlock;         // 1 if the motor interlock is enabled (i.e. motors run), 0 if disabled (motors don't run)
     bool _initialised_ok;    // 1 if initialisation was successful
 
-    // get_spool_state - get current spool state
-    enum SpoolState  get_spool_state(void) const
-    {
-        return _spool_state;
-    }
-
     float max(float one, float two)
     {
         if (one >= two) {
@@ -122,8 +104,6 @@ public:
     {
         return 0;    //TODO
     }
-
-    void set_desired_spool_state(DesiredSpoolState spool);
 
     void output();
 

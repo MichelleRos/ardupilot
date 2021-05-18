@@ -31,11 +31,4 @@ void ModeVelocity::run()
     AP::logger().Write_PSC({0,0,0}, inertial_nav.get_position()*0.01f, target_vel, vel_bf, {0,0,0}, 0, 0);
     AP::logger().Write_PID(LOG_PIDN_MSG, blimp.pid_vel_xy.get_pid_info_x());
     AP::logger().Write_PID(LOG_PIDE_MSG, blimp.pid_vel_xy.get_pid_info_y());
-
-    if (!motors->armed()) {
-        // Motors should be Stopped
-        motors->set_desired_spool_state(Fins::DesiredSpoolState::SHUT_DOWN);
-    } else {
-        motors->set_desired_spool_state(Fins::DesiredSpoolState::THROTTLE_UNLIMITED);
-    }
 }

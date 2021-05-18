@@ -109,9 +109,6 @@ protected:
 
     // helper functions
     bool is_disarmed_or_landed() const;
-    void zero_throttle_and_relax_ac(bool spool_up = false);
-    void zero_throttle_and_hold_attitude();
-    void make_safe_spool_down();
 
     // functions to control landing
     // in modes that support landing
