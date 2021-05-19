@@ -68,6 +68,7 @@
 // #include <AP_ADSB/AP_ADSB.h>
 #include <AP_Scripting/AP_Scripting.h>
 #include <AC_PID/AC_PID_2D.h>
+#include <AC_PID/AC_PID_Basic.h>
 
 // Configuration
 #include "defines.h"
@@ -271,7 +272,13 @@ private:
 
     // XY vel & pos PIDs
     AC_PID_2D pid_vel_xy{1, 1, 0.01, 0.7, 10, 3, 3, 0.02}; //These are the defaults - P I D FF IMAX FiltHz FiltDHz DT
-    AC_PID_2D pid_pos_xy{1, 1, 0.01, 0.7, 10, 3, 3, 0.02};
+    AC_PID_2D pid_pos_xy{1, 1, 0.01, 0.7, 10, 3, 3, 0.02}; //MIR - fix defaults
+
+    AC_PID_Basic pid_vel_z{1, 1, 0.01, 0.7, 10, 3, 3, 0.02};
+    AC_PID_Basic pid_vel_yaw{1, 1, 0.01, 0.7, 10, 3, 3, 0.02};
+
+    AC_PID_Basic pid_pos_z{1, 1, 0.01, 0.7, 10, 3, 3, 0.02};
+    AC_PID_Basic pid_pos_yaw{1, 1, 0.01, 0.7, 10, 3, 3, 0.02};
 
     // System Timers
     // --------------

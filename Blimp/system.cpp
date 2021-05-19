@@ -250,7 +250,7 @@ void Blimp::update_auto_armed()
             set_auto_armed(false);
             return;
         }
-        // if in stabilize or acro flight mode and throttle is zero, auto-armed should become false
+        // if in a manual flight mode and throttle is zero, auto-armed should become false
         if (flightmode->has_manual_throttle() && ap.throttle_zero && !failsafe.radio) {
             set_auto_armed(false);
         }

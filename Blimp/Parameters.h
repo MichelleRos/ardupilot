@@ -93,6 +93,10 @@ public:
         // PIDs
         k_param_pid_vel_xy,
         k_param_pid_pos_xy,
+        k_param_pid_vel_z,
+        k_param_pid_vel_yaw,
+        k_param_pid_pos_z,
+        k_param_pid_pos_yaw,
 
         //
         // 90: misc2

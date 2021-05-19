@@ -50,7 +50,7 @@ const AP_Scheduler::Task Blimp::scheduler_tasks[] = {
     SCHED_TASK(one_hz_loop,            1,    100),
     SCHED_TASK(ekf_check,             10,     75),
     SCHED_TASK(check_vibration,       10,     50),
-    // SCHED_TASK(gpsglitch_check,       10,     50),
+    // SCHED_TASK(gpsglitch_check,       10,     50), //re-enable this.
     // SCHED_TASK(landinggear_update,    10,     75),
     // SCHED_TASK(standby_update,        100,    75),
     // SCHED_TASK(lost_vehicle_check,    10,     50),

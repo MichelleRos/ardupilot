@@ -503,6 +503,15 @@ const AP_Param::Info Blimp::var_info[] = {
     // @User: Advanced
     GOBJECT(pid_pos_xy, "POSXY_", AC_PID_2D),
 
+    //MIR Add proper parameter descs for the ones that need it.
+    GOBJECT(pid_vel_z, "VELZ_", AC_PID_Basic),
+
+    GOBJECT(pid_vel_yaw, "VELYAW_", AC_PID_Basic),
+
+    GOBJECT(pid_pos_z, "POSZ_", AC_PID_Basic),
+
+    GOBJECT(pid_pos_yaw, "POSYAW_", AC_PID_Basic),
+
     // @Group:
     // @Path: ../libraries/AP_Vehicle/AP_Vehicle.cpp
     { AP_PARAM_GROUP, "", Parameters::k_param_vehicle, (const void *)&blimp, {group_info : AP_Vehicle::var_info} },
