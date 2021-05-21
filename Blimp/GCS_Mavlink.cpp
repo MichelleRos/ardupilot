@@ -184,12 +184,15 @@ int16_t GCS_MAVLINK_Blimp::vfr_hud_throttle() const
  */
 void GCS_MAVLINK_Blimp::send_pid_tuning()
 {
-    static const PID_TUNING_AXIS axes[] = {
-        //Keeping the names as per Copter's ones for now to avoid changing mavlink.
-        PID_TUNING_ROLL,    //VELX
-        PID_TUNING_PITCH,   //VELY
-        PID_TUNING_YAW,     //POSX
-        PID_TUNING_ACCZ     //POSY
+    static const int8_t axes[] = {
+        1,  //VELX
+        2,  //VELY
+        3,  //VELZ
+        4,  //VELYAW
+        5,  //POSX
+        6,  //POSY
+        7,  //POSZ
+        8,  //POSYAW
     };
     for (uint8_t i=0; i<ARRAY_SIZE(axes); i++) {
         if (!(blimp.g.gcs_pid_mask & (1<<(axes[i]-1)))) {
@@ -200,17 +203,29 @@ void GCS_MAVLINK_Blimp::send_pid_tuning()
         }
         const AP_Logger::PID_Info *pid_info = nullptr;
         switch (axes[i]) {
-        case PID_TUNING_ROLL:
+        case 1:
             pid_info = &blimp.pid_vel_xy.get_pid_info_x();
             break;
-        case PID_TUNING_PITCH:
+        case 2:
             pid_info = &blimp.pid_vel_xy.get_pid_info_y();
             break;
-        case PID_TUNING_YAW:
+        case 3:
+            pid_info = &blimp.pid_vel_z.get_pid_info();
+            break;
+        case 4:
+            pid_info = &blimp.pid_vel_yaw.get_pid_info();
+            break;
+        case 5:
             pid_info = &blimp.pid_pos_xy.get_pid_info_x();
             break;
-        case PID_TUNING_ACCZ:
+        case 6:
             pid_info = &blimp.pid_pos_xy.get_pid_info_y();
+            break;
+        case 7:
+            pid_info = &blimp.pid_pos_z.get_pid_info();
+            break;
+        case 8:
+            pid_info = &blimp.pid_pos_yaw.get_pid_info();
             break;
         default:
             //Shouldn't reach this.

@@ -89,15 +89,15 @@ const AP_Param::Info Blimp::var_info[] = {
     // @Units: s
     // @Range: 0 30
     // @Increment: 1
-    GSCALAR(telem_delay,            "TELEM_DELAY",     0),
+    GSCALAR(telem_delay, "TELEM_DELAY",     0),
 
     // @Param: GCS_PID_MASK
     // @DisplayName: GCS PID tuning mask
     // @Description: bitmask of PIDs to send MAVLink PID_TUNING messages for
     // @User: Advanced
-    // @Values: 0:None,1:VELX,2:VELY,4:POSX,8:POSY
-    // @Bitmask: 0:VELX,1:VELY,2:POSX,3:POSY
-    GSCALAR(gcs_pid_mask,           "GCS_PID_MASK",     0),
+    // @Values: 0:None,1:VELX,2:VELY,4:VELZ,8:VELYAW,16:POSX,32:POSY,64:POSZ,128:POSYAW,15:Vel only,51:XY only,204:ZYaw only,240:Pos only,255:All
+    // @Bitmask: 0:VELX,1:VELY,2:VELZ;3:VELYAW;4:POSX,5:POSY;6:POZ;7:POSYAW
+    GSCALAR(gcs_pid_mask, "GCS_PID_MASK",     0),
 
     // @Param: FS_GCS_ENABLE
     // @DisplayName: Ground Station Failsafe Enable
@@ -266,7 +266,7 @@ const AP_Param::Info Blimp::var_info[] = {
 
     // @Param: SIMPLE_MODE
     // @DisplayName: Simple mode
-    // @Description: Simple mode for Position control
+    // @Description: Simple mode for Position control - "forward" moves blimp in +ve X direction world-frame
     // @Values: 0:Disabled, 1:Enabled
     // @User: Standard
     GSCALAR(simple_mode, "SIMPLE_MODE", 0),
