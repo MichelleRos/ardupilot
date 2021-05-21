@@ -56,7 +56,7 @@ protected:
 
     float              _amp[NUM_FINS]; //amplitudes
     float              _off[NUM_FINS]; //offsets
-    float              _omm[NUM_FINS]; //omega multiplier
+    float              _freq[NUM_FINS]; //frequency multiplier
     float              _pos[NUM_FINS]; //servo positions
 
     float               _right_amp_factor[NUM_FINS];

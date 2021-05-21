@@ -308,6 +308,32 @@ struct PACKED log_RCOUT {
     uint16_t chan14;
 };
 
+struct PACKED log_FINI {
+    LOG_PACKET_HEADER;
+    uint64_t time_us;
+    float Right;
+    float Front;
+    float Down;
+    float Yaw;
+};
+
+struct PACKED log_FINO {
+    LOG_PACKET_HEADER;
+    uint64_t time_us;
+    float Fin1_Amp;
+    float Fin1_Off;
+    float Fin1_Freq;
+    float Fin2_Amp;
+    float Fin2_Off;
+    float Fin2_Freq;
+    float Fin3_Amp;
+    float Fin3_Off;
+    float Fin3_Freq;
+    float Fin4_Amp;
+    float Fin4_Off;
+    float Fin4_Freq;
+};
+
 struct PACKED log_MAV {
     LOG_PACKET_HEADER;
     uint64_t time_us;
@@ -1307,6 +1333,30 @@ struct PACKED log_PSCZ {
 // @Field: C13: channel 13 output
 // @Field: C14: channel 14 output
 
+// @LoggerMessage: FINI
+// @Description: Fin input
+// @Field: TimeUS: Time since system startup
+// @Field: R: Right
+// @Field: F: Front
+// @Field: D: Down
+// @Field: Y: Yaw 
+
+// @LoggerMessage: FINO
+// @Description: Fin output
+// @Field: TimeUS: Time since system startup
+// @Field: F1A: Fin 1 Amplitude
+// @Field: F1O: Fin 1 Ofset
+// @Field: F1F: Fin 1 Omega
+// @Field: F2A: Fin 2 Amplitude
+// @Field: F2O: Fin 2 Ofset
+// @Field: F2F: Fin 2 Omega
+// @Field: F3A: Fin 3 Amplitude
+// @Field: F3O: Fin 3 Ofset
+// @Field: F3F: Fin 3 Omega
+// @Field: F4A: Fin 4 Amplitude
+// @Field: F4O: Fin 4 Ofset
+// @Field: F4F: Fin 4 Omega
+
 // @LoggerMessage: RFND
 // @Description: Rangefinder sensor information
 // @Field: TimeUS: Time since system startup
@@ -1469,6 +1519,10 @@ LOG_STRUCTURE_FROM_GPS \
       "RCI2",  "QHH",     "TimeUS,C15,C16", "sYY", "F--" }, \
     { LOG_RCOUT_MSG, sizeof(log_RCOUT), \
       "RCOU",  "QHHHHHHHHHHHHHH",     "TimeUS,C1,C2,C3,C4,C5,C6,C7,C8,C9,C10,C11,C12,C13,C14", "sYYYYYYYYYYYYYY", "F--------------"  }, \
+    { LOG_FINI_MSG, sizeof(log_FINI), \
+      "FINI",  "Qffff",     "TimeUS,R,F,D,Y", "s----", "F----"  }, \
+    { LOG_FINO_MSG, sizeof(log_FINO), \
+      "FINO",  "Qffffffffffff",     "TimeUS,F1A,F1O,F1F,F2A,F2O,F2F,F3A,F3O,F3F,F4A,F4O,F4F", "s------------", "F------------"  }, \
     { LOG_RSSI_MSG, sizeof(log_RSSI), \
       "RSSI",  "Qf",     "TimeUS,RXRSSI", "s-", "F-"  }, \
 LOG_STRUCTURE_FROM_BARO \
@@ -1697,6 +1751,8 @@ enum LogMessages : uint8_t {
     LOG_PSCZ_MSG,
     LOG_RAW_PROXIMITY_MSG,
     LOG_IDS_FROM_PRECLAND,
+    LOG_FINI_MSG,
+    LOG_FINO_MSG,
 
     _LOG_LAST_MSG_
 };

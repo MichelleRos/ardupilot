@@ -191,6 +191,42 @@ void AP_Logger::Write_RCOUT(void)
     WriteBlock(&pkt, sizeof(pkt));
 }
 
+//Write a fin input packet
+void AP_Logger::Write_FINI(float right, float front, float down, float yaw)
+{
+    const struct log_FINI pkt{
+        LOG_PACKET_HEADER_INIT(LOG_FINI_MSG),
+        time_us       : AP_HAL::micros64(),
+        Right         : right,
+        Front         : front,
+        Down          : down,
+        Yaw           : yaw
+    };
+    WriteBlock(&pkt, sizeof(pkt));
+}
+
+//Write a fin output packet
+void AP_Logger::Write_FINO(float *amp, float *off, float *freq)
+{
+    const struct log_FINO pkt{
+        LOG_PACKET_HEADER_INIT(LOG_FINO_MSG),
+        time_us       : AP_HAL::micros64(),
+        Fin1_Amp      : amp[0],
+        Fin1_Off      : off[0],
+        Fin1_Freq     : freq[0],
+        Fin2_Amp      : amp[1],
+        Fin2_Off      : off[1],
+        Fin2_Freq     : freq[1],
+        Fin3_Amp      : amp[2],
+        Fin3_Off      : off[2],
+        Fin3_Freq     : freq[2],
+        Fin4_Amp      : amp[3],
+        Fin4_Off      : off[3],
+        Fin4_Freq     : freq[3]
+    };
+    WriteBlock(&pkt, sizeof(pkt));
+}
+
 // Write an RSSI packet
 void AP_Logger::Write_RSSI()
 {

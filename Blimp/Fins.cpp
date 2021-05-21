@@ -89,6 +89,8 @@ void Fins::output()
     down_out  /= RC_SCALE;
     yaw_out   /= RC_SCALE;
 
+    AP::logger().Write_FINI(right_out, front_out, down_out, yaw_out);
+
     _time = AP_HAL::micros() * 1.0e-6;
 
     for (int8_t i=0; i<NUM_FINS; i++) {
@@ -96,7 +98,7 @@ void Fins::output()
                    fabsf(_down_amp_factor[i]*down_out) + fabsf(_yaw_amp_factor[i]*yaw_out);
         _off[i] = _right_off_factor[i]*right_out + _front_off_factor[i]*front_out +
                   _down_off_factor[i]*down_out + _yaw_off_factor[i]*yaw_out;
-        _omm[i] = 1;
+        _freq[i] = 1;
 
         _num_added = 0;
         if (max(0,_right_amp_factor[i]*right_out) > 0.0f) {
@@ -123,18 +125,18 @@ void Fins::output()
         if (turbo_mode) {
             //double speed fins if offset at max...
             if (_amp[i] <= 0.6 && fabsf(_off[i]) >= 0.4) {
-                _omm[i] = 2;
+                _freq[i] = 2;
             }
         }
-
         // finding and outputting current position for each servo from sine wave
-        _pos[i]= _amp[i]*cosf(freq_hz * _omm[i] * _time * 2 * M_PI) + _off[i];
+        _pos[i]= _amp[i]*cosf(freq_hz * _freq[i] * _time * 2 * M_PI) + _off[i];
         SRV_Channels::set_output_scaled(SRV_Channels::get_motor_function(i), _pos[i] * FIN_SCALE_MAX);
     }
 
+    AP::logger().Write_FINO(_amp, _off, _freq);
     //For debugging purposes. Displays in the debug terminal so it doesn't flood the GCS.
-    ::printf("FINS (amp %.1f %.1f %.1f %.1f   off %.1f %.1f %.1f %.1f   omm %.1f %.1f %.1f %.1f)\n",
-             _amp[0], _amp[1], _amp[2], _amp[3], _off[0], _off[1], _off[2], _off[3], _omm[0], _omm[1], _omm[2], _omm[3]);
+    ::printf("FINS (amp %.1f %.1f %.1f %.1f   off %.1f %.1f %.1f %.1f   freq %.1f %.1f %.1f %.1f)\n",
+             _amp[0], _amp[1], _amp[2], _amp[3], _off[0], _off[1], _off[2], _off[3], _freq[0], _freq[1], _freq[2], _freq[3]);
 }
 
 void Fins::output_min()
