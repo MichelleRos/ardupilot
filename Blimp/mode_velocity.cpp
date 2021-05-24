@@ -22,13 +22,22 @@ void ModeVelocity::run()
     float vel_yaw = blimp.ahrs.get_yaw_rate_earth();
 
     Vector2f actuator = blimp.pid_vel_xy.update_all(target_vel, vel_bf);
-    float down = blimp.pid_vel_z.update_all(target_vel.z, vel_bf.z);
-    float yaw = blimp.pid_vel_yaw.update_all(target_vel_yaw, vel_yaw);
+    float act_down = blimp.pid_vel_z.update_all(target_vel.z, vel_bf.z);
+    float act_yaw = blimp.pid_vel_yaw.update_all(target_vel_yaw, vel_yaw);
 
+    if(!(blimp.g.dis_mask & (1<<(2-1)))){
     motors->front_out = actuator.x;
+    ::printf("Using front out\n");
+    } if(!(blimp.g.dis_mask & (1<<(1-1)))){
     motors->right_out = actuator.y;
-    motors->down_out = down;
-    motors->yaw_out  = yaw;
+    ::printf("Using right out\n");
+    } if(!(blimp.g.dis_mask & (1<<(3-1)))){
+    motors->down_out = act_down;
+    ::printf("Using down out\n");
+    } if(!(blimp.g.dis_mask & (1<<(4-1)))){
+    motors->yaw_out = act_yaw;
+    ::printf("Using yaw out\n");
+    }
 
     AP::logger().Write_PSC({0,0,0}, inertial_nav.get_position()*0.01f, target_vel, vel_bf, {0,0,0}, 0, 0);
     AP::logger().Write_PID(LOG_PIDN_MSG, blimp.pid_vel_xy.get_pid_info_x());

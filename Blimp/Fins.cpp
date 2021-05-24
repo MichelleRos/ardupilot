@@ -80,14 +80,14 @@ void Fins::output()
         yaw_out   = 0;
     }
 
-    //For debugging purposes. Displays in the debug terminal so it doesn't flood the GCS.
-    ::printf("FINSOUT (%.1f %.1f %.1f %.1f)\n",
-    right_out, front_out, down_out, yaw_out);
-
     right_out /= RC_SCALE;
     front_out /= RC_SCALE;
     down_out  /= RC_SCALE;
     yaw_out   /= RC_SCALE;
+
+    //For debugging purposes. Displays in the debug terminal so it doesn't flood the GCS.
+    ::printf("FINSOUT (%.1f %.1f %.1f %.1f)\n",
+    right_out, front_out, down_out, yaw_out);
 
     AP::logger().Write_FINI(right_out, front_out, down_out, yaw_out);
 
