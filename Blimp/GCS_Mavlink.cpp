@@ -192,13 +192,14 @@ void GCS_MAVLINK_Blimp::send_pid_tuning()
         5,  //POSX
         6,  //POSY
         7,  //POSZ
-        8,  //POSYAW
+        8  //POSYAW
     };
     for (uint8_t i=0; i<ARRAY_SIZE(axes); i++) {
         if (!(blimp.g.gcs_pid_mask & (1<<(axes[i]-1)))) {
             continue;
         }
         if (!HAVE_PAYLOAD_SPACE(chan, PID_TUNING)) {
+            GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "MIR: No payload space.");
             return;
         }
         const AP_Logger::PID_Info *pid_info = nullptr;
@@ -229,7 +230,6 @@ void GCS_MAVLINK_Blimp::send_pid_tuning()
             break;
         default:
             //Shouldn't reach this.
-            GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "Error: No PID_TUNING msg.");
             continue;
         }
         if (pid_info != nullptr) {
@@ -242,6 +242,7 @@ void GCS_MAVLINK_Blimp::send_pid_tuning()
                                         pid_info->I,
                                         pid_info->D);
         }
+        else GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "Error: No PID_TUNING msg.");
     }
 }
 

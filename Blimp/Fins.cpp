@@ -35,10 +35,10 @@ Fins::Fins(uint16_t loop_rate) :
 void Fins::setup_fins()
 {
     //fin   #   r   f   d     y,    r   f     d     y               right, front, down, yaw for amplitude then for offset
-    add_fin(0,  0,  1, 0.5,   0,    0,  0, -0.5,    0); //Back
-    add_fin(1,  0, -1, 0.5,   0,    0,  0, -0.5,    0); //Front
-    add_fin(2, -1,  0,   0, 0.5,    0,  0,    0,  0.5); //Right
-    add_fin(3,  1,  0,   0, 0.5,    0,  0,    0, -0.5); //Left
+    add_fin(0,  0,  1, 0.5,   0,    0,  0,  0.5,    0); //Back
+    add_fin(1,  0, -1, 0.5,   0,    0,  0,  0.5,    0); //Front
+    add_fin(2, -1,  0,   0, 0.5,    0,  0,    0, -0.5); //Right
+    add_fin(3,  1,  0,   0, 0.5,    0,  0,    0,  0.5); //Left
 
     SRV_Channels::set_angle(SRV_Channel::k_motor1, FIN_SCALE_MAX);
     SRV_Channels::set_angle(SRV_Channel::k_motor2, FIN_SCALE_MAX);
@@ -70,6 +70,7 @@ void Fins::add_fin(int8_t fin_num, float right_amp_fac, float front_amp_fac, flo
 }
 
 //B,F,R,L = 0,1,2,3
+//Yaw +ve = CCW, others are as per name - i.e. +ve down_out means move down. 
 void Fins::output()
 {
     if (!_armed) {
@@ -86,10 +87,21 @@ void Fins::output()
     yaw_out   /= RC_SCALE;
 
     //For debugging purposes. Displays in the debug terminal so it doesn't flood the GCS.
-    ::printf("FINSOUT (%.1f %.1f %.1f %.1f)\n",
+    ::printf("FINSOUT (-1 to 1) (%.1f %.1f %.1f %.1f)\n",
     right_out, front_out, down_out, yaw_out);
 
     AP::logger().Write_FINI(right_out, front_out, down_out, yaw_out);
+
+    //For debugging PID loops
+    if (fabsf(right_out) > 2 || fabsf(front_out) > 2 || fabsf(down_out) > 2 || fabsf(yaw_out) > 2){
+        GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "MIR: Major overshoot in input.");
+    }
+
+    //Constrain after logging so as to still show when tuning is causing massive overshoots.
+    right_out = constrain_float(right_out, -1, 1);
+    front_out = constrain_float(front_out, -1, 1);
+    down_out = constrain_float(down_out, -1, 1);
+    yaw_out = constrain_float(yaw_out, -1, 1);
 
     _time = AP_HAL::micros() * 1.0e-6;
 
@@ -135,8 +147,8 @@ void Fins::output()
 
     AP::logger().Write_FINO(_amp, _off, _freq);
     //For debugging purposes. Displays in the debug terminal so it doesn't flood the GCS.
-    ::printf("FINS (amp %.1f %.1f %.1f %.1f   off %.1f %.1f %.1f %.1f   freq %.1f %.1f %.1f %.1f)\n",
-             _amp[0], _amp[1], _amp[2], _amp[3], _off[0], _off[1], _off[2], _off[3], _freq[0], _freq[1], _freq[2], _freq[3]);
+    // ::printf("FINS (amp %.1f %.1f %.1f %.1f   off %.1f %.1f %.1f %.1f   freq %.1f %.1f %.1f %.1f)\n",
+    //          _amp[0], _amp[1], _amp[2], _amp[3], _off[0], _off[1], _off[2], _off[3], _freq[0], _freq[1], _freq[2], _freq[3]);
 }
 
 void Fins::output_min()

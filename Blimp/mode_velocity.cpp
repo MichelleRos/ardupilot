@@ -27,19 +27,16 @@ void ModeVelocity::run()
 
     if(!(blimp.g.dis_mask & (1<<(2-1)))){
     motors->front_out = actuator.x;
-    ::printf("Using front out\n");
     } if(!(blimp.g.dis_mask & (1<<(1-1)))){
     motors->right_out = actuator.y;
-    ::printf("Using right out\n");
     } if(!(blimp.g.dis_mask & (1<<(3-1)))){
     motors->down_out = act_down;
-    ::printf("Using down out\n");
     } if(!(blimp.g.dis_mask & (1<<(4-1)))){
     motors->yaw_out = act_yaw;
-    ::printf("Using yaw out\n");
     }
 
-    AP::logger().Write_PSC({0,0,0}, inertial_nav.get_position()*0.01f, target_vel, vel_bf, {0,0,0}, 0, 0);
+    AP::logger().Write_PSC({0,0,0}, inertial_nav.get_position(), target_vel*100.0f, vel_bf*100.0f, {0,0,0}, 0, 0);
+    AP::logger().Write_PSCZ(0.0f, 0.0f, 0.0f, target_vel.z*100.0f, vel_bf.z*100.0f, 0.0f, 0.0f, 0.0f, 0.0f);
     AP::logger().Write_PID(LOG_PIDN_MSG, blimp.pid_vel_xy.get_pid_info_x());
     AP::logger().Write_PID(LOG_PIDE_MSG, blimp.pid_vel_xy.get_pid_info_y());
 }

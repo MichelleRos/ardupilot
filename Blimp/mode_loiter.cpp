@@ -17,7 +17,7 @@
     target_pos.z = pos_ef.z;
     target_yaw = blimp.ahrs.get_yaw(); //TODO Double-check this function
 
-    GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "MIR: Initted Loiter.");
+    GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "MIR init loiter: %f %f %f %f", target_pos.x, target_pos.y, target_pos.z, target_yaw);
     return true;
  }
 
@@ -77,19 +77,16 @@ void ModeLoiter::run()
 
     if(!(blimp.g.dis_mask & (1<<(2-1)))){
     motors->front_out = actuator.x;
-    ::printf("Using front out\n");
     } if(!(blimp.g.dis_mask & (1<<(1-1)))){
     motors->right_out = actuator.y;
-    ::printf("Using right out\n");
     } if(!(blimp.g.dis_mask & (1<<(3-1)))){
     motors->down_out = act_down;
-    ::printf("Using down out\n");
     } if(!(blimp.g.dis_mask & (1<<(4-1)))){
     motors->yaw_out  = act_yaw;
-    ::printf("Using yaw out\n");
     }
 
     AP::logger().Write_PSC(target_pos*100.0f, pos_ef*100.0f, target_vel_bf*100.0f, vel_bf_xy*100.0f, {0,0,0}, 0, 0);
+    AP::logger().Write_PSCZ(target_pos.z*100.0f, pos_ef.z*100.0f, 0.0f, target_vel_bf.z*100.0f, vel_bf_xy.z*100.0f, 0.0f, 0.0f, 0.0f, 0.0f);
     AP::logger().Write_PID(LOG_PIDN_MSG, blimp.pid_vel_xy.get_pid_info_x());
     AP::logger().Write_PID(LOG_PIDE_MSG, blimp.pid_vel_xy.get_pid_info_y());
     AP::logger().Write_PID(LOG_PIDR_MSG, blimp.pid_pos_xy.get_pid_info_x());
