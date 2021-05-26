@@ -61,19 +61,18 @@ void ModeLoiter::run()
         GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "Error: No GPS.");
     }
     float vel_yaw = blimp.ahrs.get_yaw_rate_earth();
+    Vector3f vel_bf = ahrs.get_rotation_body_to_ned().transposed() * vel_ef;
 
     //TODO Should this be a 2D conversion instead?
     Vector3f target_vel_bf = ahrs.get_rotation_body_to_ned().transposed() * target_vel_ef;
-    Vector3f vel_bf = ahrs.get_rotation_body_to_ned().transposed() * vel_ef;
-    Vector3f vel_bf_xy{constrain_float(vel_bf.x, -g.max_xy_vel, g.max_xy_vel),
-                                    constrain_float(vel_bf.y, -g.max_xy_vel, g.max_xy_vel),
-                                    0};
-    vel_bf_xy.z = constrain_float(vel_bf.z, -g.max_xy_vel, g.max_xy_vel);
-    float vel_yaw_c = constrain_float(vel_yaw, -g.max_xy_vel, g.max_xy_vel);                                
+    Vector3f target_vel_bf_c{constrain_float(target_vel_bf.x, -g.max_xy_vel, g.max_xy_vel),
+                              constrain_float(target_vel_bf.y, -g.max_xy_vel, g.max_xy_vel),
+                              constrain_float(target_vel_bf.z, -g.max_xy_vel, g.max_xy_vel)};
+    float target_vel_yaw_c = constrain_float(target_vel_yaw, -g.max_xy_vel, g.max_xy_vel);                                
 
-    Vector2f actuator = blimp.pid_vel_xy.update_all(target_vel_bf, vel_bf_xy);
-    float act_down = blimp.pid_vel_z.update_all(target_vel_bf.z, vel_bf_xy.z);
-    float act_yaw = blimp.pid_vel_z.update_all(target_vel_yaw, vel_yaw_c);
+    Vector2f actuator = blimp.pid_vel_xy.update_all(target_vel_bf_c, vel_bf);
+    float act_down = blimp.pid_vel_z.update_all(target_vel_bf_c.z, vel_bf.z);
+    float act_yaw = blimp.pid_vel_z.update_all(target_vel_yaw_c, vel_yaw);
 
     if(!(blimp.g.dis_mask & (1<<(2-1)))){
     motors->front_out = actuator.x;
@@ -85,8 +84,8 @@ void ModeLoiter::run()
     motors->yaw_out  = act_yaw;
     }
 
-    AP::logger().Write_PSC(target_pos*100.0f, pos_ef*100.0f, target_vel_bf*100.0f, vel_bf_xy*100.0f, {0,0,0}, 0, 0);
-    AP::logger().Write_PSCZ(target_pos.z*100.0f, pos_ef.z*100.0f, 0.0f, target_vel_bf.z*100.0f, vel_bf_xy.z*100.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+    AP::logger().Write_PSC(target_pos*100.0f, pos_ef*100.0f, target_vel_bf_c*100.0f, vel_bf*100.0f, {0,0,0}, 0, 0);
+    AP::logger().Write_PSCZ(target_pos.z*100.0f, pos_ef.z*100.0f, 0.0f, target_vel_bf_c.z*100.0f, vel_bf.z*100.0f, 0.0f, 0.0f, 0.0f, 0.0f);
     AP::logger().Write_PID(LOG_PIDN_MSG, blimp.pid_vel_xy.get_pid_info_x());
     AP::logger().Write_PID(LOG_PIDE_MSG, blimp.pid_vel_xy.get_pid_info_y());
     AP::logger().Write_PID(LOG_PIDR_MSG, blimp.pid_pos_xy.get_pid_info_x());
