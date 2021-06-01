@@ -100,16 +100,12 @@ public:
 
     void setup_fins();
 
-    float get_throttle_hover()
-    {
-        return 0;    //TODO
-    }
-
     void output();
 
     float get_throttle()
     {
-        return 0.1f;    //TODO
+        //MIR When holding at a position, this essentially becomes an indicator of how neutrally buoyant the blimp is.
+        return -down_out;
     }
 
     void rc_write(uint8_t chan, uint16_t pwm);

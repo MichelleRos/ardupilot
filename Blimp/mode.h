@@ -13,7 +13,7 @@ public:
 
     // Auto Pilot Modes enumeration
     enum class Number : uint8_t {
-        MANUAL =        0,  // manual control similar to Copter's stabilize mode
+        MANUAL =        0,  // manual control
         LAND =          1,  // currently just stops moving
         VELOCITY =      2,  // velocity mode
         LOITER =        3,  // loiter mode (position hold)
@@ -56,10 +56,6 @@ public:
     virtual const char *name() const = 0;
     virtual const char *name4() const = 0;
 
-    bool do_user_takeoff(float takeoff_alt_cm, bool must_navigate);
-    // virtual bool is_taking_off() const;
-    // static void takeoff_stop() { takeoff.stop(); }
-
     virtual bool is_landing() const
     {
         return false;
@@ -91,16 +87,8 @@ public:
 
     void update_navigation();
 
-    int32_t get_alt_above_ground_cm(void);
-
     // pilot input processing
     void get_pilot_desired_accelerations(float &right_out, float &front_out) const;
-    float get_pilot_desired_yaw_rate(int16_t stick_angle);
-    float get_pilot_desired_throttle() const;
-
-    // returns climb target_rate reduced to avoid obstacles and
-    // altitude fence
-    float get_avoidance_adjusted_climbrate(float target_rate);
 
 protected:
 
@@ -114,9 +102,6 @@ protected:
     // in modes that support landing
     void land_run_horizontal_control();
     void land_run_vertical_control(bool pause_descent = false);
-
-    // return expected input throttle setting to hover:
-    virtual float throttle_hover() const;
 
     // convenience references to avoid code churn in conversion:
     Parameters &g;
@@ -196,13 +181,10 @@ public:
     // pass-through functions to reduce code churn on conversion;
     // these are candidates for moving into the Mode base
     // class.
-    float get_pilot_desired_climb_rate(float throttle_control);
-    float get_non_takeoff_throttle(void);
     bool set_mode(Mode::Number mode, ModeReason reason);
     void set_land_complete(bool b);
     GCS_Blimp &gcs();
     void set_throttle_takeoff(void);
-    uint16_t get_pilot_speed_dn(void);
 
     // end pass-through functions
 };

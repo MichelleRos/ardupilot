@@ -39,33 +39,16 @@
 #include <AP_Math/AP_Math.h>            // ArduPilot Mega Vector/Matrix math Library
 // #include <AP_AccelCal/AP_AccelCal.h>                // interface and maths for accelerometer calibration
 // #include <AP_InertialSensor/AP_InertialSensor.h>  // ArduPilot Mega Inertial Sensor (accel & gyro) Library
+//MIR why is it compiling without these?
 #include <AP_AHRS/AP_AHRS.h>
-// #include <AP_Mission/AP_Mission.h>     // Mission command library
-// #include <AC_AttitudeControl/AC_AttitudeControl_Multi.h> // Attitude control library
-// #include <AC_AttitudeControl/AC_AttitudeControl_Heli.h> // Attitude control library for traditional helicopter
-// #include <AC_AttitudeControl/AC_PosControl.h>      // Position control library
-// #include <AP_Motors/AP_Motors.h>          // AP Motors library
 #include <AP_Stats/AP_Stats.h>     // statistics library
 #include <Filter/Filter.h>             // Filter library
 #include <AP_Airspeed/AP_Airspeed.h>        // needed for AHRS build
 #include <AP_Vehicle/AP_Vehicle.h>         // needed for AHRS build
 #include <AP_InertialNav/AP_InertialNav.h>     // ArduPilot Mega inertial navigation library
-// #include <AC_WPNav/AC_WPNav.h>           // Blimp waypoint navigation library
-// #include <AC_WPNav/AC_Loiter.h>
-// #include <AC_WPNav/AC_Circle.h>          // circle navigation library
-// #include <AP_Declination/AP_Declination.h>     // ArduPilot Mega Declination Helper Library
 #include <AP_RCMapper/AP_RCMapper.h>        // RC input mapping library
 #include <AP_BattMonitor/AP_BattMonitor.h>     // Battery monitor library
-// #include <AP_LandingGear/AP_LandingGear.h>     // Landing Gear library
-// #include <AC_InputManager/AC_InputManager.h>        // Pilot input handling library
-// #include <AC_InputManager/AC_InputManager_Heli.h>   // Heli specific pilot input handling library
 #include <AP_Arming/AP_Arming.h>
-// #include <AP_SmartRTL/AP_SmartRTL.h>
-// #include <AP_TempCalibration/AP_TempCalibration.h>
-// #include <AC_AutoTune/AC_AutoTune.h>
-// #include <AP_Parachute/AP_Parachute.h>
-// #include <AC_Sprayer/AC_Sprayer.h>
-// #include <AP_ADSB/AP_ADSB.h>
 #include <AP_Scripting/AP_Scripting.h>
 #include <AC_PID/AC_PID_2D.h>
 #include <AC_PID/AC_PID_Basic.h>
@@ -77,15 +60,11 @@
 
 #include "Fins.h"
 
-// #define MOTOR_CLASS Fins
-
 #include "RC_Channel.h"         // RC Channel Library
 
 #include "GCS_Mavlink.h"
 #include "GCS_Blimp.h"
-// #include "AP_Rally.h"           // Rally point library
 #include "AP_Arming.h"
-
 
 #include <AP_Mount/AP_Mount.h>
 
@@ -143,7 +122,6 @@ private:
     AP_Int8 *flight_modes;
     const uint8_t num_flight_modes = 6;
 
-
 #if CONFIG_HAL_BOARD == HAL_BOARD_SITL
     SITL::SITL sitl;
 #endif
@@ -170,6 +148,7 @@ private:
     }
 
     // Documentation of Globals:
+    //MIR what to do with these...
     typedef union {
         struct {
             uint8_t unused1                 : 1; // 0
@@ -260,31 +239,25 @@ private:
     // 3D Location vectors
     // Current location of the vehicle (altitude is relative to home)
     Location current_loc;
+    //MIR - should I use Location instead?
+    Vector3f velocity_ned;
+    Vector3f velocity_ned_filt;
+    Vector3f position_ned;
+    NotchFilterVector3f vel_filter;
 
     // Inertial Navigation
+    //MIR do I need this?
     AP_InertialNav_NavEKF inertial_nav;
-
-    // Attitude, Position and Waypoint navigation objects
-    // To-Do: move inertial nav up or other navigation variables down here
-    // AC_AttitudeControl_t *attitude_control;
-    // AC_PosControl *pos_control;
-    // AC_WPNav *wp_nav;
-    // AC_Loiter *loiter_nav;
 
     // XY vel & pos PIDs
     AC_PID_2D pid_vel_xy{1, 1, 0.01, 0.7, 10, 3, 3, 0.02}; //These are the defaults - P I D FF IMAX FiltHz FiltDHz DT
-    AC_PID_2D pid_pos_xy{1, 1, 0.01, 0.7, 10, 3, 3, 0.02}; //MIR - fix defaults
+    AC_PID_2D pid_pos_xy{1, 1, 0.01, 0.7, 10, 3, 3, 0.02}; //MIR - fix defaults - incl get DT from looprate instead?
 
     AC_PID_Basic pid_vel_z{1, 1, 0.01, 0.7, 10, 3, 3, 0.02};
     AC_PID_Basic pid_vel_yaw{1, 1, 0.01, 0.7, 10, 3, 3, 0.02};
 
     AC_PID_Basic pid_pos_z{1, 1, 0.01, 0.7, 10, 3, 3, 0.02};
     AC_PID_Basic pid_pos_yaw{1, 1, 0.01, 0.7, 10, 3, 3, 0.02};
-
-    Vector3f velocity_ned;
-    Vector3f velocity_ned_filt;
-    Vector3f position_ned;
-    NotchFilterVector3f vel_filter;
 
     // System Timers
     // --------------
@@ -294,7 +267,6 @@ private:
     // Used to exit the roll and pitch auto trim function
     uint8_t auto_trim_counter;
     bool auto_trim_started = false;
-
 
     // last valid RC input time
     uint32_t last_radio_update_ms;
@@ -357,13 +329,6 @@ private:
     void one_hz_loop();
     void read_AHRS(void);
     void update_altitude();
-
-    // Attitude.cpp
-    float get_pilot_desired_yaw_rate(int16_t stick_angle);
-    float get_pilot_desired_climb_rate(float throttle_control);
-    float get_non_takeoff_throttle();
-    void rotate_body_frame_to_NE(float &x, float &y);
-    uint16_t get_pilot_speed_dn();
 
     // commands.cpp
     void update_home_from_EKF();
@@ -459,7 +424,6 @@ private:
     void read_radio();
     void set_throttle_and_failsafe(uint16_t throttle_pwm);
     void set_throttle_zero_flag(int16_t throttle_control);
-    int16_t get_throttle_mid(void);
 
     // sensors.cpp
     void read_barometer(void);
@@ -492,11 +456,6 @@ private:
     MAV_TYPE get_frame_mav_type();
     const char* get_frame_string();
     void allocate_motors(void);
-
-    // vehicle specific waypoint info helpers
-    bool get_wp_distance_m(float &distance) const override;
-    bool get_wp_bearing_deg(float &bearing) const override;
-    bool get_wp_crosstrack_error_m(float &xtrack_error) const override;
 
     Mode *flightmode;
     ModeManual mode_manual;

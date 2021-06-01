@@ -554,7 +554,7 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
 
     // @Param: FRAME_CLASS
     // @DisplayName: Frame Class
-    // @Description: Controls major frame class for blimp component
+    // @Description: Controls major frame class for blimp.
     // @Values: 0:Finnedblimp
     // @User: Standard
     // @RebootRequired: True

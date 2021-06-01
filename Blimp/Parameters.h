@@ -90,7 +90,7 @@ public:
         k_param_adsb,                   // 72
         k_param_notify,                 // 73
 
-        // PIDs
+        //PID Controllers
         k_param_pid_vel_xy,
         k_param_pid_pos_xy,
         k_param_pid_vel_z,
@@ -111,11 +111,6 @@ public:
 
         // 97: RSSI
         k_param_rssi = 97,
-
-        //
-        // 100: Inertial Nav
-        //
-
 
         // 110: Telemetry control
         //
@@ -161,11 +156,6 @@ public:
         k_param_camera_mount,
 
         //
-        // Battery monitoring parameters
-        //
-
-
-        //
         // 170: Radio settings
         //
         k_param_failsafe_throttle = 170,
@@ -188,12 +178,7 @@ public:
         k_param_initial_mode,
 
         //
-        // 210: Waypoint data
-        //
-
-
-        //
-        // 220: PI/D Controllers
+        // 220: Misc
         //
         k_param_fs_ekf_action = 220,
         k_param_max_xy_vel,
@@ -222,8 +207,6 @@ public:
 
     AP_Int8         failsafe_gcs;               // ground station failsafe behavior
     AP_Int16        gps_hdop_good;              // GPS Hdop value at or below this value represent a good position
-
-    // Waypoints
 
     // Throttle
     //

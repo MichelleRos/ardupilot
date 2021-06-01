@@ -148,6 +148,7 @@ void Blimp::exit_mode(Mode *&old_flightmode,
     if (old_flightmode->has_manual_throttle() && !new_flightmode->has_manual_throttle() && motors->armed() && !ap.land_complete) {
         // this assumes all manual flight modes use get_pilot_desired_throttle to translate pilot input to output throttle
         // set_accel_throttle_I_from_pilot_throttle();
+        //MIR need to do something here
     }
 
     // cancel any takeoffs in progress
@@ -167,6 +168,9 @@ void Mode::update_navigation()
     // run autopilot to make high level decisions about control modes
     run_autopilot();
 }
+
+//MIR - add function like this - with circular limit - into control modes
+//Separate out the 4in to amp & off convert into a function to be used here.
 
 // returns desired angle in centi-degrees
 void Mode::get_pilot_desired_accelerations(float &right_out, float &front_out) const
@@ -204,76 +208,6 @@ bool Mode::is_disarmed_or_landed() const
     return false;
 }
 
-/*
-  get a height above ground estimate for landing
- */
-int32_t Mode::get_alt_above_ground_cm(void)
-{
-    int32_t alt_above_ground_cm;
-
-    if (blimp.current_loc.get_alt_cm(Location::AltFrame::ABOVE_TERRAIN, alt_above_ground_cm)) {
-        return alt_above_ground_cm;
-    }
-
-    // Assume the Earth is flat:
-    return blimp.current_loc.alt;
-}
-
-float Mode::throttle_hover() const
-{
-    return motors->get_throttle_hover();
-}
-
-// transform pilot's manual throttle input to make hover throttle mid stick
-// used only for manual throttle modes
-// thr_mid should be in the range 0 to 1
-// returns throttle output 0 to 1
-float Mode::get_pilot_desired_throttle() const
-{
-    const float thr_mid = throttle_hover();
-    int16_t throttle_control = channel_down->get_control_in();
-
-    int16_t mid_stick = blimp.get_throttle_mid();
-    // protect against unlikely divide by zero
-    if (mid_stick <= 0) {
-        mid_stick = 500;
-    }
-
-    // ensure reasonable throttle values
-    throttle_control = constrain_int16(throttle_control,0,1000);
-
-    // calculate normalised throttle input
-    float throttle_in;
-    if (throttle_control < mid_stick) {
-        throttle_in = ((float)throttle_control)*0.5f/(float)mid_stick;
-    } else {
-        throttle_in = 0.5f + ((float)(throttle_control-mid_stick)) * 0.5f / (float)(1000-mid_stick);
-    }
-
-    const float expo = constrain_float(-(thr_mid-0.5f)/0.375f, -0.5f, 1.0f);
-    // calculate the output throttle using the given expo function
-    float throttle_out = throttle_in*(1.0f-expo) + expo*throttle_in*throttle_in*throttle_in;
-    return throttle_out;
-}
-
-// pass-through functions to reduce code churn on conversion;
-// these are candidates for moving into the Mode base
-// class.
-float Mode::get_pilot_desired_yaw_rate(int16_t stick_angle)
-{
-    return blimp.get_pilot_desired_yaw_rate(stick_angle);
-}
-
-float Mode::get_pilot_desired_climb_rate(float throttle_control)
-{
-    return blimp.get_pilot_desired_climb_rate(throttle_control);
-}
-
-float Mode::get_non_takeoff_throttle()
-{
-    return blimp.get_non_takeoff_throttle();
-}
-
 bool Mode::set_mode(Mode::Number mode, ModeReason reason)
 {
     return blimp.set_mode(mode, reason);
@@ -287,9 +221,4 @@ void Mode::set_land_complete(bool b)
 GCS_Blimp &Mode::gcs()
 {
     return blimp.gcs();
-}
-
-uint16_t Mode::get_pilot_speed_dn()
-{
-    return blimp.get_pilot_speed_dn();
 }

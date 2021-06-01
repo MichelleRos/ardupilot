@@ -11,7 +11,7 @@ struct PACKED log_Control_Tuning {
     float    throttle_in;
     float    angle_boost;
     float    throttle_out;
-    float    throttle_hover;
+    float    throttle_hover; ///MIR - figure out how to remove this
     float    desired_alt;
     float    inav_alt;
     int32_t  baro_alt;

@@ -106,10 +106,6 @@ void Blimp::init_ardupilot()
     g2.scripting.init();
 #endif // ENABLE_SCRIPTING
 
-    // set landed flags
-    // set_land_complete(true);
-    // set_land_complete_maybe(true);
-
     // we don't want writes to the serial port to cause us to pause
     // mid-flight, so set the serial ports non-blocking once we are
     // ready to fly

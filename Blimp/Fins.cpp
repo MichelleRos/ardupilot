@@ -44,8 +44,6 @@ void Fins::setup_fins()
     SRV_Channels::set_angle(SRV_Channel::k_motor2, FIN_SCALE_MAX);
     SRV_Channels::set_angle(SRV_Channel::k_motor3, FIN_SCALE_MAX);
     SRV_Channels::set_angle(SRV_Channel::k_motor4, FIN_SCALE_MAX);
-
-    GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "MIR: All fins have been added.");
 }
 
 void Fins::add_fin(int8_t fin_num, float right_amp_fac, float front_amp_fac, float down_amp_fac, float yaw_amp_fac,
@@ -87,17 +85,12 @@ void Fins::output()
     yaw_out   /= RC_SCALE;
 
     //For debugging purposes. Displays in the debug terminal so it doesn't flood the GCS.
-    ::printf("FINSOUT (-1 to 1) (%.1f %.1f %.1f %.1f)\n",
-    right_out, front_out, down_out, yaw_out);
+    // ::printf("FINSOUT (-1 to 1) (%.1f %.1f %.1f %.1f)\n",
+    // right_out, front_out, down_out, yaw_out);
 
     AP::logger().Write_FINI(right_out, front_out, down_out, yaw_out);
 
-    //For debugging PID loops
-    if (fabsf(right_out) > 2 || fabsf(front_out) > 2 || fabsf(down_out) > 2 || fabsf(yaw_out) > 2){
-        GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "MIR: Major overshoot in input.");
-    }
-
-    //Constrain after logging so as to still show when tuning is causing massive overshoots.
+    //Constrain after logging so as to still show when sub-optimal tuning is causing massive overshoots.
     right_out = constrain_float(right_out, -1, 1);
     front_out = constrain_float(front_out, -1, 1);
     down_out = constrain_float(down_out, -1, 1);
