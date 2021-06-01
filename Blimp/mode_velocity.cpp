@@ -12,13 +12,7 @@ void ModeVelocity::run()
     target_vel.z = channel_down->get_control_in()  / float(RC_SCALE) * g.max_xy_vel;
     float target_vel_yaw = channel_yaw->get_control_in() / float(RC_SCALE) * g.max_xy_vel; //TODO - consider separating this out
 
-    Vector3f vel_ef;
-    bool gps_avail = ahrs.get_velocity_NED(vel_ef); //earth-frame velocity
-    if (!gps_avail) {
-        //Shouldn't reach this since it should failsafe into Land mode.
-        GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "Error: No GPS.");
-    }
-    Vector3f vel_bf = ahrs.get_rotation_body_to_ned().transposed() * vel_ef; //body-frame velocity
+    Vector3f vel_bf = ahrs.get_rotation_body_to_ned().transposed() * blimp.velocity_ned_filt; //body-frame velocity
     float vel_yaw = blimp.ahrs.get_yaw_rate_earth();
 
     Vector2f actuator = blimp.pid_vel_xy.update_all(target_vel, vel_bf);
@@ -35,8 +29,8 @@ void ModeVelocity::run()
     motors->yaw_out = act_yaw;
     }
 
-    AP::logger().Write_PSC({0,0,0}, inertial_nav.get_position(), target_vel*100.0f, vel_bf*100.0f, {0,0,0}, 0, 0);
-    AP::logger().Write_PSCZ(0.0f, 0.0f, 0.0f, target_vel.z*100.0f, vel_bf.z*100.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+    AP::logger().Write_PSC({0,0,0}, blimp.position_ned, target_vel*100.0f, vel_bf*100.0f, blimp.velocity_ned*100.0f, 0, 0);
+    AP::logger().Write_PSCZ(0.0f, 0.0f, 0.0f, target_vel.z*100.0f, vel_bf.z*100.0f, 0.0f, blimp.velocity_ned.z*100.0f, 0.0f, 0.0f);
     AP::logger().Write_PID(LOG_PIDN_MSG, blimp.pid_vel_xy.get_pid_info_x());
     AP::logger().Write_PID(LOG_PIDE_MSG, blimp.pid_vel_xy.get_pid_info_y());
 }

@@ -69,6 +69,7 @@
 #include <AP_Scripting/AP_Scripting.h>
 #include <AC_PID/AC_PID_2D.h>
 #include <AC_PID/AC_PID_Basic.h>
+#include <Filter/NotchFilter.h>
 
 // Configuration
 #include "defines.h"
@@ -279,6 +280,11 @@ private:
 
     AC_PID_Basic pid_pos_z{1, 1, 0.01, 0.7, 10, 3, 3, 0.02};
     AC_PID_Basic pid_pos_yaw{1, 1, 0.01, 0.7, 10, 3, 3, 0.02};
+
+    Vector3f velocity_ned;
+    Vector3f velocity_ned_filt;
+    Vector3f position_ned;
+    NotchFilterVector3f vel_filter;
 
     // System Timers
     // --------------

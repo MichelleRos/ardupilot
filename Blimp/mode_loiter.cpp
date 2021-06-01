@@ -5,16 +5,7 @@
 
 
  bool ModeLoiter::init(bool ignore_checks){
-    Vector3f pos_ef;
-    bool gps_avail = blimp.ahrs.get_relative_position_NED_home(pos_ef);
-        if (!gps_avail) {
-        //Shouldn't reach this since it should failsafe into Land mode.
-        GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "Error: No GPS.");
-    }
-
-    target_pos.x = pos_ef.x;
-    target_pos.y = pos_ef.y;
-    target_pos.z = pos_ef.z;
+    target_pos = blimp.position_ned;
     target_yaw = blimp.ahrs.get_yaw(); //TODO Double-check this function
 
     GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "MIR init loiter: %f %f %f %f", target_pos.x, target_pos.y, target_pos.z, target_yaw);
@@ -24,12 +15,6 @@
 //Runs the main loiter controller
 void ModeLoiter::run()
 {
-    Vector3f pos_ef;
-    bool gps_avail = blimp.ahrs.get_relative_position_NED_home(pos_ef);
-        if (!gps_avail) {
-        //Shouldn't reach this since it should failsafe into Land mode.
-        GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "Error: No GPS.");
-    }
     float yaw_ef = blimp.ahrs.get_yaw(); //TODO Double-check this function
 
     //TODO Perhaps put a check in here to ensure that the target doesn't get too far from the vehicle.
@@ -50,18 +35,12 @@ void ModeLoiter::run()
     }
 
     //pos controller's output becomes target for velocity controller
-    Vector3f target_vel_ef{blimp.pid_pos_xy.update_all(target_pos, pos_ef), 0};
-    target_vel_ef.z = blimp.pid_pos_z.update_all(target_pos.z, pos_ef.z);
+    Vector3f target_vel_ef{blimp.pid_pos_xy.update_all(target_pos, blimp.position_ned), 0};
+    target_vel_ef.z = blimp.pid_pos_z.update_all(target_pos.z, blimp.position_ned.z);
     float target_vel_yaw = blimp.pid_pos_yaw.update_all(target_yaw, yaw_ef);
 
-    Vector3f vel_ef;
-    gps_avail = ahrs.get_velocity_NED(vel_ef); //earth-frame velocity
-    if (!gps_avail) {
-        //Shouldn't reach this since it should failsafe into Land mode.
-        GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "Error: No GPS.");
-    }
     float vel_yaw = blimp.ahrs.get_yaw_rate_earth();
-    Vector3f vel_bf = ahrs.get_rotation_body_to_ned().transposed() * vel_ef;
+    Vector3f vel_bf = ahrs.get_rotation_body_to_ned().transposed() * blimp.velocity_ned_filt;
 
     //TODO Should this be a 2D conversion instead?
     Vector3f target_vel_bf = ahrs.get_rotation_body_to_ned().transposed() * target_vel_ef;
@@ -84,8 +63,8 @@ void ModeLoiter::run()
     motors->yaw_out  = act_yaw;
     }
 
-    AP::logger().Write_PSC(target_pos*100.0f, pos_ef*100.0f, target_vel_bf_c*100.0f, vel_bf*100.0f, {0,0,0}, 0, 0);
-    AP::logger().Write_PSCZ(target_pos.z*100.0f, pos_ef.z*100.0f, 0.0f, target_vel_bf_c.z*100.0f, vel_bf.z*100.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+    AP::logger().Write_PSC(target_pos*100.0f, blimp.position_ned*100.0f, target_vel_bf_c*100.0f, vel_bf*100.0f, blimp.velocity_ned, 0, 0);
+    AP::logger().Write_PSCZ(target_pos.z*100.0f, blimp.position_ned.z*100.0f, 0.0f, target_vel_bf_c.z*100.0f, vel_bf.z*100.0f, 0.0f, blimp.velocity_ned.z, 0.0f, 0.0f);
     AP::logger().Write_PID(LOG_PIDN_MSG, blimp.pid_vel_xy.get_pid_info_x());
     AP::logger().Write_PID(LOG_PIDE_MSG, blimp.pid_vel_xy.get_pid_info_y());
     AP::logger().Write_PID(LOG_PIDR_MSG, blimp.pid_pos_xy.get_pid_info_x());

@@ -154,6 +154,9 @@ void Blimp::startup_INS_ground()
     // Warm up and calibrate gyro offsets
     ins.init(scheduler.get_loop_rate_hz());
 
+    //Initialise fin filter
+    vel_filter.init(scheduler.get_loop_rate_hz(), motors->freq_hz,2.0f,15.0f);
+
     // reset ahrs including gyro bias
     ahrs.reset();
 }
