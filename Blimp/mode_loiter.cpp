@@ -51,7 +51,7 @@ void ModeLoiter::run()
 
     Vector2f actuator = blimp.pid_vel_xy.update_all(target_vel_bf_c, vel_bf);
     float act_down = blimp.pid_vel_z.update_all(target_vel_bf_c.z, vel_bf.z);
-    float act_yaw = blimp.pid_vel_z.update_all(target_vel_yaw_c, vel_yaw);
+    float act_yaw = blimp.pid_vel_yaw.update_all(target_vel_yaw_c, vel_yaw);
 
     if(!(blimp.g.dis_mask & (1<<(2-1)))){
     motors->front_out = actuator.x;

@@ -37,8 +37,8 @@ void Fins::setup_fins()
     //fin   #   r   f   d     y,    r   f     d     y               right, front, down, yaw for amplitude then for offset
     add_fin(0,  0,  1, 0.5,   0,    0,  0,  0.5,    0); //Back
     add_fin(1,  0, -1, 0.5,   0,    0,  0,  0.5,    0); //Front
-    add_fin(2, -1,  0,   0, 0.5,    0,  0,    0, -0.5); //Right
-    add_fin(3,  1,  0,   0, 0.5,    0,  0,    0,  0.5); //Left
+    add_fin(2, -1,  0,   0, 0.5,    0,  0,    0,  0.5); //Right
+    add_fin(3,  1,  0,   0, 0.5,    0,  0,    0, -0.5); //Left
 
     SRV_Channels::set_angle(SRV_Channel::k_motor1, FIN_SCALE_MAX);
     SRV_Channels::set_angle(SRV_Channel::k_motor2, FIN_SCALE_MAX);
