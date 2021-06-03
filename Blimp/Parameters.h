@@ -186,6 +186,8 @@ public:
         k_param_max_xy_pos,
         k_param_simple_mode,
         k_param_dis_mask,
+        k_param_notch_bw,
+        k_param_notch_att,
         k_param_logger = 253, // 253 - Logging Group
 
         k_param_vehicle = 257, // vehicle common block of parameters
@@ -241,6 +243,8 @@ public:
     AP_Float        max_xy_pos;
     AP_Int8         simple_mode;
     AP_Int16        dis_mask;
+    AP_Float        notch_bw;
+    AP_Float        notch_att;
 
     AP_Int8         rtl_alt_type;
 
