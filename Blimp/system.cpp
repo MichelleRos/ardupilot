@@ -124,6 +124,9 @@ void Blimp::init_ardupilot()
         enable_motor_output();
     }
 
+    //Initialise fin filter
+    vel_filter.init(scheduler.get_loop_rate_hz(), motors->freq_hz, 2.0f, 15.0f);
+
     // attempt to switch to MANUAL, if this fails then switch to Land
     if (!set_mode((enum Mode::Number)g.initial_mode.get(), ModeReason::INITIALISED)) {
         // set mode to MANUAL will trigger mode change notification to pilot
@@ -149,9 +152,6 @@ void Blimp::startup_INS_ground()
 
     // Warm up and calibrate gyro offsets
     ins.init(scheduler.get_loop_rate_hz());
-
-    //Initialise fin filter
-    vel_filter.init(scheduler.get_loop_rate_hz(), motors->freq_hz,2.0f,15.0f);
 
     // reset ahrs including gyro bias
     ahrs.reset();
