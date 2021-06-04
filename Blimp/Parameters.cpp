@@ -295,7 +295,7 @@ const AP_Param::Info Blimp::var_info[] = {
 
     GSCALAR(notch_bw, "NOTCH_BW", 2),
     GSCALAR(notch_att, "NOTCH_ATT", 15),
-    GSCALAR(notch_att, "NOTCH_FREQ", 3), //Temporary notch parameters.
+    GSCALAR(notch_freq, "NOTCH_FREQ", 3), //Temporary notch parameters.
 
     // @Param: RC_SPEED
     // @DisplayName: ESC Update Speed
