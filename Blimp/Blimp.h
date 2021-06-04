@@ -243,7 +243,10 @@ private:
     Vector3f velocity_ned;
     Vector3f velocity_ned_filt;
     Vector3f position_ned;
+    float vel_yaw;
+    float vel_yaw_filt;
     NotchFilterVector3f vel_filter;
+    NotchFilterFloat vel_yaw_filter;
 
     // Inertial Navigation
     //MIR do I need this?

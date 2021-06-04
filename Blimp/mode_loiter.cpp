@@ -6,7 +6,7 @@
 
  bool ModeLoiter::init(bool ignore_checks){
     target_pos = blimp.position_ned;
-    target_yaw = blimp.ahrs.get_yaw(); //TODO Double-check this function
+    target_yaw = blimp.vel_yaw_filt;
 
     GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "MIR init loiter: %f %f %f %f", target_pos.x, target_pos.y, target_pos.z, target_yaw);
     return true;
@@ -21,7 +21,7 @@ void ModeLoiter::run()
     float pilot_fwd = channel_front->get_control_in() / float(RC_SCALE) * g.max_xy_pos;
     float pilot_rgt = channel_right->get_control_in() / float(RC_SCALE) * g.max_xy_pos;
     float pilot_dwn = channel_down->get_control_in()  / float(RC_SCALE) * g.max_xy_pos;
-    float pilot_yaw = channel_yaw->get_control_in() / float(RC_SCALE) * g.max_xy_pos; 
+    float pilot_yaw = channel_yaw->get_control_in() / float(RC_SCALE) * g.max_yaw_pos; 
     if (g.simple_mode == 1){
         target_pos.x = target_pos.x + pilot_fwd;
         target_pos.y = target_pos.y + pilot_rgt;
@@ -39,7 +39,6 @@ void ModeLoiter::run()
     target_vel_ef.z = blimp.pid_pos_z.update_all(target_pos.z, blimp.position_ned.z);
     float target_vel_yaw = blimp.pid_pos_yaw.update_all(target_yaw, yaw_ef);
 
-    float vel_yaw = blimp.ahrs.get_yaw_rate_earth();
     Vector3f vel_bf = ahrs.get_rotation_body_to_ned().transposed() * blimp.velocity_ned_filt;
 
     //TODO Should this be a 2D conversion instead?
@@ -47,11 +46,11 @@ void ModeLoiter::run()
     Vector3f target_vel_bf_c{constrain_float(target_vel_bf.x, -g.max_xy_vel, g.max_xy_vel),
                               constrain_float(target_vel_bf.y, -g.max_xy_vel, g.max_xy_vel),
                               constrain_float(target_vel_bf.z, -g.max_xy_vel, g.max_xy_vel)};
-    float target_vel_yaw_c = constrain_float(target_vel_yaw, -g.max_xy_vel, g.max_xy_vel);                                
+    float target_vel_yaw_c = constrain_float(target_vel_yaw, -g.max_yaw_vel, g.max_yaw_vel);                                
 
     Vector2f actuator = blimp.pid_vel_xy.update_all(target_vel_bf_c, vel_bf);
     float act_down = blimp.pid_vel_z.update_all(target_vel_bf_c.z, vel_bf.z);
-    float act_yaw = blimp.pid_vel_yaw.update_all(target_vel_yaw_c, vel_yaw);
+    float act_yaw = blimp.pid_vel_yaw.update_all(target_vel_yaw_c, blimp.vel_yaw_filt);
 
     if(!(blimp.g.dis_mask & (1<<(2-1)))){
     motors->front_out = actuator.x;
@@ -64,7 +63,7 @@ void ModeLoiter::run()
     }
 
     AP::logger().Write_PSC(target_pos*100.0f, blimp.position_ned*100.0f, target_vel_bf_c*100.0f, vel_bf*100.0f, blimp.velocity_ned, 0, channel_down->get_control_in()*100.0f); //Last entry is just for debugging rc failsafe issue
-    AP::logger().Write_PSCZ(target_pos.z*100.0f, blimp.position_ned.z*100.0f, 0.0f, target_vel_bf_c.z*100.0f, vel_bf.z*100.0f, 0.0f, blimp.velocity_ned.z, 0.0f, 0.0f);
+    AP::logger().Write_PSCZ(target_pos.z*100.0f, blimp.position_ned.z*100.0f, 0.0f, target_vel_bf_c.z*100.0f, vel_bf.z*100.0f, 0.0f, blimp.velocity_ned.z, blimp.vel_yaw*100.0f, blimp.vel_yaw_filt*100.0f);
     AP::logger().Write_PID(LOG_PIDN_MSG, blimp.pid_vel_xy.get_pid_info_x());
     AP::logger().Write_PID(LOG_PIDE_MSG, blimp.pid_vel_xy.get_pid_info_y());
     AP::logger().Write_PID(LOG_PIDR_MSG, blimp.pid_pos_xy.get_pid_info_x());

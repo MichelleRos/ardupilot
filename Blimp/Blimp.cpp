@@ -247,7 +247,10 @@ void Blimp::read_AHRS(void)
         // silently fail...
     }
 
+    vel_yaw = ahrs.get_yaw_rate_earth();
+
     velocity_ned_filt = vel_filter.apply(velocity_ned);
+    vel_yaw_filt = vel_yaw_filter.apply(vel_yaw);
 }
 
 // read baro and log control tuning

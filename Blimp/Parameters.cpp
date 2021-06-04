@@ -262,7 +262,21 @@ const AP_Param::Info Blimp::var_info[] = {
     // @Description: Sets the maximum XY position change, in m (multiply by loop rate to get m/s)
     // @Values: 
     // @User: Standard
-    GSCALAR(max_xy_pos, "MAX_XY_POS", 0.01),
+    GSCALAR(max_xy_pos, "MAX_XY_POS", 0.002),
+
+    // @Param: MAX_YAW_VEL
+    // @DisplayName: Max yaw Velocity
+    // @Description: Sets the maximum yaw velocity, in m/s
+    // @Values: 
+    // @User: Standard
+    GSCALAR(max_yaw_vel, "MAX_YAW_VEL", 0.5),
+
+    // @Param: MAX_YAW_POS
+    // @DisplayName: Max yaw Position
+    // @Description: Sets the maximum XY position change, in m (multiply by loop rate to get m/s)
+    // @Values: 
+    // @User: Standard
+    GSCALAR(max_yaw_pos, "MAX_YAW_POS", 0.002),
 
     // @Param: SIMPLE_MODE
     // @DisplayName: Simple mode
@@ -280,7 +294,8 @@ const AP_Param::Info Blimp::var_info[] = {
     GSCALAR(dis_mask, "DIS_MASK", 0),
 
     GSCALAR(notch_bw, "NOTCH_BW", 2),
-    GSCALAR(notch_att, "NOTCH_ATT", 15), //Temporary notch parameters.
+    GSCALAR(notch_att, "NOTCH_ATT", 15),
+    GSCALAR(notch_att, "NOTCH_FREQ", 3), //Temporary notch parameters.
 
     // @Param: RC_SPEED
     // @DisplayName: ESC Update Speed

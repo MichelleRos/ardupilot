@@ -182,12 +182,15 @@ public:
         //
         k_param_fs_ekf_action = 220,
         k_param_max_xy_vel,
-        k_param_arming, // 252  - AP_Arming
+        k_param_arming,
         k_param_max_xy_pos,
         k_param_simple_mode,
-        k_param_dis_mask,
+        k_param_dis_mask, //225
         k_param_notch_bw,
         k_param_notch_att,
+        k_param_max_yaw_vel,
+        k_param_max_yaw_pos,
+        k_param_notch_freq,
         k_param_logger = 253, // 253 - Logging Group
 
         k_param_vehicle = 257, // vehicle common block of parameters
@@ -241,10 +244,13 @@ public:
 
     AP_Float        max_xy_vel;
     AP_Float        max_xy_pos;
+    AP_Float        max_yaw_vel;
+    AP_Float        max_yaw_pos;
     AP_Int8         simple_mode;
     AP_Int16        dis_mask;
     AP_Float        notch_bw;
     AP_Float        notch_att;
+    AP_Float        notch_freq;
 
     AP_Int8         rtl_alt_type;
 
