@@ -11,12 +11,8 @@
 Mode::Mode(void) :
     g(blimp.g),
     g2(blimp.g2),
-    // wp_nav(blimp.wp_nav),
-    // loiter_nav(blimp.loiter_nav),
-    // pos_control(blimp.pos_control),
     inertial_nav(blimp.inertial_nav),
     ahrs(blimp.ahrs),
-    // attitude_control(blimp.attitude_control),
     motors(blimp.motors),
     channel_right(blimp.channel_right),
     channel_front(blimp.channel_front),
@@ -54,7 +50,7 @@ Mode *Blimp::mode_from_mode_num(const Mode::Number mode)
 // set_mode - change flight mode and perform any necessary initialisation
 // optional force parameter used to force the flight mode change (used only first time mode is set)
 // returns true if mode was successfully set
-// ACRO, STABILIZE, ALTHOLD, LAND, DRIFT and SPORT can always be set successfully but the return state of other flight modes should be checked and the caller should deal with failures appropriately
+// Some modes can always be set successfully but the return state of other flight modes should be checked and the caller should deal with failures appropriately
 bool Blimp::set_mode(Mode::Number mode, ModeReason reason)
 {
 

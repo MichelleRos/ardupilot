@@ -26,18 +26,18 @@ void ModeLoiter::run()
         target_pos.x = target_pos.x + pilot_fwd;
         target_pos.y = target_pos.y + pilot_rgt;
         target_pos.z = target_pos.z + pilot_dwn;
-        target_yaw = target_yaw + pilot_yaw;
+        target_yaw = wrap_180(target_yaw + pilot_yaw);
     } else {
         target_pos.x += (pilot_fwd*blimp.ahrs.cos_yaw() - pilot_rgt*blimp.ahrs.sin_yaw());
         target_pos.y += (pilot_fwd*blimp.ahrs.sin_yaw() + pilot_rgt*blimp.ahrs.cos_yaw());
         target_pos.z += pilot_dwn;
-        target_yaw += pilot_yaw;
+        target_yaw = wrap_180(target_yaw + pilot_yaw);
     }
 
     //pos controller's output becomes target for velocity controller
     Vector3f target_vel_ef{blimp.pid_pos_xy.update_all(target_pos, blimp.position_ned), 0};
     target_vel_ef.z = blimp.pid_pos_z.update_all(target_pos.z, blimp.position_ned.z);
-    float target_vel_yaw = blimp.pid_pos_yaw.update_all(target_yaw, yaw_ef);
+    float target_vel_yaw = blimp.pid_pos_yaw.update_error(wrap_180(target_yaw - yaw_ef));
 
     Vector3f vel_bf = ahrs.get_rotation_body_to_ned().transposed() * blimp.velocity_ned_filt;
 

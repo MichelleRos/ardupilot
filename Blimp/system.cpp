@@ -298,34 +298,6 @@ void Blimp::allocate_motors(void)
     }
     AP_Param::load_object_from_eeprom(motors, Fins::var_info);
 
-    // const struct AP_Param::GroupInfo *ac_var_info;
-
-    // attitude_control = new AC_AttitudeControl_Multi(*ahrs_view, aparm, *motors, scheduler.get_loop_period_s());
-    // ac_var_info = AC_AttitudeControl_Multi::var_info;
-    // if (attitude_control == nullptr) {
-    //     AP_HAL::panic("Unable to allocate AttitudeControl");
-    // }
-    // AP_Param::load_object_from_eeprom(attitude_control, ac_var_info);
-
-    // pos_control = new AC_PosControl(*ahrs_view, inertial_nav, *motors, *attitude_control);
-    // if (pos_control == nullptr) {
-    //     AP_HAL::panic("Unable to allocate PosControl");
-    // }
-    // AP_Param::load_object_from_eeprom(pos_control, pos_control->var_info);
-
-    // wp_nav = new AC_WPNav(inertial_nav, *ahrs_view, *pos_control, *attitude_control);
-
-    // if (wp_nav == nullptr) {
-    //     AP_HAL::panic("Unable to allocate WPNav");
-    // }
-    // AP_Param::load_object_from_eeprom(wp_nav, wp_nav->var_info);
-
-    // loiter_nav = new AC_Loiter(inertial_nav, *ahrs_view, *pos_control, *attitude_control);
-    // if (loiter_nav == nullptr) {
-    //     AP_HAL::panic("Unable to allocate LoiterNav");
-    // }
-    // AP_Param::load_object_from_eeprom(loiter_nav, loiter_nav->var_info);
-
     // reload lines from the defaults file that may now be accessible
     AP_Param::reload_defaults_file(true);
 

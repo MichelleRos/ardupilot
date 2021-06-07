@@ -536,7 +536,7 @@ const AP_Param::Info Blimp::var_info[] = {
 
     GOBJECT(pid_pos_z, "POSZ_", AC_PID_Basic),
 
-    GOBJECT(pid_pos_yaw, "POSYAW_", AC_PID_Basic),
+    GOBJECT(pid_pos_yaw, "POSYAW_", AC_PID),
 
     // @Group:
     // @Path: ../libraries/AP_Vehicle/AP_Vehicle.cpp
