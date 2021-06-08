@@ -314,6 +314,7 @@ protected:
 private:
     Vector3f target_pos;
     float target_yaw;
+    float loop_period;
 };
 
 class ModeLand : public Mode

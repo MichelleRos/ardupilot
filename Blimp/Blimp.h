@@ -334,6 +334,8 @@ private:
     void one_hz_loop();
     void read_AHRS(void);
     void update_altitude();
+    void rotate_NE_to_BF(float &x, float &y);
+    void rotate_BF_to_NE(float &x, float &y);
 
     // commands.cpp
     void update_home_from_EKF();

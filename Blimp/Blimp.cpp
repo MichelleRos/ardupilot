@@ -269,6 +269,22 @@ void Blimp::update_altitude()
     }
 }
 
+void Blimp::rotate_BF_to_NE(float &x, float &y)
+{
+    float ne_x = x*ahrs.cos_yaw() - y*ahrs.sin_yaw();
+    float ne_y = x*ahrs.sin_yaw() + y*ahrs.cos_yaw();
+    x = ne_x;
+    y = ne_y;
+}
+
+void Blimp::rotate_NE_to_BF(float &x, float &y)
+{
+    float bf_x = x*ahrs.cos_yaw() + y*ahrs.sin_yaw();
+    float bf_y = -x*ahrs.sin_yaw() + y*ahrs.cos_yaw();
+    x = bf_x;
+    y = bf_y;
+}
+
 /*
   constructor for main Blimp class
  */
