@@ -125,7 +125,7 @@ void Blimp::init_ardupilot()
     }
 
     //Initialise fin filters
-    vel_filter.init(scheduler.get_loop_rate_hz(), motors->freq_hz, 4.0f, 15.0f);
+    vel_down_filter.init(scheduler.get_loop_rate_hz(), motors->freq_hz, 4.0f, 15.0f);
     vel_yaw_filter.init(scheduler.get_loop_rate_hz(), g.notch_freq, g.notch_bw, g.notch_att);
 
     // attempt to switch to MANUAL, if this fails then switch to Land

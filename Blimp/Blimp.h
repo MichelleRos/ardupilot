@@ -241,12 +241,12 @@ private:
     // Current location of the vehicle (altitude is relative to home)
     Location current_loc;
     //MIR - should I use Location instead?
-    Vector3f velocity_ned;
-    Vector3f velocity_ned_filt;
-    Vector3f position_ned;
+    Vector3f vel_ned;
+    Vector3f pos_ned;
+    Vector3f vel_ned_filtd;
     float vel_yaw;
-    float vel_yaw_filt;
-    NotchFilterVector3f vel_filter;
+    float vel_yaw_filtd;
+    NotchFilterFloat vel_down_filter;
     NotchFilterFloat vel_yaw_filter;
 
     // Inertial Navigation

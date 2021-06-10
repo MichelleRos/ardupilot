@@ -181,15 +181,15 @@ public:
         // 220: Misc
         //
         k_param_fs_ekf_action = 220,
-        k_param_max_xy_vel,
+        k_param_max_vel_xy,
         k_param_arming,
-        k_param_max_xy_pos,
+        k_param_max_vel_z, 
         k_param_simple_mode,
         k_param_dis_mask, //225
         k_param_notch_bw,
         k_param_notch_att,
-        k_param_max_yaw_vel,
-        k_param_max_yaw_pos,
+        k_param_max_vel_yaw,
+        k_param_max_pos_yaw_disabled, //MIR
         k_param_notch_freq,
         k_param_logger = 253, // 253 - Logging Group
 
@@ -242,10 +242,10 @@ public:
     AP_Float        fs_ekf_thresh;
     AP_Int16        gcs_pid_mask;
 
-    AP_Float        max_xy_vel;
-    AP_Float        max_xy_pos;
-    AP_Float        max_yaw_vel;
-    AP_Float        max_yaw_pos;
+    AP_Float        max_vel_xy;
+    AP_Float        max_vel_z;
+    AP_Float        max_vel_yaw;
+    // AP_Float        max_yaw_pos; MIR
     AP_Int8         simple_mode;
     AP_Int16        dis_mask;
     AP_Float        notch_bw;
