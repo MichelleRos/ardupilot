@@ -22,10 +22,17 @@ struct PACKED log_Control_Tuning {
     int16_t  climb_rate;
 };
 
-// Write a control tuning packet
-void Blimp::Log_Write_Control_Tuning()
+// Write PID packets
+void Blimp::Log_Write_PIDs()
 {
-
+    AP::logger().Write_PID(LOG_PIVN_MSG, pid_vel_xy.get_pid_info_x());
+    AP::logger().Write_PID(LOG_PIVE_MSG, pid_vel_xy.get_pid_info_y());
+    AP::logger().Write_PID(LOG_PIVD_MSG, pid_vel_z.get_pid_info());
+    AP::logger().Write_PID(LOG_PIVY_MSG, pid_vel_yaw.get_pid_info());
+    AP::logger().Write_PID(LOG_PIDN_MSG, pid_pos_xy.get_pid_info_x());
+    AP::logger().Write_PID(LOG_PIDE_MSG, pid_pos_xy.get_pid_info_y());
+    AP::logger().Write_PID(LOG_PIDD_MSG, pid_pos_z.get_pid_info());
+    AP::logger().Write_PID(LOG_PIDY_MSG, pid_pos_yaw.get_pid_info());
 }
 
 // Write an attitude packet
@@ -452,9 +459,8 @@ void Blimp::log_init(void)
 
 #else // LOGGING_ENABLED
 
-void Blimp::Log_Write_Control_Tuning() {}
 void Blimp::Log_Write_Performance() {}
-void Blimp::Log_Write_Attitude(void) {}
+void Blimp::Log_Write_PIDs(void) {}
 void Blimp::Log_Write_EKF_POS() {}
 void Blimp::Log_Write_MotBatt() {}
 void Blimp::Log_Write_Data(LogDataID id, int32_t value) {}

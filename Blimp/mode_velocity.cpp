@@ -30,6 +30,4 @@ void ModeVelocity::run()
 
     AP::logger().Write_PSC({0,0,0}, blimp.position_ned, target_vel*100.0f, blimp.velocity_ned_filt*100.0f, blimp.velocity_ned*100.0f, 0, 0);
     AP::logger().Write_PSCZ(0.0f, 0.0f, 0.0f, target_vel.z*100.0f, blimp.velocity_ned_filt.z*100.0f, 0.0f, blimp.velocity_ned.z*100.0f, blimp.vel_yaw*100.0f, blimp.vel_yaw_filt*100.0f);
-    AP::logger().Write_PID(LOG_PIDN_MSG, blimp.pid_vel_xy.get_pid_info_x());
-    AP::logger().Write_PID(LOG_PIDE_MSG, blimp.pid_vel_xy.get_pid_info_y());
 }

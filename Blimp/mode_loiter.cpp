@@ -60,8 +60,4 @@ void ModeLoiter::run()
 
     AP::logger().Write_PSC(target_pos*100.0f, blimp.position_ned*100.0f, target_vel_ef_c*100.0f, blimp.velocity_ned_filt*100.0f, blimp.velocity_ned*100.0f, target_yaw*100.0f, yaw_ef*100.0f); //last entries here are just for debugging
     AP::logger().Write_PSCZ(target_pos.z*100.0f, blimp.position_ned.z*100.0f, blimp.scheduler.get_loop_period_s()*100.0f, target_vel_ef_c.z*100.0f, blimp.velocity_ned_filt.z*100.0f, 0.0f, blimp.velocity_ned.z*100.0f, blimp.vel_yaw*100.0f, blimp.vel_yaw_filt*100.0f);
-    AP::logger().Write_PID(LOG_PIDN_MSG, blimp.pid_vel_xy.get_pid_info_x());
-    AP::logger().Write_PID(LOG_PIDE_MSG, blimp.pid_vel_xy.get_pid_info_y());
-    AP::logger().Write_PID(LOG_PIDR_MSG, blimp.pid_pos_xy.get_pid_info_x());
-    AP::logger().Write_PID(LOG_PIDP_MSG, blimp.pid_pos_xy.get_pid_info_y());
 }

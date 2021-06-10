@@ -1590,6 +1590,16 @@ LOG_STRUCTURE_FROM_CAMERA \
       "PIDN", PID_FMT,  PID_LABELS, PID_UNITS, PID_MULTS }, \
     { LOG_PIDE_MSG, sizeof(log_PID), \
       "PIDE", PID_FMT,  PID_LABELS, PID_UNITS, PID_MULTS }, \
+    { LOG_PIDD_MSG, sizeof(log_PID), \
+      "PIDD", PID_FMT,  PID_LABELS, PID_UNITS, PID_MULTS }, \
+    { LOG_PIVN_MSG, sizeof(log_PID), \
+      "PIVN", PID_FMT,  PID_LABELS, PID_UNITS, PID_MULTS }, \
+    { LOG_PIVE_MSG, sizeof(log_PID), \
+      "PIVE", PID_FMT,  PID_LABELS, PID_UNITS, PID_MULTS }, \
+    { LOG_PIVD_MSG, sizeof(log_PID), \
+      "PIVD", PID_FMT,  PID_LABELS, PID_UNITS, PID_MULTS }, \
+    { LOG_PIVY_MSG, sizeof(log_PID), \
+      "PIVY", PID_FMT,  PID_LABELS, PID_UNITS, PID_MULTS }, \
     { LOG_DSTL_MSG, sizeof(log_DSTL), \
       "DSTL", "QBfLLeccfeffff", "TimeUS,Stg,THdg,Lat,Lng,Alt,XT,Travel,L1I,Loiter,Des,P,I,D", "s??DUm--------", "F??000--------" }, \
     { LOG_VIBE_MSG, sizeof(log_Vibe), \
@@ -1753,6 +1763,11 @@ enum LogMessages : uint8_t {
     LOG_IDS_FROM_PRECLAND,
     LOG_FINI_MSG,
     LOG_FINO_MSG,
+    LOG_PIDD_MSG,
+    LOG_PIVN_MSG,
+    LOG_PIVE_MSG,
+    LOG_PIVD_MSG,
+    LOG_PIVY_MSG,
 
     _LOG_LAST_MSG_
 };
