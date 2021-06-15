@@ -543,11 +543,109 @@ const AP_Param::Info Blimp::var_info[] = {
     // @User: Advanced
     GOBJECT(pid_pos_xy, "POSXY_", AC_PID_2D),
 
-    //MIR Add proper parameter descs for the ones that need it.
+    // @Param: VELZ_P
+    // @DisplayName: Velocity (vertical) P gain
+    // @Description: Velocity (vertical) P gain.  Converts the difference between desired and actual velocity to a target acceleration
+    // @Range: 0.1 6.0
+    // @Increment: 0.1
+    // @User: Advanced
+
+    // @Param: VELZ_I
+    // @DisplayName: Velocity (vertical) I gain
+    // @Description: Velocity (vertical) I gain.  Corrects long-term difference between desired and actual velocity to a target acceleration
+    // @Range: 0.02 1.00
+    // @Increment: 0.01
+    // @User: Advanced
+
+    // @Param: VELZ_D
+    // @DisplayName: Velocity (vertical) D gain
+    // @Description: Velocity (vertical) D gain.  Corrects short-term changes in velocity
+    // @Range: 0.00 1.00
+    // @Increment: 0.001
+    // @User: Advanced
+
+    // @Param: VELZ_IMAX
+    // @DisplayName: Velocity (vertical) integrator maximum
+    // @Description: Velocity (vertical) integrator maximum.  Constrains the target acceleration that the I gain will output
+    // @Range: 0 4500
+    // @Increment: 10
+    // @Units: cm/s/s
+    // @User: Advanced
+
+    // @Param: VELZ_FILT
+    // @DisplayName: Velocity (vertical) input filter
+    // @Description: Velocity (vertical) input filter.  This filter (in Hz) is applied to the input for P and I terms
+    // @Range: 0 100
+    // @Units: Hz
+    // @User: Advanced
+
+    // @Param: VELZ_D_FILT
+    // @DisplayName: Velocity (vertical) input filter
+    // @Description: Velocity (vertical) input filter.  This filter (in Hz) is applied to the input for D term
+    // @Range: 0 100
+    // @Units: Hz
+    // @User: Advanced
+
+    // @Param: VELZ_FF
+    // @DisplayName: Velocity (vertical) feed forward gain
+    // @Description: Velocity (vertical) feed forward gain.  Converts the difference between desired velocity to a target acceleration
+    // @Range: 0 6
+    // @Increment: 0.01
+    // @User: Advanced
     GOBJECT(pid_vel_z, "VELZ_", AC_PID_Basic),
 
+    // @Param: VELYAW_P
+    // @DisplayName: Velocity (yaw) P gain
+    // @Description: Velocity (yaw) P gain.  Converts the difference between desired and actual velocity to a target acceleration
+    // @Range: 0.1 6.0
+    // @Increment: 0.1
+    // @User: Advanced
+
+    // @Param: VELYAW_I
+    // @DisplayName: Velocity (yaw) I gain
+    // @Description: Velocity (yaw) I gain.  Corrects long-term difference between desired and actual velocity to a target acceleration
+    // @Range: 0.02 1.00
+    // @Increment: 0.01
+    // @User: Advanced
+
+    // @Param: VELYAW_D
+    // @DisplayName: Velocity (yaw) D gain
+    // @Description: Velocity (yaw) D gain.  Corrects short-term changes in velocity
+    // @Range: 0.00 1.00
+    // @Increment: 0.001
+    // @User: Advanced
+
+    // @Param: VELYAW_IMAX
+    // @DisplayName: Velocity (yaw) integrator maximum
+    // @Description: Velocity (yaw) integrator maximum.  Constrains the target acceleration that the I gain will output
+    // @Range: 0 4500
+    // @Increment: 10
+    // @Units: cm/s/s
+    // @User: Advanced
+
+    // @Param: VELYAW_FILT
+    // @DisplayName: Velocity (yaw) input filter
+    // @Description: Velocity (yaw) input filter.  This filter (in Hz) is applied to the input for P and I terms
+    // @Range: 0 100
+    // @Units: Hz
+    // @User: Advanced
+
+    // @Param: VELYAW_D_FILT
+    // @DisplayName: Velocity (yaw) input filter
+    // @Description: Velocity (yaw) input filter.  This filter (in Hz) is applied to the input for D term
+    // @Range: 0 100
+    // @Units: Hz
+    // @User: Advanced
+
+    // @Param: VELYAW_FF
+    // @DisplayName: Velocity (yaw) feed forward gain
+    // @Description: Velocity (yaw) feed forward gain.  Converts the difference between desired velocity to a target acceleration
+    // @Range: 0 6
+    // @Increment: 0.01
+    // @User: Advanced
     GOBJECT(pid_vel_yaw, "VELYAW_", AC_PID_Basic),
 
+    //MIR Add the descs
     GOBJECT(pid_pos_z, "POSZ_", AC_PID_Basic),
 
     GOBJECT(pid_pos_yaw, "POSYAW_", AC_PID),
