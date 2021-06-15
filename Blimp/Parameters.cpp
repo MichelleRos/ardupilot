@@ -262,7 +262,7 @@ const AP_Param::Info Blimp::var_info[] = {
     // @Description: Sets the maximum Z velocity, in m/s
     // @Values: 
     // @User: Standard
-    GSCALAR(max_vel_z, "MAX_VEL_Z", 0.2),
+    GSCALAR(max_vel_z, "MAX_VEL_Z", 0.4),
  
     // @Param: MAX_VEL_YAW
     // @DisplayName: Max yaw Velocity
@@ -276,7 +276,7 @@ const AP_Param::Info Blimp::var_info[] = {
     // @Description: Sets the maximum XY position change, in m/s
     // @Values: 
     // @User: Standard
-    GSCALAR(max_pos_xy, "MAX_POS_XY", 0.3),
+    GSCALAR(max_pos_xy, "MAX_POS_XY", 0.2),
 
     // @Param: MAX_POS_Z
     // @DisplayName: Max Z Position change
@@ -309,7 +309,7 @@ const AP_Param::Info Blimp::var_info[] = {
 
     GSCALAR(notch_bw, "NOTCH_BW", 2),
     GSCALAR(notch_att, "NOTCH_ATT", 15),
-    GSCALAR(notch_freq, "NOTCH_FREQ", 3), //Temporary notch parameters.
+    GSCALAR(notch_freq, "NOTCH_FREQ", 3),
 
     // @Param: RC_SPEED
     // @DisplayName: ESC Update Speed

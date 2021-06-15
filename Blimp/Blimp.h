@@ -253,16 +253,14 @@ private:
     //MIR do I need this?
     AP_InertialNav_NavEKF inertial_nav;
 
-    // XY vel & pos PIDs
-    AC_PID_2D pid_vel_xy{1, 1, 0.01, 0.7, 10, 3, 3, 0.02}; //These are the defaults - P I D FF IMAX FiltHz FiltDHz DT
-    AC_PID_2D pid_pos_xy{1, 1, 0.01, 0.7, 10, 3, 3, 0.02}; //MIR - fix defaults - incl get DT from looprate instead?
+    // Vel & pos PIDs
+    AC_PID_2D pid_vel_xy{3000, 200, 0, 0, 200, 3, 3, 0.02}; //These are the defaults - P I D FF IMAX FiltHz FiltDHz DT
+    AC_PID_Basic pid_vel_z{6000, 1500, 0, 0, 1000, 3, 3, 0.02};
+    AC_PID_Basic pid_vel_yaw{3000, 400, 0, 0, 200, 3, 3, 0.02};
 
-    AC_PID_Basic pid_vel_z{1, 1, 0.01, 0.7, 10, 3, 3, 0.02};
-    AC_PID_Basic pid_vel_yaw{1, 1, 0.01, 0.7, 10, 3, 3, 0.02};
-
-    AC_PID_Basic pid_pos_z{1, 1, 0.01, 0.7, 10, 3, 3, 0.02};
-    // AC_PID_Basic pid_pos_yaw{1, 1, 0.01, 0.7, 10, 3, 3, 0.02}; //p, i, d, ff, imax, filt_t, filt_e, filt_d, dt, opt srmax, opt srtau
-    AC_PID pid_pos_yaw{1, 1, 0.01, 0.7, 10, 3, 3, 3, 0.02}; //MIR
+    AC_PID_2D pid_pos_xy{1, 0.05, 0, 0, 0.1, 3, 3, 0.02}; //MIR - fix defaults - incl get DT from looprate instead?
+    AC_PID_Basic pid_pos_z{0.7, 0, 0, 0, 0, 3, 3, 0.02}; //p, i, d, ff, imax, filt_t, filt_e, filt_d, dt, opt srmax, opt srtau
+    AC_PID pid_pos_yaw{1.2, 0.5, 0, 0, 2, 3, 3, 3, 0.02};
 
     // System Timers
     // --------------
