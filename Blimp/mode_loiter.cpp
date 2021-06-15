@@ -16,10 +16,10 @@
 //Runs the main loiter controller
 void ModeLoiter::run()
 {
-    float pilot_fwd = channel_front->get_control_in() / float(RC_SCALE) * g.max_vel_xy * loop_period;
-    float pilot_rgt = channel_right->get_control_in() / float(RC_SCALE) * g.max_vel_xy * loop_period;
-    float pilot_dwn = channel_down->get_control_in() / float(RC_SCALE) * g.max_vel_z * loop_period;
-    float pilot_yaw = channel_yaw->get_control_in()  / float(RC_SCALE) * g.max_vel_yaw * loop_period; 
+    float pilot_fwd = channel_front->get_control_in() / float(RC_SCALE) * g.max_pos_xy * loop_period;
+    float pilot_rgt = channel_right->get_control_in() / float(RC_SCALE) * g.max_pos_xy * loop_period;
+    float pilot_dwn = channel_down->get_control_in()  / float(RC_SCALE) * g.max_pos_z * loop_period;
+    float pilot_yaw = channel_yaw->get_control_in()  / float(RC_SCALE) * g.max_pos_yaw * loop_period; 
 
     if (g.simple_mode == 0){
         //If simple mode is disabled, input is in body-frame, thus needs to be rotated.

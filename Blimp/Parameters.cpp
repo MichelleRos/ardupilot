@@ -264,7 +264,6 @@ const AP_Param::Info Blimp::var_info[] = {
     // @User: Standard
     GSCALAR(max_vel_z, "MAX_VEL_Z", 0.2),
  
-
     // @Param: MAX_VEL_YAW
     // @DisplayName: Max yaw Velocity
     // @Description: Sets the maximum yaw velocity, in rad/s
@@ -272,13 +271,26 @@ const AP_Param::Info Blimp::var_info[] = {
     // @User: Standard
     GSCALAR(max_vel_yaw, "MAX_VEL_YAW", 0.5),
 
-    // @Param: MAX_YAW_POS
-    // @DisplayName: Max yaw Position
-    // @Description: Sets the maximum XY position change, in rad (multiply by loop rate to get rad/s)
+    // @Param: MAX_POS_XY
+    // @DisplayName: Max XY Position change
+    // @Description: Sets the maximum XY position change, in m/s
     // @Values: 
     // @User: Standard
-    // GSCALAR(max_yaw_pos, "MAX_YAW_POS", 0.002),
-    //MIR
+    GSCALAR(max_pos_xy, "MAX_POS_XY", 0.3),
+
+    // @Param: MAX_POS_Z
+    // @DisplayName: Max Z Position change
+    // @Description: Sets the maximum Z position change, in m/s
+    // @Values: 
+    // @User: Standard
+    GSCALAR(max_pos_z, "MAX_POS_Z", 0.15),
+
+    // @Param: MAX_POS_YAW
+    // @DisplayName: Max Yaw Position change
+    // @Description: Sets the maximum Yaw position change, in rad/s
+    // @Values: 
+    // @User: Standard
+    GSCALAR(max_pos_yaw, "MAX_POS_YAW", 0.3),
 
     // @Param: SIMPLE_MODE
     // @DisplayName: Simple mode
