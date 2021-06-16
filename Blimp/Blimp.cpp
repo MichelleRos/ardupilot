@@ -242,20 +242,18 @@ void Blimp::read_AHRS(void)
 
     // we tell AHRS to skip INS update as we have already done it in fast_loop()
     ahrs.update(true);
-
-    bool gps_avail = ahrs.get_relative_position_NED_home(pos_ned);
-    if (!gps_avail) {
-        // silently fail...
+    
+    if(!ahrs.get_velocity_NED(vel_ned)){
+        //fail silently...
     }
- 
-    bool gps_avail2 = ahrs.get_velocity_NED(vel_ned);
-    if (!gps_avail2) {
-        // silently fail...
+    //MIR Why does this not work?
+    if(!ahrs.get_relative_position_NED_home(pos_ned){
+        //fail silently...
     }
 
     vel_yaw = ahrs.get_yaw_rate_earth();
-
-    vel_ned_filtd = {vel_ned.x, vel_ned.y, vel_down_filter.apply(vel_ned.z)};
+    Vector2f vel_xy_filtd = vel_xy_filter.apply({vel_ned.x, vel_ned.y});
+    vel_ned_filtd = {vel_xy_filtd.x, vel_xy_filtd.y, vel_z_filter.apply(vel_ned.z)};
     vel_yaw_filtd = vel_yaw_filter.apply(vel_yaw);
 }
 

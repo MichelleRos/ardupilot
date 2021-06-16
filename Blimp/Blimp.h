@@ -242,11 +242,12 @@ private:
     Location current_loc;
     //MIR - should I use Location instead?
     Vector3f vel_ned;
-    Vector3f pos_ned;
     Vector3f vel_ned_filtd;
+    Vector3f pos_ned;
     float vel_yaw;
     float vel_yaw_filtd;
-    NotchFilterFloat vel_down_filter;
+    NotchFilterVector2f vel_xy_filter;
+    NotchFilterFloat vel_z_filter;
     NotchFilterFloat vel_yaw_filter;
 
     // Inertial Navigation

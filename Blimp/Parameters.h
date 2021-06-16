@@ -190,7 +190,7 @@ public:
         k_param_notch_att,
         k_param_max_vel_yaw,
         k_param_max_pos_yaw_disabled, //MIR
-        k_param_notch_freq,
+        k_param_notch_freq_disabled,
         k_param_max_pos_xy,
         k_param_max_pos_z,
         k_param_max_pos_yaw,
@@ -251,11 +251,11 @@ public:
     AP_Float        max_pos_xy;
     AP_Float        max_pos_z;
     AP_Float        max_pos_yaw;
+
     AP_Int8         simple_mode;
     AP_Int16        dis_mask;
     AP_Float        notch_bw;
     AP_Float        notch_att;
-    AP_Float        notch_freq;
 
     AP_Int8         rtl_alt_type;
 

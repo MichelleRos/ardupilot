@@ -7,19 +7,18 @@
  bool ModeLoiter::init(bool ignore_checks){
     target_pos = blimp.pos_ned;
     target_yaw = blimp.ahrs.get_yaw();
-    loop_period = blimp.scheduler.get_loop_period_s();
 
-    GCS_SEND_TEXT(MAV_SEVERITY_INFO, "MIR init loiter: %f %f %f %f %f", target_pos.x, target_pos.y, target_pos.z, target_yaw, loop_period);
+    GCS_SEND_TEXT(MAV_SEVERITY_INFO, "MIR init loiter: %f %f %f %f", target_pos.x, target_pos.y, target_pos.z, target_yaw);
     return true;
  }
 
 //Runs the main loiter controller
 void ModeLoiter::run()
 {
-    float pilot_fwd = channel_front->get_control_in() / float(RC_SCALE) * g.max_pos_xy * loop_period;
-    float pilot_rgt = channel_right->get_control_in() / float(RC_SCALE) * g.max_pos_xy * loop_period;
-    float pilot_dwn = channel_down->get_control_in()  / float(RC_SCALE) * g.max_pos_z * loop_period;
-    float pilot_yaw = channel_yaw->get_control_in()  / float(RC_SCALE) * g.max_pos_yaw * loop_period; 
+    float pilot_fwd = channel_front->get_control_in() / float(RC_SCALE) * g.max_pos_xy * blimp.scheduler.get_loop_period_s();
+    float pilot_rgt = channel_right->get_control_in() / float(RC_SCALE) * g.max_pos_xy * blimp.scheduler.get_loop_period_s();
+    float pilot_dwn = channel_down->get_control_in()  / float(RC_SCALE) * g.max_pos_z * blimp.scheduler.get_loop_period_s();
+    float pilot_yaw = channel_yaw->get_control_in()  / float(RC_SCALE) * g.max_pos_yaw * blimp.scheduler.get_loop_period_s(); 
 
     if (g.simple_mode == 0){
         //If simple mode is disabled, input is in body-frame, thus needs to be rotated.
