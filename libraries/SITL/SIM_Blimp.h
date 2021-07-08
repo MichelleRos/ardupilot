@@ -46,5 +46,11 @@ protected:
     } model;
 
     void calculate_forces(const struct sitl_input &input, Vector3f &rot_accel, Vector3f &body_accel);
+
+    Fin* fins;
+    uint8_t n_fins;
+
+    Vector3f moment_of_inertia;
 };
+
 }

@@ -23,11 +23,21 @@
 
 using namespace SITL;
 
+// Four-finned blimp
+static Fin airfish[] = 
+{
+    Fin(AP_MOTORS_MOT_1, 180, 0), //Back
+    Fin(AP_MOTORS_MOT_2, 0, 0), //Front
+    Fin(AP_MOTORS_MOT_3, 90, 1), //Right
+    Fin(AP_MOTORS_MOT_4, 270, 1), //Left
+};
+
 Blimp::Blimp(const char *frame_str) :
     Aircraft(frame_str)
 {
+    fins = airfish;
     frame_height = 0.0;
-    ground_behavior = GROUND_BEHAVIOR_NONE;
+    ground_behavior = GROUND_BEHAVIOR_NO_MOVEMENT; //Blimp does "land" when it gets to the ground.
     lock_step_scheduled = true;
 }
 
@@ -51,9 +61,16 @@ void Blimp::update(const struct sitl_input &input)
     // get wind vector setup
     update_wind(input);
 
-    Vector3f rot_accel;
+    Vector3f rot_accel = Vector3f(0,0,0);
+    //TODO Add "dcm.transposed() *  Vector3f(0, 0, calculate_buoyancy_acceleration());" for slight negative buoyancy.
+    Vector3f body_accel = Vector3f(0,0,0);
 
-    calculate_forces(input, rot_accel, accel_body);
+    for (uint8_t i=0; i<num_fins; i++) {
+      Vector3f fin_force, fin_torque;
+      calculate_fin_force(fin[i], input, fin_force, fin_torque); //fin_torque is torque the fin causes on the Blimp centre of mass.
+      rot_accel += fin_torque *moment_of_inertia;
+      body_accel += fin_force / mass;
+    }
 
     update_dynamics(rot_accel);
     update_external_payload(input);
@@ -64,4 +81,44 @@ void Blimp::update(const struct sitl_input &input)
 
     // update magnetic field
     update_mag_field_bf();
+}
+
+class Fins
+{
+public:
+
+  float angle;
+  uint8_t servo;
+  bool orientation;
+  float position;
+  float velocity;
+
+  Fin(uint8_t _servo, float _angle, bool _orientation, float _position, float _velocity):
+    servo(_servo), // what servo output drives this motor
+    angle(_angle), // angle from straight forwards, in clockwise order
+    orientation(_orientation), //angle of servo: horizontal (up/down flap) is 0, vertical is 1
+    position(_position), //current position of servo
+    velocity(_velocity), //current velocity of servo/fin
+    {}
+
+}
+
+void Fin:calculate_fin_force(Fin fin, const struct sitl_input &input, Vector3f fin_force, Vector3f fin_torque){
+  
+  const float pwm = input.servos[servo];
+  float command = pwm_to_command(pwm);
+  float voltage_scale = voltage / voltage_max;
+
+  if (voltage_scale < 0.1) {
+    // battery is dead
+    rot_accel.zero();
+    thrust.zero();
+    current = 0;
+    return;
+  }
+  
+  
+  //Vector3f thrust_ned
+
+
 }
