@@ -67,8 +67,8 @@ void Blimp::update(const struct sitl_input &input)
 
     for (uint8_t i=0; i<num_fins; i++) {
       Vector3f fin_force, fin_torque;
-      calculate_fin_force(fin[i], input, fin_force, fin_torque); //fin_torque is torque the fin causes on the Blimp centre of mass.
-      rot_accel += fin_torque *moment_of_inertia;
+      calculate_fin_force(fin[i], input, fin_force, rot_accel); //fin_torque is torque the fin causes on the Blimp centre of mass.
+      // rot_accel += fin_torque *moment_of_inertia;
       body_accel += fin_force / mass;
     }
 
@@ -76,7 +76,7 @@ void Blimp::update(const struct sitl_input &input)
     update_external_payload(input);
 
     // update lat/lon/altitude
-    update_position();
+    update_position(); //updates the position from the Vector3f pos
     time_advance();
 
     // update magnetic field
@@ -90,24 +90,46 @@ public:
   float angle;
   uint8_t servo;
   bool orientation;
-  float position;
+  float pos;
   float velocity;
 
-  Fin(uint8_t _servo, float _angle, bool _orientation, float _position, float _velocity):
+  Fin(uint8_t _servo, float _angle, bool _orientation, float _pos, float _velocity):
     servo(_servo), // what servo output drives this motor
     angle(_angle), // angle from straight forwards, in clockwise order
-    orientation(_orientation), //angle of servo: horizontal (up/down flap) is 0, vertical is 1
-    position(_position), //current position of servo
+    orientation(_orientation), //orientation of servo: horizontal (up/down flap) is 0, vertical is 1
+    pos(_pos), //current position of servo
     velocity(_velocity), //current velocity of servo/fin
     {}
 
 }
+
+
+/*
+SITL fns/vars
+dcm.transposed()
+velocity_ef
+frame_time_us
+voltage_scale
+current
+
+*/
 
 void Fin:calculate_fin_force(Fin fin, const struct sitl_input &input, Vector3f fin_force, Vector3f fin_torque){
   
   const float pwm = input.servos[servo];
   float command = pwm_to_command(pwm);
   float voltage_scale = voltage / voltage_max;
+
+
+  // how much time has passed?
+  float delta_time = frame_time_us * 1.0e-6f;
+  //servo_speed = (prev servo pos - get curr servo pos) / time_diff
+  //prev servo pos = get curr servo pos;
+
+  Vector3f velocity_body = dcm.transposed() * velocity_ef; //velocity_ef is apparently given from SITL (see Rover sim)
+
+
+
 
   if (voltage_scale < 0.1) {
     // battery is dead
