@@ -77,7 +77,7 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acc,
 
   //Left fin
   fin[3].Fy = -fin[3].T*cos(fin[3].angle) - fin[3].N*sin(fin[3].angle);
-  fin[3].Fz = -fin[3].T*sin(fin[3].angle) + fin[3].N*cos(fin[3].angle);
+  fin[3].Fx = -fin[3].T*sin(fin[3].angle) + fin[3].N*cos(fin[3].angle);
 
   //Temporary very simple/dodgy summing.
   Vector3f F_BF{0,0,0};
@@ -108,6 +108,11 @@ void Blimp::update(const struct sitl_input &input)
   //TODO Add "dcm.transposed() *  Vector3f(0, 0, calculate_buoyancy_acceleration());" for slight negative buoyancy.
   calculate_forces(input, accel_body, rot_accel);
 
+  // update attitude
+  gyro = Vector3f(radians(rot_accel.x),radians(rot_accel.y),0);
+  dcm.rotate(gyro * delta_time);
+  dcm.normalize();
+
   //velocity_ef comes from SITL
   Vector3f accel_earth = dcm * accel_body;
 
@@ -118,8 +123,8 @@ void Blimp::update(const struct sitl_input &input)
   velocity_ef += accel_earth * delta_time;
   position += (velocity_ef * delta_time).todouble(); //update position vector
 
-  update_dynamics(rot_accel);
-  update_external_payload(input);
+  // update_dynamics(rot_accel);
+  // update_external_payload(input);
 
   // update lat/lon/altitude
   update_position(); //updates the position from the Vector3f position
