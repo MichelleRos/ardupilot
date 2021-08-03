@@ -28,8 +28,6 @@ struct Fins
 {
   float angle;
   float last_angle;
-  float time; //in seconds
-  float last_time;
   bool dir; //0 = up, 1 = down or 0 = forward, 1 = backward
   float vel; // velocity, in m/s
   float T; //Tangential (thrust) force, in Neutons
@@ -65,7 +63,7 @@ protected:
     Fins fin[4];
     uint8_t n_fins;
     float K_Tan = 2.0; //Tangential and normal force multipliers
-    float K_Nor = 0.1;
+    float K_Nor = 0.0;
 
     Vector3f moment_of_inertia;
 };

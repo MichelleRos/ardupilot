@@ -33,7 +33,7 @@ Blimp::Blimp(const char *frame_str) :
 }
 
 // calculate rotational and linear accelerations
-void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_accel, Vector3f &rot_accel)
+void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acc, Vector3f &rot_accel)
 {
   // float fin_back  = filtered_servo_angle(input, 0);
   // float fin_front = filtered_servo_angle(input, 1);
@@ -43,19 +43,17 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acce
   // ::printf("FINS (%.1f %.1f %.1f %.1f)\n",
   //          fin_back, fin_front, fin_right, fin_left);
 
-  float time = time_now_us*1e-6;
+  float delta_time = frame_time_us * 1.0e-6f;
 
   //all fin setup
   for (uint8_t i=0; i<4; i++) {
     fin[i].last_angle = fin[i].angle;
-    fin[i].last_time = fin[i].time;
     fin[i].angle = filtered_servo_angle(input, i)*75.0f; //for servo range of -75 deg to +75 deg
-    fin[i].time = time;
     
     if (fin[i].angle < fin[i].last_angle) fin[i].dir = 0;
     else fin[i].dir = 1;
     
-    fin[i].vel = (fin[i].angle - fin[i].last_angle)/(fin[i].time-fin[i].last_time); //deg/s
+    fin[i].vel = (fin[i].angle - fin[i].last_angle)/(delta_time); //deg/s
     fin[i].T = pow(fin[i].vel,2) * K_Tan;
     fin[i].N = pow(fin[i].vel,2) * K_Nor;
     if (fin[i].dir == 1) fin[i].N = -fin[1].N; //normal force flips when fin changes direction
@@ -89,9 +87,9 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acce
     F_BF.z = F_BF.z + fin[i].Fz;
   }
 
-  body_accel.x = F_BF.x/mass; //mass in kg, thus accel in m/s/s
-  body_accel.y = F_BF.y/mass;
-  body_accel.z = F_BF.z/mass;
+  body_acc.x = F_BF.x/mass; //mass in kg, thus accel in m/s/s
+  body_acc.y = F_BF.y/mass;
+  body_acc.z = F_BF.z/mass;
 
   rot_accel = {0,0,0}; //rotational accel currently 0
 // rot_accel += fin_torque *moment_of_inertia;
@@ -102,61 +100,31 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acce
  */
 void Blimp::update(const struct sitl_input &input)
 {
-    // get wind vector setup
-    update_wind(input);
-
-    Vector3f rot_accel = Vector3f(0,0,0);
-    //TODO Add "dcm.transposed() *  Vector3f(0, 0, calculate_buoyancy_acceleration());" for slight negative buoyancy.
-    Vector3f body_accel = Vector3f(0,0,0);
-    calculate_forces(input, body_accel, rot_accel);
-
-    update_dynamics(rot_accel);
-    update_external_payload(input);
-
-    // update lat/lon/altitude
-    update_position(); //updates the position from the Vector3f pos
-    time_advance();
-
-    // update magnetic field
-    update_mag_field_bf();
-}
-
-/*
-SITL fns/vars
-dcm.transposed()
-velocity_ef
-frame_time_us
-voltage_scale
-current
-
-void Fin:calculate_fin_force(Fin fin, const struct sitl_input &input, Vector3f fin_force, Vector3f fin_torque){
-  
-  const float pwm = input.servos[servo];
-  float command = pwm_to_command(pwm);
-  float voltage_scale = voltage / voltage_max;
-
-
-  // how much time has passed?
   float delta_time = frame_time_us * 1.0e-6f;
-  //servo_speed = (prev servo pos - get curr servo pos) / time_diff
-  //prev servo pos = get curr servo pos;
+  // get wind vector setup
+  update_wind(input);
 
-  Vector3f velocity_body = dcm.transposed() * velocity_ef; //velocity_ef is apparently given from SITL (see Rover sim)
+  Vector3f rot_accel = Vector3f(0,0,0);
+  //TODO Add "dcm.transposed() *  Vector3f(0, 0, calculate_buoyancy_acceleration());" for slight negative buoyancy.
+  calculate_forces(input, accel_body, rot_accel);
 
+  //velocity_ef comes from SITL
+  Vector3f accel_earth = dcm * accel_body;
 
+  // work out acceleration as seen by the accelerometers. It sees the kinematic
+  // acceleration (ie. real movement), plus gravity
+  accel_body = dcm.transposed() * (accel_earth + Vector3f(0, 0, -GRAVITY_MSS));
 
+  velocity_ef += accel_earth * delta_time;
+  position += (velocity_ef * delta_time).todouble(); //update position vector
 
-  if (voltage_scale < 0.1) {
-    // battery is dead
-    rot_accel.zero();
-    thrust.zero();
-    current = 0;
-    return;
-  }
-  
-  
-  //Vector3f thrust_ned
+  update_dynamics(rot_accel);
+  update_external_payload(input);
 
+  // update lat/lon/altitude
+  update_position(); //updates the position from the Vector3f position
+  time_advance();
 
+  // update magnetic field
+  update_mag_field_bf();
 }
-*/
