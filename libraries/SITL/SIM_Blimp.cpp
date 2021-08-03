@@ -26,7 +26,6 @@ using namespace SITL;
 Blimp::Blimp(const char *frame_str) :
     Aircraft(frame_str)
 {
-    fin = airfish;
     mass = 0.07;
     // frame_height = 0.0;
     ground_behavior = GROUND_BEHAVIOR_NO_MOVEMENT; //Blimp does "land" when it gets to the ground.
@@ -57,8 +56,8 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acce
     else fin[i].dir = 1;
     
     fin[i].vel = (fin[i].angle - fin[i].last_angle)/(fin[i].time-fin[i].last_time); //deg/s
-    fin[i].T = fin[i].vel^2 * K_Tan;
-    fin[i].N = fin[i].vel^2 * K_Nor;
+    fin[i].T = pow(fin[i].vel,2) * K_Tan;
+    fin[i].N = pow(fin[i].vel,2) * K_Nor;
     if (fin[i].dir == 1) fin[i].N = -fin[1].N; //normal force flips when fin changes direction
     
     fin[i].Fx = 0;
@@ -90,12 +89,11 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acce
     F_BF.z = F_BF.z + fin[i].Fz;
   }
 
-  Vector3f body_accel{0,0,0};
   body_accel.x = F_BF.x/mass; //mass in kg, thus accel in m/s/s
   body_accel.y = F_BF.y/mass;
   body_accel.z = F_BF.z/mass;
 
-  Vector3f rot_accel{0,0,0}; //rotational accel currently 0
+  rot_accel = {0,0,0}; //rotational accel currently 0
 // rot_accel += fin_torque *moment_of_inertia;
 }
 
@@ -110,7 +108,7 @@ void Blimp::update(const struct sitl_input &input)
     Vector3f rot_accel = Vector3f(0,0,0);
     //TODO Add "dcm.transposed() *  Vector3f(0, 0, calculate_buoyancy_acceleration());" for slight negative buoyancy.
     Vector3f body_accel = Vector3f(0,0,0);
-    calculate_forces(input, fin*, body_accel, rot_accel);
+    calculate_forces(input, body_accel, rot_accel);
 
     update_dynamics(rot_accel);
     update_external_payload(input);

@@ -24,9 +24,8 @@
 
 namespace SITL {
 
-class Fins
+struct Fins
 {
-public:
   float angle;
   float last_angle;
   float time; //in seconds
@@ -38,14 +37,7 @@ public:
   float Fx; //Fx,y,z = Force in bodyframe orientation at servo position, in Newtons
   float Fy;
   float Fz;
-
-  Fin();
-}
-
-// Four-finned blimp
-static Fins airfish[4] = 
-{
-}
+};
 
 /*
   a blimp simulator
@@ -70,7 +62,7 @@ protected:
 
     void calculate_forces(const struct sitl_input &input, Vector3f &rot_accel, Vector3f &body_accel);
 
-    Fin* fin;
+    Fins fin[4];
     uint8_t n_fins;
     float K_Tan = 2.0; //Tangential and normal force multipliers
     float K_Nor = 0.1;
