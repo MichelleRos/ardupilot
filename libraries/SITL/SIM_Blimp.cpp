@@ -17,7 +17,6 @@
 */
 
 #include "SIM_Blimp.h"
-#include <AP_Motors/AP_Motors.h>
 
 #include <stdio.h>
 
@@ -28,7 +27,7 @@ Blimp::Blimp(const char *frame_str) :
 {
     mass = 0.07;
     // frame_height = 0.0;
-    ground_behavior = GROUND_BEHAVIOR_NO_MOVEMENT; //Blimp does "land" when it gets to the ground.
+    ground_behavior = GROUND_BEHAVIOR_NONE; //Blimp does "land" when it gets to the ground.
     lock_step_scheduled = true;
 }
 
@@ -102,16 +101,16 @@ void Blimp::update(const struct sitl_input &input)
 {
   float delta_time = frame_time_us * 1.0e-6f;
   // get wind vector setup
-  update_wind(input);
+  //update_wind(input);
 
   Vector3f rot_accel = Vector3f(0,0,0);
   //TODO Add "dcm.transposed() *  Vector3f(0, 0, calculate_buoyancy_acceleration());" for slight negative buoyancy.
   calculate_forces(input, accel_body, rot_accel);
 
   // update attitude
-  gyro = Vector3f(radians(rot_accel.x),radians(rot_accel.y),0);
-  dcm.rotate(gyro * delta_time);
-  dcm.normalize();
+  // gyro = Vector3f(0,0,0);
+  // dcm.rotate(gyro * delta_time);
+  // dcm.normalize();
 
   //velocity_ef comes from SITL
   Vector3f accel_earth = dcm * accel_body;
@@ -123,7 +122,7 @@ void Blimp::update(const struct sitl_input &input)
   velocity_ef += accel_earth * delta_time;
   position += (velocity_ef * delta_time).todouble(); //update position vector
 
-  // update_dynamics(rot_accel);
+  update_dynamics(rot_accel);
   // update_external_payload(input);
 
   // update lat/lon/altitude

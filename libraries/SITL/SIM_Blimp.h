@@ -19,8 +19,8 @@
 #pragma once
 
 #include "SIM_Aircraft.h"
-#include "SIM_Motor.h"
-#include "SIM_Frame.h"
+// #include "SIM_Motor.h"
+// #include "SIM_Frame.h"
 
 namespace SITL {
 
