@@ -29,7 +29,7 @@ Blimp::Blimp(const char *frame_str) :
 {
     mass = 0.07;
     // frame_height = 0.0;
-    ground_behavior = GROUND_BEHAVIOR_NONE; //Blimp does "land" when it gets to the ground.
+    ground_behavior = GROUND_BEHAVIOR_NO_MOVEMENT; //Blimp does "land" when it gets to the ground.
     lock_step_scheduled = true;
 
     ::printf("Starting Blimp model\n");
@@ -75,7 +75,7 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acc,
     fin[i].Fz = 0;
   }
 
-  ::printf("FINS (%.1f %.1f %.1f %.1f)  ", fin[0].angle, fin[1].angle, fin[2].angle, fin[3].angle);
+  //::printf("FINS (%.1f %.1f %.1f %.1f)  ", fin[0].angle, fin[1].angle, fin[2].angle, fin[3].angle);
 
   //Back fin
   fin[0].Fx = -fin[0].T*cos(fin[0].angle) - fin[0].N*sin(fin[0].angle);
@@ -105,7 +105,7 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acc,
   body_acc.y = F_BF.y/mass;
   body_acc.z = F_BF.z/mass;
 
-  ::printf("FINA (%.1f %.1f %.1f %.1f)\n", body_acc.x, body_acc.y, body_acc.z, mass);
+  //::printf("FINA (%.1f %.1f %.1f %.1f)\n", body_acc.x, body_acc.y, body_acc.z, mass);
 
   rot_accel = {0,0,0}; //rotational accel currently 0
 // rot_accel += fin_torque *moment_of_inertia;
@@ -124,21 +124,16 @@ void Blimp::update(const struct sitl_input &input)
   //TODO Add "dcm.transposed() *  Vector3f(0, 0, calculate_buoyancy_acceleration());" for slight negative buoyancy.
   calculate_forces(input, accel_body, rot_accel);
 
-  // update attitude
-  // gyro = Vector3f(0,0,0);
-  // dcm.rotate(gyro * delta_time);
-  // dcm.normalize();
-
-  //velocity_ef comes from SITL
   Vector3f accel_earth = dcm * accel_body;
 
-  // work out acceleration as seen by the accelerometers. It sees the kinematic
-  // acceleration (ie. real movement), plus gravity
+  // if (hal.scheduler->is_system_initialized()) {
+  //     accel_earth.z -= 9.0;
+  // }
+
   accel_body = dcm.transposed() * accel_earth;
 
-  // float drag_constant = 0.1;
-  // Vector3f drag = velocity_ef * drag_constant;
-  // accel_earth -= drag;
+  Vector3f drag = velocity_ef * drag_constant;
+  accel_earth -= drag;
 
   velocity_ef += accel_earth * delta_time;
   position += (velocity_ef * delta_time).todouble(); //update position vector
@@ -146,10 +141,8 @@ void Blimp::update(const struct sitl_input &input)
   update_dynamics(rot_accel);
   // update_external_payload(input);
 
-  // update lat/lon/altitude
   update_position(); //updates the position from the Vector3f position
   time_advance();
 
-  // update magnetic field
   update_mag_field_bf();
 }
