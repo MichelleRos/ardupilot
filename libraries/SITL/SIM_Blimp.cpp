@@ -22,6 +22,8 @@
 
 using namespace SITL;
 
+extern const AP_HAL::HAL& hal;
+
 Blimp::Blimp(const char *frame_str) :
     Aircraft(frame_str)
 {
@@ -29,6 +31,8 @@ Blimp::Blimp(const char *frame_str) :
     // frame_height = 0.0;
     ground_behavior = GROUND_BEHAVIOR_NONE; //Blimp does "land" when it gets to the ground.
     lock_step_scheduled = true;
+
+    ::printf("Starting Blimp model\n");
 }
 
 // calculate rotational and linear accelerations
@@ -44,15 +48,24 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acc,
 
   float delta_time = frame_time_us * 1.0e-6f;
 
+  if (!hal.scheduler->is_system_initialized()) {
+      return;
+  }
+
   //all fin setup
   for (uint8_t i=0; i<4; i++) {
     fin[i].last_angle = fin[i].angle;
-    fin[i].angle = filtered_servo_angle(input, i)*75.0f; //for servo range of -75 deg to +75 deg
+    if (input.servos[i] == 0) {
+        fin[i].angle = 0;
+    } else {
+        fin[i].angle = filtered_servo_angle(input, i)*radians(75.0f); //for servo range of -75 deg to +75 deg
+    }
     
     if (fin[i].angle < fin[i].last_angle) fin[i].dir = 0;
     else fin[i].dir = 1;
     
-    fin[i].vel = (fin[i].angle - fin[i].last_angle)/(delta_time); //deg/s
+    fin[i].vel = degrees(fin[i].angle - fin[i].last_angle)/delta_time; //deg/s
+    fin[i].vel = constrain_float(fin[i].vel, -450, 450);
     fin[i].T = pow(fin[i].vel,2) * K_Tan;
     fin[i].N = pow(fin[i].vel,2) * K_Nor;
     if (fin[i].dir == 1) fin[i].N = -fin[1].N; //normal force flips when fin changes direction
@@ -117,7 +130,12 @@ void Blimp::update(const struct sitl_input &input)
 
   // work out acceleration as seen by the accelerometers. It sees the kinematic
   // acceleration (ie. real movement), plus gravity
-  accel_body = dcm.transposed() * (accel_earth + Vector3f(0, 0, -GRAVITY_MSS));
+  accel_body = dcm.transposed() * accel_earth;
+
+  float drag_constant = 0.1;
+  Vector3f drag = velocity_ef * drag_constant;
+
+  accel_earth -= drag;
 
   velocity_ef += accel_earth * delta_time;
   position += (velocity_ef * delta_time).todouble(); //update position vector
