@@ -62,7 +62,7 @@ protected:
 
     Fins fin[4];
     uint8_t n_fins;
-    float K_Tan = 1.7e-7; //Tangential and normal force multipliers
+    float K_Tan = 5e-5;//1.7e-7; //Tangential and normal force multipliers
     float K_Nor = 0.0;
 
     Vector3f moment_of_inertia;

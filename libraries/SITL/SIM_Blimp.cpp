@@ -75,6 +75,8 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acc,
     fin[i].Fz = 0;
   }
 
+  ::printf("FINS (%.1f %.1f %.1f %.1f)  ", fin[0].angle, fin[1].angle, fin[2].angle, fin[3].angle);
+
   //Back fin
   fin[0].Fx = -fin[0].T*cos(fin[0].angle) - fin[0].N*sin(fin[0].angle);
   fin[0].Fz = -fin[0].T*sin(fin[0].angle) + fin[0].N*cos(fin[0].angle);
@@ -102,6 +104,8 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acc,
   body_acc.x = F_BF.x/mass; //mass in kg, thus accel in m/s/s
   body_acc.y = F_BF.y/mass;
   body_acc.z = F_BF.z/mass;
+
+  ::printf("FINA (%.1f %.1f %.1f %.1f)\n", body_acc.x, body_acc.y, body_acc.z, mass);
 
   rot_accel = {0,0,0}; //rotational accel currently 0
 // rot_accel += fin_torque *moment_of_inertia;
@@ -132,10 +136,9 @@ void Blimp::update(const struct sitl_input &input)
   // acceleration (ie. real movement), plus gravity
   accel_body = dcm.transposed() * accel_earth;
 
-  float drag_constant = 0.1;
-  Vector3f drag = velocity_ef * drag_constant;
-
-  accel_earth -= drag;
+  // float drag_constant = 0.1;
+  // Vector3f drag = velocity_ef * drag_constant;
+  // accel_earth -= drag;
 
   velocity_ef += accel_earth * delta_time;
   position += (velocity_ef * delta_time).todouble(); //update position vector
