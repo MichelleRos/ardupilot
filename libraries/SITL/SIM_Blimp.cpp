@@ -28,7 +28,9 @@ Blimp::Blimp(const char *frame_str) :
     Aircraft(frame_str)
 {
     mass = 0.07;
-    // frame_height = 0.0;
+    radius = 0.25;
+    moment_of_inertia = {0, 0, 0.004375}; //m*r^2 for hoop...
+
     ground_behavior = GROUND_BEHAVIOR_NO_MOVEMENT; //Blimp does "land" when it gets to the ground.
     lock_step_scheduled = true;
 
@@ -38,14 +40,6 @@ Blimp::Blimp(const char *frame_str) :
 // calculate rotational and linear accelerations
 void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acc, Vector3f &rot_accel)
 {
-  // float fin_back  = filtered_servo_angle(input, 0);
-  // float fin_front = filtered_servo_angle(input, 1);
-  // float fin_right = filtered_servo_angle(input, 2);
-  // float fin_left  = filtered_servo_angle(input, 3);
-
-  // ::printf("FINS (%.1f %.1f %.1f %.1f)\n",
-  //          fin_back, fin_front, fin_right, fin_left);
-
   float delta_time = frame_time_us * 1.0e-6f;
 
   if (!hal.scheduler->is_system_initialized()) {
@@ -92,9 +86,8 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acc,
 
   //Left fin
   fin[3].Fy = fin[3].T*cos(fin[3].angle) + fin[3].N*sin(fin[3].angle);
-  fin[3].Fx = -fin[3].T*sin(fin[3].angle) + fin[3].N*cos(fin[3].angle);
+  fin[3].Fx = fin[3].T*sin(fin[3].angle) - fin[3].N*cos(fin[3].angle);
 
-  //Temporary very simple/dodgy summing.
   Vector3f F_BF{0,0,0};
   for (uint8_t i=0; i<4; i++) {
     F_BF.x = F_BF.x + fin[i].Fx;
@@ -106,8 +99,13 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acc,
   body_acc.y = F_BF.y/mass;
   body_acc.z = F_BF.z/mass - GRAVITY_MSS; //temporarily adding it in BF instead of WF
 
-  rot_accel = {0,0,0}; //rotational accel currently 0
-// rot_accel += fin_torque *moment_of_inertia;
+  Vector3f rot_T{0,0,0};
+  rot_T.z = fin[2].Fx*0.25 + fin[3].Fx*0.25; //in N*m (Torque = force * lever arm)
+
+  //rot accel = torque / moment of inertia
+  rot_accel.x = 0;
+  rot_accel.y = 0;
+  rot_accel.z = rot_T.z / moment_of_inertia.z;
 }
 
 /*
@@ -123,6 +121,9 @@ void Blimp::update(const struct sitl_input &input)
 
   // update rotational rates in body frame
   gyro += rot_accel * delta_time;
+
+  Vector3f drag_gyr = gyro * drag_gyr_constant;
+  rot_accel -= drag_gyr;
 
   gyro.x = constrain_float(gyro.x, -radians(2000.0f), radians(2000.0f));
   gyro.y = constrain_float(gyro.y, -radians(2000.0f), radians(2000.0f));

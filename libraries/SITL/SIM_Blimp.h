@@ -54,9 +54,9 @@ public:
     }
 
 protected:
-    const struct {
-        float mass = 0.02;
-    } model;
+    float mass = 0.02; //kilograms
+    float radius = 0.25; //metres
+
 
     void calculate_forces(const struct sitl_input &input, Vector3f &rot_accel, Vector3f &body_accel);
 
@@ -65,6 +65,7 @@ protected:
     float K_Tan = 1.7e-7; //Tangential and normal force multipliers
     float K_Nor = 0.0;
     float drag_constant = 0.1;
+    float drag_gyr_constant = 0.2;
 
     Vector3f moment_of_inertia;
 };
