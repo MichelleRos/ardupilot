@@ -64,8 +64,8 @@ protected:
     uint8_t n_fins;
     float K_Tan = 1.7e-7; //Tangential and normal force multipliers
     float K_Nor = 0.0;
-    float drag_constant = 0.1;
-    float drag_gyr_constant = 0.2;
+    float drag_constant = 0.2;
+    float drag_gyr_constant = 0.3;
 
     Vector3f moment_of_inertia;
 };

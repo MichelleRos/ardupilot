@@ -31,7 +31,7 @@ Blimp::Blimp(const char *frame_str) :
     radius = 0.25;
     moment_of_inertia = {0, 0, 0.004375}; //m*r^2 for hoop...
 
-    ground_behavior = GROUND_BEHAVIOR_NO_MOVEMENT; //Blimp does "land" when it gets to the ground.
+    //ground_behavior = GROUND_BEHAVIOR_NO_MOVEMENT; //Blimp does "land" when it gets to the ground.
     lock_step_scheduled = true;
 
     ::printf("Starting Blimp model\n");
@@ -82,11 +82,11 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acc,
 
   //Right fin
   fin[2].Fy = -fin[2].T*cos(fin[2].angle) - fin[2].N*sin(fin[2].angle);
-  fin[2].Fx = -fin[2].T*sin(fin[2].angle) + fin[2].N*cos(fin[2].angle);
+  fin[2].Fx = fin[2].T*sin(fin[2].angle) - fin[2].N*cos(fin[2].angle);
 
   //Left fin
   fin[3].Fy = fin[3].T*cos(fin[3].angle) + fin[3].N*sin(fin[3].angle);
-  fin[3].Fx = fin[3].T*sin(fin[3].angle) - fin[3].N*cos(fin[3].angle);
+  fin[3].Fx = -fin[3].T*sin(fin[3].angle) + fin[3].N*cos(fin[3].angle);
 
   Vector3f F_BF{0,0,0};
   for (uint8_t i=0; i<4; i++) {
@@ -97,10 +97,12 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acc,
 
   body_acc.x = F_BF.x/mass; //mass in kg, thus accel in m/s/s
   body_acc.y = F_BF.y/mass;
-  body_acc.z = F_BF.z/mass - GRAVITY_MSS; //temporarily adding it in BF instead of WF
+  body_acc.z = F_BF.z/mass - GRAVITY_MSS; //temporarily adding it in BF instead of EF
 
   Vector3f rot_T{0,0,0};
-  rot_T.z = fin[2].Fx*0.25 + fin[3].Fx*0.25; //in N*m (Torque = force * lever arm)
+  // rot_T.x = 0; 
+  // rot_T.y = 0;// fin[0].Fz * radius + fin[1].Fz * radius;
+  rot_T.z = fin[2].Fx * radius + fin[3].Fx * radius;//in N*m (Torque = force * lever arm)
 
   //rot accel = torque / moment of inertia
   rot_accel.x = 0;
@@ -119,11 +121,11 @@ void Blimp::update(const struct sitl_input &input)
   //TODO Add "dcm.transposed() *  Vector3f(0, 0, calculate_buoyancy_acceleration());" for slight negative buoyancy.
   calculate_forces(input, accel_body, rot_accel);
 
-  // update rotational rates in body frame
-  gyro += rot_accel * delta_time;
-
   Vector3f drag_gyr = gyro * drag_gyr_constant;
   rot_accel -= drag_gyr;
+
+  // update rotational rates in body frame
+  gyro += rot_accel * delta_time;
 
   gyro.x = constrain_float(gyro.x, -radians(2000.0f), radians(2000.0f));
   gyro.y = constrain_float(gyro.y, -radians(2000.0f), radians(2000.0f));
