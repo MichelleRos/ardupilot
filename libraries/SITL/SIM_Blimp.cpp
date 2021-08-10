@@ -73,12 +73,12 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acc,
 
   //TODO: Double-check that the directions are correct/correspond to the actual joystick directions.
   //Back fin
-  fin[0].Fx = -fin[0].T*cos(fin[0].angle) - fin[0].N*sin(fin[0].angle);
-  fin[0].Fz = -fin[0].T*sin(fin[0].angle) + fin[0].N*cos(fin[0].angle);
+  fin[0].Fx = fin[0].T*cos(fin[0].angle) + fin[0].N*sin(fin[0].angle);
+  fin[0].Fz = fin[0].T*sin(fin[0].angle) - fin[0].N*cos(fin[0].angle);
 
   //Front fin
-  fin[1].Fx = fin[1].T*cos(fin[1].angle) + fin[1].N*sin(fin[1].angle);
-  fin[1].Fz = -fin[1].T*sin(fin[1].angle) + fin[1].N*cos(fin[1].angle);
+  fin[1].Fx = -fin[1].T*cos(fin[1].angle) - fin[1].N*sin(fin[1].angle);
+  fin[1].Fz = fin[1].T*sin(fin[1].angle) - fin[1].N*cos(fin[1].angle);
 
   //Right fin
   fin[2].Fy = -fin[2].T*cos(fin[2].angle) - fin[2].N*sin(fin[2].angle);
