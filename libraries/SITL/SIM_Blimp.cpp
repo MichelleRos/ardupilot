@@ -97,7 +97,7 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acc,
 
   body_acc.x = F_BF.x/mass; //mass in kg, thus accel in m/s/s
   body_acc.y = F_BF.y/mass;
-  body_acc.z = F_BF.z/mass - GRAVITY_MSS; //temporarily adding it in BF instead of EF
+  body_acc.z = F_BF.z/mass;
 
   Vector3f rot_T{0,0,0};
   // rot_T.x = 0; 
@@ -121,8 +121,16 @@ void Blimp::update(const struct sitl_input &input)
   //TODO Add "dcm.transposed() *  Vector3f(0, 0, calculate_buoyancy_acceleration());" for slight negative buoyancy.
   calculate_forces(input, accel_body, rot_accel);
 
-  Vector3f drag_gyr = gyro * drag_gyr_constant;
-  rot_accel -= drag_gyr;
+
+  if (hal.scheduler->is_system_initialized()) {
+    float gyr_sq = gyro.length_squared();
+    if (is_positive(gyr_sq)) {
+        Vector3f force_gyr = (gyro.normalized() * drag_gyr_constant * gyr_sq);
+        Vector3f ef_drag_accel_gyr = -force_gyr / mass;
+        Vector3f bf_drag_accel_gyr = dcm.transposed() * ef_drag_accel_gyr;
+        rot_accel += bf_drag_accel_gyr;
+    }
+  }
 
   // update rotational rates in body frame
   gyro += rot_accel * delta_time;
@@ -135,20 +143,23 @@ void Blimp::update(const struct sitl_input &input)
   dcm.rotate(gyro * delta_time);
   dcm.normalize();
 
+  if (hal.scheduler->is_system_initialized()) {
+    float speed_sq = velocity_ef.length_squared();
+    if (is_positive(speed_sq)) {
+        Vector3f force = (velocity_ef.normalized() * drag_constant * speed_sq);
+        Vector3f ef_drag_accel = -force / mass;
+        Vector3f bf_drag_accel = dcm.transposed() * ef_drag_accel;
+        accel_body += bf_drag_accel;
+    }
+
+    // add lifting force exactly equal to gravity, for neutral buoyancy
+    accel_body += dcm.transposed() * Vector3f(0,0,-GRAVITY_MSS);
+}
+  
   Vector3f accel_earth = dcm * accel_body;
 
-  accel_earth += Vector3f(0.0f, 0.0f, GRAVITY_MSS);
-
-  // if (on_ground() && accel_earth.z > 0) {
-  //   accel_earth.z = 0;
-  //   if (disp_now()) ::printf("Holding.\n");
-  // }
-
-  accel_body = dcm.transposed() * (accel_earth + Vector3f(0, 0, -GRAVITY_MSS));
-
-  Vector3f drag = velocity_ef * drag_constant;
-  accel_earth -= drag;
-
+  accel_earth += Vector3f(0.0f, 0.0f, GRAVITY_MSS); //add gravity
+  
   velocity_ef += accel_earth * delta_time;
   position += (velocity_ef * delta_time).todouble(); //update position vector
 
