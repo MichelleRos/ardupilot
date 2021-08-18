@@ -28,7 +28,7 @@ struct Fins
 {
   float angle;
   float last_angle;
-  bool dir; //0 = up, 1 = down or 0 = forward, 1 = backward
+  bool dir;
   float vel; // velocity, in m/s
   float T; //Tangential (thrust) force, in Neutons
   float N; //Normal force, in Newtons
@@ -54,20 +54,21 @@ public:
     }
 
 protected:
-    float mass = 0.02; //kilograms
-    float radius = 0.25; //metres
-
+    float mass; //kilograms
+    float radius; //metres
+    Vector3f moment_of_inertia;
+    Vector3f cog; //centre of gravity location relative to center of blimp
+    float k_righting;
 
     void calculate_forces(const struct sitl_input &input, Vector3f &rot_accel, Vector3f &body_accel);
 
     Fins fin[4];
-    uint8_t n_fins;
-    float K_Tan = 1.7e-7; //Tangential and normal force multipliers
-    float K_Nor = 0.0;
+    float k_tan = 1.7e-7; //Tangential and normal force multipliers
+    float k_nor = 0;//1.2e-7;
     float drag_constant = 0.05;
     float drag_gyr_constant = 0.08;
 
-    Vector3f moment_of_inertia;
+    
 };
 
 }

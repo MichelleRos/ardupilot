@@ -29,9 +29,10 @@ Blimp::Blimp(const char *frame_str) :
 {
     mass = 0.07;
     radius = 0.25;
-    moment_of_inertia = {0, 0, 0.004375}; //m*r^2 for hoop...
+    moment_of_inertia = {0.004375, 0.004375, 0.004375}; //m*r^2 for hoop...
+    cog = {0, 0, 0.1}; //10 cm down from center (i.e. center of buoyancy), for now
+    k_righting = 0.5;
 
-    //ground_behavior = GROUND_BEHAVIOR_NO_MOVEMENT; //Blimp does "land" when it gets to the ground.
     lock_step_scheduled = true;
 
     ::printf("Starting Blimp model\n");
@@ -55,14 +56,14 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acc,
         fin[i].angle = filtered_servo_angle(input, i)*radians(75.0f); //for servo range of -75 deg to +75 deg
     }
     
-    if (fin[i].angle < fin[i].last_angle) fin[i].dir = 0;
+    if (fin[i].angle < fin[i].last_angle) fin[i].dir = 0; //thus 0 = "angle is reducing"
     else fin[i].dir = 1;
     
     fin[i].vel = degrees(fin[i].angle - fin[i].last_angle)/delta_time; //deg/s
     fin[i].vel = constrain_float(fin[i].vel, -450, 450);
-    fin[i].T = pow(fin[i].vel,2) * K_Tan;
-    fin[i].N = pow(fin[i].vel,2) * K_Nor;
-    if (fin[i].dir == 1) fin[i].N = -fin[1].N; //normal force flips when fin changes direction
+    fin[i].T = pow(fin[i].vel,2) * k_tan;
+    fin[i].N = pow(fin[i].vel,2) * k_nor;
+    if (fin[i].dir == 0) fin[i].N = -fin[1].N; //normal force flips when fin changes direction
     
     fin[i].Fx = 0;
     fin[i].Fy = 0;
@@ -100,13 +101,24 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acc,
   body_acc.z = F_BF.z/mass;
 
   Vector3f rot_T{0,0,0};
-  // rot_T.x = 0; 
-  // rot_T.y = 0;// fin[0].Fz * radius + fin[1].Fz * radius;
+  rot_T.x = 0; 
+  rot_T.y = 0;// fin[0].Fz * radius + fin[1].Fz * radius;
   rot_T.z = fin[2].Fx * radius + fin[3].Fx * radius;//in N*m (Torque = force * lever arm)
 
+  /*
+  // the blimp has pendulum stability due to the centre of gravity being lower than the centre of buoyancy
+  Vector3f ang; //x,y,z correspond to roll, pitch, yaw.
+  dcm.to_euler(&ang.x, &ang.y, &ang.z); //rpy in radians
+  //currently assuming the cog for x & y are in the centre
+  rot_T.x -= ang.x * cog.z * k_righting;
+  rot_T.y -= ang.y * cog.z * k_righting;
+  ::printf("FINS (%.1f %.1f)  \n", degrees(ang.x), degrees(ang.y));
+  */
+
   //rot accel = torque / moment of inertia
-  rot_accel.x = 0;
-  rot_accel.y = 0;
+  //Torque = moment force.
+  rot_accel.x = rot_T.x / moment_of_inertia.x;
+  rot_accel.y = rot_T.y / moment_of_inertia.y;
   rot_accel.z = rot_T.z / moment_of_inertia.z;
 }
 
@@ -118,9 +130,7 @@ void Blimp::update(const struct sitl_input &input)
   float delta_time = frame_time_us * 1.0e-6f;
 
   Vector3f rot_accel = Vector3f(0,0,0);
-  //TODO Add "dcm.transposed() *  Vector3f(0, 0, calculate_buoyancy_acceleration());" for slight negative buoyancy.
   calculate_forces(input, accel_body, rot_accel);
-
 
   if (hal.scheduler->is_system_initialized()) {
     float gyr_sq = gyro.length_squared();
@@ -154,16 +164,12 @@ void Blimp::update(const struct sitl_input &input)
 
     // add lifting force exactly equal to gravity, for neutral buoyancy
     accel_body += dcm.transposed() * Vector3f(0,0,-GRAVITY_MSS);
-}
+  }
   
   Vector3f accel_earth = dcm * accel_body;
-
   accel_earth += Vector3f(0.0f, 0.0f, GRAVITY_MSS); //add gravity
-  
   velocity_ef += accel_earth * delta_time;
   position += (velocity_ef * delta_time).todouble(); //update position vector
-
-  // update_external_payload(input);
 
   update_position(); //updates the position from the Vector3f position
   time_advance();
