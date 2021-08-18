@@ -60,15 +60,15 @@ protected:
     Vector3f cog; //centre of gravity location relative to center of blimp
     float k_righting;
 
+    //Airfish-specific variables
+    Fins fin[4];
+    float k_tan; //Tangential and normal force multipliers
+    float k_nor;
+    float drag_constant;
+    float drag_gyr_constant;
+
     void calculate_forces(const struct sitl_input &input, Vector3f &rot_accel, Vector3f &body_accel);
 
-    Fins fin[4];
-    float k_tan = 1.7e-7; //Tangential and normal force multipliers
-    float k_nor = 0;//1.2e-7;
-    float drag_constant = 0.05;
-    float drag_gyr_constant = 0.08;
-
-    
 };
 
 }

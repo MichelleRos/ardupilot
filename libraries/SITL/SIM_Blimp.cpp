@@ -31,10 +31,13 @@ Blimp::Blimp(const char *frame_str) :
     radius = 0.25;
     moment_of_inertia = {0.004375, 0.004375, 0.004375}; //m*r^2 for hoop...
     cog = {0, 0, 0.1}; //10 cm down from center (i.e. center of buoyancy), for now
-    k_righting = 0.5;
+    k_righting = 0.1;
+    k_tan = 1.7e-7; //Tangential and normal force multipliers
+    k_nor = 0;//1.2e-7;
+    drag_constant = 0.05;
+    drag_gyr_constant = 0.08;
 
     lock_step_scheduled = true;
-
     ::printf("Starting Blimp model\n");
 }
 
@@ -102,10 +105,9 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acc,
 
   Vector3f rot_T{0,0,0};
   rot_T.x = 0; 
-  rot_T.y = 0;// fin[0].Fz * radius + fin[1].Fz * radius;
+  rot_T.y = fin[0].Fz * radius + fin[1].Fz * radius;
   rot_T.z = fin[2].Fx * radius + fin[3].Fx * radius;//in N*m (Torque = force * lever arm)
 
-  /*
   // the blimp has pendulum stability due to the centre of gravity being lower than the centre of buoyancy
   Vector3f ang; //x,y,z correspond to roll, pitch, yaw.
   dcm.to_euler(&ang.x, &ang.y, &ang.z); //rpy in radians
@@ -113,7 +115,6 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acc,
   rot_T.x -= ang.x * cog.z * k_righting;
   rot_T.y -= ang.y * cog.z * k_righting;
   ::printf("FINS (%.1f %.1f)  \n", degrees(ang.x), degrees(ang.y));
-  */
 
   //rot accel = torque / moment of inertia
   //Torque = moment force.
