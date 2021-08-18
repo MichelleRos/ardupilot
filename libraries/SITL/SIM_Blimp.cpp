@@ -31,9 +31,8 @@ Blimp::Blimp(const char *frame_str) :
     radius = 0.25;
     moment_of_inertia = {0.004375, 0.004375, 0.004375}; //m*r^2 for hoop...
     cog = {0, 0, 0.1}; //10 cm down from center (i.e. center of buoyancy), for now
-    k_righting = 0.1;
-    k_tan = 1.7e-7; //Tangential and normal force multipliers
-    k_nor = 0;//1.2e-7;
+    k_tan = 1.7e-7; //Tangential (thrust) and normal force multipliers
+    k_nor = 0;//3.4e-7; 
     drag_constant = 0.05;
     drag_gyr_constant = 0.08;
 
@@ -62,10 +61,10 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acc,
     if (fin[i].angle < fin[i].last_angle) fin[i].dir = 0; //thus 0 = "angle is reducing"
     else fin[i].dir = 1;
     
-    fin[i].vel = degrees(fin[i].angle - fin[i].last_angle)/delta_time; //deg/s
+    fin[i].vel = degrees(fin[i].angle - fin[i].last_angle)/delta_time; //deg/s (should really be rad/s, but that would require modifying k_tan, k_nor)
     fin[i].vel = constrain_float(fin[i].vel, -450, 450);
-    fin[i].T = pow(fin[i].vel,2) * k_tan;
-    fin[i].N = pow(fin[i].vel,2) * k_nor;
+    fin[i].T = sq(fin[i].vel) * k_tan;
+    fin[i].N = sq(fin[i].vel) * k_nor;
     if (fin[i].dir == 0) fin[i].N = -fin[1].N; //normal force flips when fin changes direction
     
     fin[i].Fx = 0;
@@ -77,20 +76,19 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acc,
 
   //TODO: Double-check that the directions are correct/correspond to the actual joystick directions.
   //Back fin
-  fin[0].Fx = fin[0].T*cos(fin[0].angle) + fin[0].N*sin(fin[0].angle);
-  fin[0].Fz = fin[0].T*sin(fin[0].angle) - fin[0].N*cos(fin[0].angle);
+  fin[0].Fx =  fin[0].T*cos(fin[0].angle) + fin[0].N*sin(fin[0].angle); //causes forward movement
+  fin[0].Fz =  fin[0].T*sin(fin[0].angle) - fin[0].N*cos(fin[0].angle); //causes height & wobble in y
 
   //Front fin
-  fin[1].Fx = -fin[1].T*cos(fin[1].angle) - fin[1].N*sin(fin[1].angle);
-  fin[1].Fz = fin[1].T*sin(fin[1].angle) - fin[1].N*cos(fin[1].angle);
+  fin[1].Fx = -fin[1].T*cos(fin[1].angle) - fin[1].N*sin(fin[1].angle); //causes backward movement
+  fin[1].Fz =  fin[1].T*sin(fin[1].angle) - fin[1].N*cos(fin[1].angle); //causes height & wobble in y
 
   //Right fin
-  fin[2].Fy = -fin[2].T*cos(fin[2].angle) - fin[2].N*sin(fin[2].angle);
-  fin[2].Fx = fin[2].T*sin(fin[2].angle) - fin[2].N*cos(fin[2].angle);
-
+  fin[2].Fy = -fin[2].T*cos(fin[2].angle) - fin[2].N*sin(fin[2].angle); //causes left movement
+  fin[2].Fx =  fin[2].T*sin(fin[2].angle) - fin[2].N*cos(fin[2].angle); //cause yaw & wobble in z
   //Left fin
-  fin[3].Fy = fin[3].T*cos(fin[3].angle) + fin[3].N*sin(fin[3].angle);
-  fin[3].Fx = -fin[3].T*sin(fin[3].angle) + fin[3].N*cos(fin[3].angle);
+  fin[3].Fy =  fin[3].T*cos(fin[3].angle) + fin[3].N*sin(fin[3].angle); //causes right movement
+  fin[3].Fx = -fin[3].T*sin(fin[3].angle) + fin[3].N*cos(fin[3].angle); //causes yaw & wobble in z
 
   Vector3f F_BF{0,0,0};
   for (uint8_t i=0; i<4; i++) {
@@ -108,13 +106,16 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acc,
   rot_T.y = fin[0].Fz * radius + fin[1].Fz * radius;
   rot_T.z = fin[2].Fx * radius + fin[3].Fx * radius;//in N*m (Torque = force * lever arm)
 
+#if 1
   // the blimp has pendulum stability due to the centre of gravity being lower than the centre of buoyancy
   Vector3f ang; //x,y,z correspond to roll, pitch, yaw.
   dcm.to_euler(&ang.x, &ang.y, &ang.z); //rpy in radians
   //currently assuming the cog for x & y are in the centre
-  rot_T.x -= ang.x * cog.z * k_righting;
-  rot_T.y -= ang.y * cog.z * k_righting;
-  ::printf("FINS (%.1f %.1f)  \n", degrees(ang.x), degrees(ang.y));
+  rot_T.x -= mass*GRAVITY_MSS*cog.z*sinf(ang.x);
+  rot_T.y -= mass*GRAVITY_MSS*cog.z*sinf(ang.y);
+  ::printf("FINS (%.1f %.1f   \tgrav %.4f %.4f)  \n", degrees(ang.x), degrees(ang.y),
+  mass*GRAVITY_MSS*cog.z*sinf(ang.x), mass*GRAVITY_MSS*cog.z*sinf(ang.y));
+#endif
 
   //rot accel = torque / moment of inertia
   //Torque = moment force.
