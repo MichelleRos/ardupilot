@@ -181,7 +181,7 @@ void GCS_MAVLINK_Copter::send_position_target_local_ned()
     mavlink_msg_position_target_local_ned_send(
         chan,
         AP_HAL::millis(), // time boot ms
-        MAV_FRAME_LOCAL_NED, 
+        MAV_FRAME_LOCAL_NED,
         type_mask,
         target_pos.x,   // x in metres
         target_pos.y,   // y in metres
@@ -227,7 +227,7 @@ float GCS_MAVLINK_Copter::vfr_hud_airspeed() const
         return copter.airspeed.get_airspeed();
     }
 #endif
-    
+
     Vector3f airspeed_vec_bf;
     if (AP::ahrs().airspeed_vector_true(airspeed_vec_bf)) {
         // we are running the EKF3 wind estimation code which can give
@@ -666,6 +666,7 @@ bool GCS_MAVLINK_Copter::set_home(const Location& loc, bool _lock) {
 
 MAV_RESULT GCS_MAVLINK_Copter::handle_command_int_do_reposition(const mavlink_command_int_t &packet)
 {
+#if MODE_GUIDED_ENABLED
     const bool change_modes = ((int32_t)packet.param2 & MAV_DO_REPOSITION_FLAGS_CHANGE_MODE) == MAV_DO_REPOSITION_FLAGS_CHANGE_MODE;
     if (!copter.flightmode->in_guided_mode() && !change_modes) {
         return MAV_RESULT_DENIED;
@@ -702,6 +703,9 @@ MAV_RESULT GCS_MAVLINK_Copter::handle_command_int_do_reposition(const mavlink_co
     }
 
     return MAV_RESULT_ACCEPTED;
+#else
+    return MAV_RESULT_UNSUPPORTED;
+#endif
 }
 
 MAV_RESULT GCS_MAVLINK_Copter::handle_command_int_packet(const mavlink_command_int_t &packet)
@@ -1046,6 +1050,7 @@ void GCS_MAVLINK_Copter::handle_mount_message(const mavlink_message_t &msg)
 
 void GCS_MAVLINK_Copter::handleMessage(const mavlink_message_t &msg)
 {
+#if MODE_GUIDED_ENABLED
     // for mavlink SET_POSITION_TARGET messages
     constexpr uint32_t MAVLINK_SET_POS_TYPE_MASK_POS_IGNORE =
         POSITION_TARGET_TYPEMASK_X_IGNORE |
@@ -1066,9 +1071,7 @@ void GCS_MAVLINK_Copter::handleMessage(const mavlink_message_t &msg)
         POSITION_TARGET_TYPEMASK_YAW_IGNORE;
     constexpr uint32_t MAVLINK_SET_POS_TYPE_MASK_YAW_RATE_IGNORE =
         POSITION_TARGET_TYPEMASK_YAW_RATE_IGNORE;
-    constexpr uint32_t MAVLINK_SET_POS_TYPE_MASK_FORCE_SET =
-        POSITION_TARGET_TYPEMASK_FORCE_SET;
-
+#endif
     switch (msg.msgid) {
 
     case MAVLINK_MSG_ID_MANUAL_CONTROL:
@@ -1399,7 +1402,7 @@ void GCS_MAVLINK_Copter::handleMessage(const mavlink_message_t &msg)
         copter.g2.toy_mode.handle_message(msg);
         break;
 #endif
-        
+
     default:
         handle_common_message(msg);
         break;
@@ -1488,7 +1491,7 @@ int16_t GCS_MAVLINK_Copter::high_latency_target_altitude() const
         return 0.01 * (global_position_current.alt + copter.pos_control->get_pos_error_z_cm());
     }
     return 0;
-    
+
 }
 
 uint8_t GCS_MAVLINK_Copter::high_latency_tgt_heading() const
@@ -1499,9 +1502,9 @@ uint8_t GCS_MAVLINK_Copter::high_latency_tgt_heading() const
         // need to convert -18000->18000 to 0->360/2
         return wrap_360_cd(flightmode->wp_bearing()) / 200;
     }
-    return 0;     
+    return 0;
 }
-    
+
 uint16_t GCS_MAVLINK_Copter::high_latency_tgt_dist() const
 {
     if (copter.ap.initialised) {
@@ -1518,7 +1521,7 @@ uint8_t GCS_MAVLINK_Copter::high_latency_tgt_airspeed() const
         // return units are m/s*5
         return MIN(copter.pos_control->get_vel_target_cms().length() * 5.0e-2, UINT8_MAX);
     }
-    return 0;  
+    return 0;
 }
 
 uint8_t GCS_MAVLINK_Copter::high_latency_wind_speed() const
@@ -1530,7 +1533,7 @@ uint8_t GCS_MAVLINK_Copter::high_latency_wind_speed() const
         wind = AP::ahrs().wind_estimate();
         return wind.length() * 5;
     }
-    return 0; 
+    return 0;
 }
 
 uint8_t GCS_MAVLINK_Copter::high_latency_wind_direction() const
