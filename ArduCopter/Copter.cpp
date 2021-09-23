@@ -273,6 +273,7 @@ void Copter::fast_loop()
 // start takeoff to given altitude (for use by scripting)
 bool Copter::start_takeoff(float alt)
 {
+#if MODE_GUIDED_ENABLED
     // exit if vehicle is not in Guided mode or Auto-Guided mode
     if (!flightmode->in_guided_mode()) {
         return false;
@@ -282,18 +283,22 @@ bool Copter::start_takeoff(float alt)
         copter.set_auto_armed(true);
         return true;
     }
+#endif
     return false;
 }
 
 // set target location (for use by scripting)
 bool Copter::set_target_location(const Location& target_loc)
 {
+#if MODE_GUIDED_ENABLED
     // exit if vehicle is not in Guided mode or Auto-Guided mode
     if (!flightmode->in_guided_mode()) {
         return false;
     }
-
-    return mode_guided.set_destination(target_loc);
+        return mode_guided.set_destination(target_loc);
+#else
+    return false;
+#endif
 }
 
 // set target position (for use by scripting)
@@ -312,6 +317,7 @@ bool Copter::set_target_pos_NED(const Vector3f& target_pos, bool use_yaw, float 
 // set target position and velocity (for use by scripting)
 bool Copter::set_target_posvel_NED(const Vector3f& target_pos, const Vector3f& target_vel)
 {
+#if MODE_GUIDED_ENABLED
     // exit if vehicle is not in Guided mode or Auto-Guided mode
     if (!flightmode->in_guided_mode()) {
         return false;
@@ -321,6 +327,9 @@ bool Copter::set_target_posvel_NED(const Vector3f& target_pos, const Vector3f& t
     const Vector3f vel_neu_cms(target_vel.x * 100.0f, target_vel.y * 100.0f, -target_vel.z * 100.0f);
 
     return mode_guided.set_destination_posvelaccel(pos_neu_cm, vel_neu_cms, Vector3f());
+#else
+    return false;
+#endif
 }
 
 // set target position, velocity and acceleration (for use by scripting)
@@ -340,6 +349,7 @@ bool Copter::set_target_posvelaccel_NED(const Vector3f& target_pos, const Vector
 
 bool Copter::set_target_velocity_NED(const Vector3f& vel_ned)
 {
+#if MODE_GUIDED_ENABLED
     // exit if vehicle is not in Guided mode or Auto-Guided mode
     if (!flightmode->in_guided_mode()) {
         return false;
@@ -349,6 +359,9 @@ bool Copter::set_target_velocity_NED(const Vector3f& vel_ned)
     const Vector3f vel_neu_cms(vel_ned.x * 100.0f, vel_ned.y * 100.0f, -vel_ned.z * 100.0f);
     mode_guided.set_velocity(vel_neu_cms);
     return true;
+#else
+    return false;
+#endif
 }
 
 // set target velocity and acceleration (for use by scripting)
@@ -369,6 +382,7 @@ bool Copter::set_target_velaccel_NED(const Vector3f& target_vel, const Vector3f&
 
 bool Copter::set_target_angle_and_climbrate(float roll_deg, float pitch_deg, float yaw_deg, float climb_rate_ms, bool use_yaw_rate, float yaw_rate_degs)
 {
+#if MODE_GUIDED_ENABLED
     // exit if vehicle is not in Guided mode or Auto-Guided mode
     if (!flightmode->in_guided_mode()) {
         return false;
@@ -379,6 +393,9 @@ bool Copter::set_target_angle_and_climbrate(float roll_deg, float pitch_deg, flo
 
     mode_guided.set_angle(q, climb_rate_ms*100, use_yaw_rate, radians(yaw_rate_degs), false);
     return true;
+#else
+    return false;
+#endif
 }
 
 // circle mode controls

@@ -633,6 +633,7 @@ bool GCS_MAVLINK_Copter::set_home(const Location& loc, bool _lock) {
 
 MAV_RESULT GCS_MAVLINK_Copter::handle_command_int_do_reposition(const mavlink_command_int_t &packet)
 {
+#if MODE_GUIDED_ENABLED
     const bool change_modes = ((int32_t)packet.param2 & MAV_DO_REPOSITION_FLAGS_CHANGE_MODE) == MAV_DO_REPOSITION_FLAGS_CHANGE_MODE;
     if (!copter.flightmode->in_guided_mode() && !change_modes) {
         return MAV_RESULT_DENIED;
@@ -678,6 +679,9 @@ MAV_RESULT GCS_MAVLINK_Copter::handle_command_int_do_reposition(const mavlink_co
     }
 
     return MAV_RESULT_ACCEPTED;
+#else
+    return MAV_RESULT_UNSUPPORTED;
+#endif
 }
 
 MAV_RESULT GCS_MAVLINK_Copter::handle_command_int_packet(const mavlink_command_int_t &packet)
@@ -989,6 +993,7 @@ void GCS_MAVLINK_Copter::handle_mount_message(const mavlink_message_t &msg)
 
 void GCS_MAVLINK_Copter::handleMessage(const mavlink_message_t &msg)
 {
+#if MODE_GUIDED_ENABLED
     // for mavlink SET_POSITION_TARGET messages
     constexpr uint32_t MAVLINK_SET_POS_TYPE_MASK_POS_IGNORE =
         POSITION_TARGET_TYPEMASK_X_IGNORE |
@@ -1009,7 +1014,7 @@ void GCS_MAVLINK_Copter::handleMessage(const mavlink_message_t &msg)
         POSITION_TARGET_TYPEMASK_YAW_IGNORE;
     constexpr uint32_t MAVLINK_SET_POS_TYPE_MASK_YAW_RATE_IGNORE =
         POSITION_TARGET_TYPEMASK_YAW_RATE_IGNORE;
-
+#endif
     switch (msg.msgid) {
 
     case MAVLINK_MSG_ID_MANUAL_CONTROL:
