@@ -512,13 +512,13 @@ void Mode::zero_throttle_and_hold_attitude()
 // handle situations where the vehicle is on the ground waiting for takeoff
 // force_throttle_unlimited should be true in cases where we want to keep the motors spooled up
 // (instead of spooling down to ground idle).  This is required for tradheli's in Guided and Auto
-// where we always want the motor spooled up in Guided or Auto mode.  Tradheli's main rotor stops 
+// where we always want the motor spooled up in Guided or Auto mode.  Tradheli's main rotor stops
 // when spooled down to ground idle.
 // ultimately it forces the motor interlock to be obeyed in auto and guided modes when on the ground.
 void Mode::make_safe_ground_handling(bool force_throttle_unlimited)
 {
     if (force_throttle_unlimited) {
-        // keep rotors turning 
+        // keep rotors turning
         motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::THROTTLE_UNLIMITED);
     } else {
         // spool down to ground idle
@@ -527,7 +527,7 @@ void Mode::make_safe_ground_handling(bool force_throttle_unlimited)
 
     // aircraft is landed, integrator terms must be reset regardless of spool state
     attitude_control->reset_rate_controller_I_terms_smoothly();
- 
+
     switch (motors->get_spool_state()) {
     case AP_Motors::SpoolState::SHUT_DOWN:
     case AP_Motors::SpoolState::GROUND_IDLE:
@@ -636,11 +636,12 @@ void Mode::land_run_horizontal_control()
     Vector2f vel_correction;
     float target_yaw_rate = 0;
 
+#if WPNAV
     // relax loiter target if we might be landed
     if (copter.ap.land_complete_maybe) {
         pos_control->soften_for_landing_xy();
     }
-
+#endif
     // process pilot inputs
     if (!copter.failsafe.radio) {
         if ((g.throttle_behavior & THR_BEHAVE_HIGH_THROTTLE_CANCELS_LAND) != 0 && copter.rc_throttle_control_in_filter.get() > LAND_CANCEL_TRIGGER_THR){
@@ -654,13 +655,13 @@ void Mode::land_run_horizontal_control()
         if (g.land_repositioning) {
             // apply SIMPLE mode transform to pilot inputs
             update_simple_mode();
-
+#if WP_NAV
             // convert pilot input to reposition velocity
             // use half maximum acceleration as the maximum velocity to ensure aircraft will
             // stop from full reposition speed in less than 1 second.
             const float max_pilot_vel = wp_nav->get_wp_acceleration() * 0.5;
             vel_correction = get_pilot_desired_velocity(max_pilot_vel);
-
+#endif
             // record if pilot has overridden roll or pitch
             if (!vel_correction.is_zero()) {
                 if (!copter.ap.land_repo_active) {

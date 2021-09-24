@@ -7,6 +7,8 @@ include ../skyviper-f412-rev1/hwdef.dat
 undef FLASH_SIZE_KB
 FLASH_SIZE_KB 1024 #temp change to be able to see how far over it is...
 
+define WPNAV DISABLED
+
 define AC_AVOID_ENABLED DISABLED
 define AC_FENCE DISABLED
 define AC_RALLY DISABLED

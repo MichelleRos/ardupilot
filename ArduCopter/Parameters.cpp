@@ -491,7 +491,7 @@ const AP_Param::Info Copter::var_info[] = {
     // @Group: INS_
     // @Path: ../libraries/AP_InertialSensor/AP_InertialSensor.cpp
     GOBJECT(ins,            "INS_", AP_InertialSensor),
-
+#if WPNAV
     // @Group: WPNAV_
     // @Path: ../libraries/AC_WPNav/AC_WPNav.cpp
     GOBJECTPTR(wp_nav, "WPNAV_",       AC_WPNav),
@@ -499,6 +499,7 @@ const AP_Param::Info Copter::var_info[] = {
     // @Group: LOIT_
     // @Path: ../libraries/AC_WPNav/AC_Loiter.cpp
     GOBJECTPTR(loiter_nav, "LOIT_", AC_Loiter),
+#endif
 
 #if MODE_CIRCLE_ENABLED == ENABLED
     // @Group: CIRCLE_

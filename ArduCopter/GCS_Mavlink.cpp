@@ -13,6 +13,7 @@ MAV_TYPE GCS_Copter::frame_type() const
 MAV_MODE GCS_MAVLINK_Copter::base_mode() const
 {
     uint8_t _base_mode = MAV_MODE_FLAG_STABILIZE_ENABLED;
+#if WPNAV
     // work out the base_mode. This value is not very useful
     // for APM, but we calculate it as best we can so a generic
     // MAVLink enabled ground station can work out something about
@@ -41,6 +42,7 @@ MAV_MODE GCS_MAVLINK_Copter::base_mode() const
     default:
         break;
     }
+#endif
 
     // all modes except INITIALISING have some form of manual
     // override if stick mixing is enabled
@@ -827,6 +829,7 @@ MAV_RESULT GCS_MAVLINK_Copter::handle_command_long_packet(const mavlink_command_
         }
         return MAV_RESULT_FAILED;
 
+#if WPNAV
     case MAV_CMD_DO_CHANGE_SPEED:
         // param1 : Speed type (0 or 1=Ground Speed, 2=Climb Speed, 3=Descent Speed)
         // param2 : new speed in m/s
@@ -843,6 +846,7 @@ MAV_RESULT GCS_MAVLINK_Copter::handle_command_long_packet(const mavlink_command_
             return MAV_RESULT_ACCEPTED;
         }
         return MAV_RESULT_FAILED;
+#endif
 
 #if MODE_AUTO_ENABLED == ENABLED
     case MAV_CMD_MISSION_START:
