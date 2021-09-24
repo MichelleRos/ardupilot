@@ -8,10 +8,12 @@ bool ModeLand::init(bool ignore_checks)
     if (control_position) {
         // set target to stopping point
         Vector2f stopping_point;
+#if WPNAV
         loiter_nav->get_stopping_point_xy(stopping_point);
         loiter_nav->init_target(stopping_point);
+#endif
     }
-
+#if WPNAV
     // set vertical speed and acceleration limits
     pos_control->set_max_speed_accel_z(wp_nav->get_default_speed_down(), wp_nav->get_default_speed_up(), wp_nav->get_accel_z());
     pos_control->set_correction_speed_accel_z(wp_nav->get_default_speed_down(), wp_nav->get_default_speed_up(), wp_nav->get_accel_z());
@@ -21,7 +23,7 @@ bool ModeLand::init(bool ignore_checks)
     if (!pos_control->is_active_z()) {
         pos_control->init_z_controller();
     }
-
+#endif
     land_start_time = millis();
     land_pause = false;
 
@@ -69,7 +71,7 @@ void ModeLand::gps_run()
     if (copter.ap.land_complete && motors->get_spool_state() == AP_Motors::SpoolState::GROUND_IDLE) {
         copter.arming.disarm(AP_Arming::Method::LANDED);
     }
-
+#if WPNAV
     // Land State Machine Determination
     if (is_disarmed_or_landed()) {
         make_safe_ground_handling();
@@ -87,6 +89,7 @@ void ModeLand::gps_run()
         // run normal landing or precision landing (if enabled)
         land_run_normal_or_precland(land_pause);
     }
+#endif
 }
 
 // land_nogps_run - runs the land controller

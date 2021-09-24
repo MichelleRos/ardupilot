@@ -603,11 +603,12 @@ void Mode::land_run_horizontal_control()
     float target_pitch = 0.0f;
     float target_yaw_rate = 0;
 
+#if WPNAV
     // relax loiter target if we might be landed
     if (copter.ap.land_complete_maybe) {
         loiter_nav->soften_for_landing();
     }
-
+#endif
     // process pilot inputs
     if (!copter.failsafe.radio) {
         if ((g.throttle_behavior & THR_BEHAVE_HIGH_THROTTLE_CANCELS_LAND) != 0 && copter.rc_throttle_control_in_filter.get() > LAND_CANCEL_TRIGGER_THR){
@@ -621,10 +622,10 @@ void Mode::land_run_horizontal_control()
         if (g.land_repositioning) {
             // apply SIMPLE mode transform to pilot inputs
             update_simple_mode();
-
+#if WPNAV
             // convert pilot input to lean angles
             get_pilot_desired_lean_angles(target_roll, target_pitch, loiter_nav->get_angle_max_cd(), attitude_control->get_althold_lean_angle_max_cd());
-
+#endif
             // record if pilot has overridden roll or pitch
             if (!is_zero(target_roll) || !is_zero(target_pitch)) {
                 if (!copter.ap.land_repo_active) {
@@ -658,7 +659,7 @@ void Mode::land_run_horizontal_control()
         pos_control->override_vehicle_velocity_xy(-target_vel_rel);
     }
 #endif
-
+#if WPNAV
     // process roll, pitch inputs
     loiter_nav->set_pilot_desired_acceleration(target_roll, target_pitch);
 
@@ -666,7 +667,9 @@ void Mode::land_run_horizontal_control()
     loiter_nav->update();
 
     Vector3f thrust_vector = loiter_nav->get_thrust_vector();
-
+#else
+    Vector3f thrust_vector;
+#endif
     if (g2.wp_navalt_min > 0) {
         // user has requested an altitude below which navigation
         // attitude is limited. This is used to prevent commanded roll

@@ -528,7 +528,7 @@ case AP_Motors::MOTOR_FRAME_DYNAMIC_SCRIPTING_MATRIX:
         AP_BoardConfig::config_error("Unable to allocate PosControl");
     }
     AP_Param::load_object_from_eeprom(pos_control, pos_control->var_info);
-
+#if WPNAV
 #if AC_OAPATHPLANNER_ENABLED == ENABLED
     wp_nav = new AC_WPNav_OA(inertial_nav, *ahrs_view, *pos_control, *attitude_control);
 #else
@@ -544,7 +544,7 @@ case AP_Motors::MOTOR_FRAME_DYNAMIC_SCRIPTING_MATRIX:
         AP_BoardConfig::config_error("Unable to allocate LoiterNav");
     }
     AP_Param::load_object_from_eeprom(loiter_nav, loiter_nav->var_info);
-
+#endif
 #if MODE_CIRCLE_ENABLED == ENABLED
     circle_nav = new AC_Circle(inertial_nav, *ahrs_view, *pos_control);
     if (circle_nav == nullptr) {

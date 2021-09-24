@@ -99,11 +99,11 @@ void Copter::tuning()
     case TUNING_VEL_XY_KI:
         pos_control->get_vel_xy_pid().kI(tuning_value);
         break;
-
+#if WPNAV
     case TUNING_WP_SPEED:
         wp_nav->set_speed_xy(tuning_value);
         break;
-
+#endif
 #if MODE_ACRO_ENABLED == ENABLED || MODE_SPORT_ENABLED == ENABLED
     // Acro roll pitch rates
     case TUNING_ACRO_RP_RATE:
