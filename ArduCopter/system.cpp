@@ -49,7 +49,7 @@ void Copter::init_ardupilot()
 
     // Init RSSI
     rssi.init();
-    
+
     barometer.init();
 
     // setup telem slots with serial ports
@@ -335,7 +335,7 @@ void Copter::update_auto_armed()
 
     }else{
         // arm checks
-        
+
         // for tradheli if motors are armed and throttle is above zero and the motor is started, auto_armed should be true
         if(motors->armed() && ap.using_interlock) {
             if(!ap.throttle_zero && motors->get_spool_state() == AP_Motors::SpoolState::THROTTLE_UNLIMITED) {
@@ -383,6 +383,7 @@ void Copter::allocate_motors(void)
             motors = new AP_MotorsMatrix(copter.scheduler.get_loop_rate_hz());
             motors_var_info = AP_MotorsMatrix::var_info;
             break;
+#if MORETHANQUAD
         case AP_Motors::MOTOR_FRAME_TRI:
             motors = new AP_MotorsTri(copter.scheduler.get_loop_rate_hz());
             motors_var_info = AP_MotorsTri::var_info;
@@ -401,6 +402,7 @@ void Copter::allocate_motors(void)
             motors_var_info = AP_MotorsTailsitter::var_info;
             break;
         case AP_Motors::MOTOR_FRAME_6DOF_SCRIPTING:
+#endif //MORETHANQUAD
 #if AP_SCRIPTING_ENABLED
             motors = new AP_MotorsMatrix_6DoF_Scripting(copter.scheduler.get_loop_rate_hz());
             motors_var_info = AP_MotorsMatrix_6DoF_Scripting::var_info;
@@ -413,6 +415,7 @@ void Copter::allocate_motors(void)
 #endif // AP_SCRIPTING_ENABLED
             break;
 #else // FRAME_CONFIG == HELI_FRAME
+#if MORETHANQUAD
         case AP_Motors::MOTOR_FRAME_HELI_DUAL:
             motors = new AP_MotorsHeli_Dual(copter.scheduler.get_loop_rate_hz());
             motors_var_info = AP_MotorsHeli_Dual::var_info;
@@ -424,13 +427,14 @@ void Copter::allocate_motors(void)
             motors_var_info = AP_MotorsHeli_Quad::var_info;
             AP_Param::set_frame_type_flags(AP_PARAM_FRAME_HELI);
             break;
-            
+
         case AP_Motors::MOTOR_FRAME_HELI:
         default:
             motors = new AP_MotorsHeli_Single(copter.scheduler.get_loop_rate_hz());
             motors_var_info = AP_MotorsHeli_Single::var_info;
             AP_Param::set_frame_type_flags(AP_PARAM_FRAME_HELI);
             break;
+#endif //MORETHANQUAD
 #endif
     }
     if (motors == nullptr) {
@@ -463,7 +467,7 @@ void Copter::allocate_motors(void)
         AP_BoardConfig::allocation_error("AttitudeControl");
     }
     AP_Param::load_object_from_eeprom(attitude_control, ac_var_info);
-        
+
     pos_control = new AC_PosControl(*ahrs_view, inertial_nav, *motors, *attitude_control, scheduler.get_loop_period_s());
     if (pos_control == nullptr) {
         AP_BoardConfig::allocation_error("PosControl");
@@ -496,7 +500,7 @@ void Copter::allocate_motors(void)
 
     // reload lines from the defaults file that may now be accessible
     AP_Param::reload_defaults_file(true);
-    
+
     // now setup some frame-class specific defaults
     switch ((AP_Motors::motor_frame_class)g2.frame_class.get()) {
     case AP_Motors::MOTOR_FRAME_Y6:
@@ -518,7 +522,7 @@ void Copter::allocate_motors(void)
     if (motors->is_brushed_pwm_type()) {
         g.rc_speed.set_default(16000);
     }
-    
+
     // upgrade parameters. This must be done after allocating the objects
     convert_pid_parameters();
 #if FRAME_CONFIG == HELI_FRAME

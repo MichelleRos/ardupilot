@@ -585,6 +585,7 @@ void AP_MotorsMatrix::setup_motors(motor_frame_class frame_class, motor_frame_ty
             _frame_class_string = "QUAD";
             _mav_type = MAV_TYPE_QUADROTOR;
             switch (frame_type) {
+#if MORETHANQUAD
                 case MOTOR_FRAME_TYPE_PLUS: {
                     _frame_type_string = "PLUS";
                     static const AP_MotorsMatrix::MotorDef motors[] {
@@ -596,6 +597,7 @@ void AP_MotorsMatrix::setup_motors(motor_frame_class frame_class, motor_frame_ty
                     add_motors(motors, ARRAY_SIZE(motors));
                     break;
                 }
+#endif
                 case MOTOR_FRAME_TYPE_X: {
                     _frame_type_string = "X";
                     static const AP_MotorsMatrix::MotorDef motors[] {
@@ -607,6 +609,7 @@ void AP_MotorsMatrix::setup_motors(motor_frame_class frame_class, motor_frame_ty
                     add_motors(motors, ARRAY_SIZE(motors));
                     break;
                 }
+#if MORETHANQUAD
 #if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
                 case MOTOR_FRAME_TYPE_NYT_PLUS: {
                     _frame_type_string = "NYT_PLUS";
@@ -771,6 +774,7 @@ void AP_MotorsMatrix::setup_motors(motor_frame_class frame_class, motor_frame_ty
                     };
                     add_motors_raw(motors, ARRAY_SIZE(motors));
                     break;
+#endif //MORETHANQUAD
                 default:
                     // quad frame class does not support this frame type
                     _frame_type_string = "UNSUPPORTED";
@@ -779,6 +783,7 @@ void AP_MotorsMatrix::setup_motors(motor_frame_class frame_class, motor_frame_ty
             }
             break;  // quad
 #endif //AP_MOTORS_FRAME_QUAD_ENABLED
+#if MORETHANQUAD
 #if AP_MOTORS_FRAME_HEXA_ENABLED
         case MOTOR_FRAME_HEXA:
             _frame_class_string = "HEXA";
@@ -1212,6 +1217,7 @@ void AP_MotorsMatrix::setup_motors(motor_frame_class frame_class, motor_frame_ty
             }
             break;
 #endif //AP_MOTORS_FRAME_DECA_ENABLED
+#endif //MORETHANQUAD
         default:
             // matrix doesn't support the configured class
             _frame_class_string = "UNSUPPORTED";
