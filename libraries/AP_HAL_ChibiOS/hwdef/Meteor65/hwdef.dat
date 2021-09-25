@@ -8,6 +8,7 @@ undef FLASH_SIZE_KB
 FLASH_SIZE_KB 1024 #temp change to be able to see how far over it is...
 
 define WPNAV DISABLED
+define MORETHANQUAD 0
 
 define AC_AVOID_ENABLED DISABLED
 define AC_FENCE DISABLED
