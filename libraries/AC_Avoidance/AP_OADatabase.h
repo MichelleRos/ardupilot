@@ -5,6 +5,8 @@
 #include <GCS_MAVLink/GCS_MAVLink.h>
 #include <AP_Param/AP_Param.h>
 
+#if AC_AVOID_ENABLED
+
 class AP_OADatabase {
 public:
 
@@ -113,4 +115,4 @@ namespace AP {
     AP_OADatabase *oadatabase();
 };
 
-
+#endif

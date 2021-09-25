@@ -20,6 +20,8 @@
 #include <AP_AHRS/AP_AHRS.h>
 #include <AP_Logger/AP_Logger.h>
 
+#if AC_AVOID_ENABLED
+
 #define OA_DIJKSTRA_EXPANDING_ARRAY_ELEMENTS_PER_CHUNK  32      // expanding arrays for fence points and paths to destination will grow in increments of 20 elements
 #define OA_DIJKSTRA_POLYGON_SHORTPATH_NOTSET_IDX        255     // index use to indicate we do not have a tentative short path for a node
 #define OA_DIJKSTRA_ERROR_REPORTING_INTERVAL_MS         5000    // failure messages sent to GCS every 5 seconds
@@ -959,3 +961,5 @@ bool AP_OADijkstra::convert_node_to_point(const AP_OAVisGraph::OAItemID& id, Vec
     // we should never reach here but just in case
     return false;
 }
+
+#endif

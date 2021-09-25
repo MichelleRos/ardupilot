@@ -4,6 +4,7 @@
 #include <GCS_MAVLink/GCS.h>
 
 #include <stdio.h>
+#if AC_FENCE
 
 #define POLYFENCE_LOADER_DEBUGGING 0
 
@@ -1662,3 +1663,5 @@ void AC_PolyFence_loader::update()
         return;
     }
 }
+
+#endif 

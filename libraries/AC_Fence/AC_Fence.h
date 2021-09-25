@@ -6,6 +6,9 @@
 #include <AP_Math/AP_Math.h>
 #include <AC_Fence/AC_PolyFence_loader.h>
 
+#if AC_FENCE
+#include <AC_Fence/AC_PolyFence_loader.h>
+
 // bit masks for enabled fence types.  Used for TYPE parameter
 #define AC_FENCE_TYPE_ALT_MAX                       1       // high alt fence which usually initiates an RTL
 #define AC_FENCE_TYPE_CIRCLE                        2       // circular horizontal fence (usually initiates an RTL)
@@ -135,7 +138,7 @@ public:
 
     /// get_return_rally - returns whether returning to fence return point or rally point
     uint8_t get_return_rally() const { return _ret_rally; }
-    
+
     /// get_return_rally - returns whether returning to fence return point or rally point
     float get_return_altitude() const { return _ret_altitude; }
 
@@ -224,3 +227,5 @@ private:
 namespace AP {
     AC_Fence *fence();
 };
+
+#endif //AC_Fence

@@ -1,6 +1,7 @@
 #include <AP_Math/control.h>
 #include <AP_InternalError/AP_InternalError.h>
 #include "AC_WPNav_OA.h"
+#if WPNAV
 
 AC_WPNav_OA::AC_WPNav_OA(const AP_InertialNav& inav, const AP_AHRS_View& ahrs, AC_PosControl& pos_control, const AC_AttitudeControl& attitude_control) :
     AC_WPNav(inav, ahrs, pos_control, attitude_control)
@@ -202,3 +203,4 @@ bool AC_WPNav_OA::update_wpnav()
     // run the non-OA update
     return AC_WPNav::update_wpnav();
 }
+#endif

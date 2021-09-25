@@ -161,8 +161,10 @@ protected:
     // convenience references to avoid code churn in conversion:
     Parameters &g;
     ParametersG2 &g2;
+#if WPNAV
     AC_WPNav *&wp_nav;
     AC_Loiter *&loiter_nav;
+#endif
     AC_PosControl *&pos_control;
     AP_InertialNav &inertial_nav;
     AP_AHRS &ahrs;
@@ -476,7 +478,9 @@ protected:
 
     uint32_t wp_distance() const override;
     int32_t wp_bearing() const override;
+#if WPNAV
     float crosstrack_error() const override { return wp_nav->crosstrack_error();}
+#endif
     bool get_wp(Location &loc) const override;
 
 private:
@@ -1297,7 +1301,9 @@ protected:
     // for reporting to GCS
     uint32_t wp_distance() const override;
     int32_t wp_bearing() const override;
+#if WPNAV
     float crosstrack_error() const override { return wp_nav->crosstrack_error();}
+#endif
 
     void descent_start();
     void descent_run();
@@ -1388,7 +1394,9 @@ protected:
     bool get_wp(Location &loc) const override;
     uint32_t wp_distance() const override;
     int32_t wp_bearing() const override;
+#if WPNAV
     float crosstrack_error() const override { return wp_nav->crosstrack_error();}
+#endif
 
 private:
 

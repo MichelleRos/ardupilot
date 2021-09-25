@@ -455,8 +455,10 @@ private:
     // To-Do: move inertial nav up or other navigation variables down here
     AC_AttitudeControl_t *attitude_control;
     AC_PosControl *pos_control;
+#if WPNAV
     AC_WPNav *wp_nav;
     AC_Loiter *loiter_nav;
+#endif
 
 #if MODE_CIRCLE_ENABLED == ENABLED
     AC_Circle *circle_nav;

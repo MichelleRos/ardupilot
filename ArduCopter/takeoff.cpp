@@ -102,6 +102,7 @@ void Mode::_TakeOff::do_pilot_takeoff(float& pilot_climb_rate_cm)
 // auto_takeoff_complete set to true when target altitude is within 10% of the take off altitude and less than 50% max climb rate
 void Mode::auto_takeoff_run()
 {
+#if WPNAV
     // if not armed set throttle to zero and exit immediately
     if (!motors->armed() || !copter.ap.auto_armed) {
         // do not spool down tradheli when on the ground with motor interlock enabled
@@ -162,7 +163,7 @@ void Mode::auto_takeoff_run()
     float pos_z = auto_takeoff_complete_alt_cm + terr_offset;
     float vel_z = 0.0;
     copter.pos_control->input_pos_vel_accel_z(pos_z, vel_z, 0.0);
-    
+
     // run the vertical position controller and set output throttle
     pos_control->update_z_controller();
 

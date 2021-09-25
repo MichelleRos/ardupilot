@@ -12,6 +12,7 @@
 #include <AP_Terrain/AP_Terrain.h>
 #include <AC_Avoidance/AC_Avoid.h>                 // Stop at fence library
 
+#if WPNAV
 class AC_WPNav
 {
 public:
@@ -276,3 +277,4 @@ protected:
     bool        _rangefinder_healthy;   // true if rangefinder distance is healthy (i.e. between min and maximum)
     float       _rangefinder_alt_cm;    // latest distance from the rangefinder
 };
+#endif

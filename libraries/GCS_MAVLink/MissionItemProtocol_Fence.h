@@ -1,6 +1,7 @@
 #pragma once
 
 #include "MissionItemProtocol.h"
+#if AC_FENCE
 
 class AC_PolyFence_loader;
 
@@ -51,3 +52,5 @@ private:
     uint16_t _new_items_count;
     uint8_t *_updated_mask;
 };
+
+#endif

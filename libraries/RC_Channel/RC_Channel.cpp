@@ -438,7 +438,7 @@ void RC_Channel::read_mode_switch()
     }
 }
 
-bool RC_Channel::debounce_completed(int8_t position) 
+bool RC_Channel::debounce_completed(int8_t position)
 {
     // switch change not detected
     if (switch_state.current_position == position) {
@@ -587,7 +587,7 @@ const RC_Channel::LookupTable RC_Channel::lookuptable[] = {
 };
 
 /* lookup the announcement for switch change */
-const char *RC_Channel::string_for_aux_function(AUX_FUNC function) const     
+const char *RC_Channel::string_for_aux_function(AUX_FUNC function) const
 {
      for (const struct LookupTable &entry : lookuptable) {
         if (entry.option == function) {
@@ -634,13 +634,13 @@ bool RC_Channel::read_aux()
         const char *temp =  nullptr;
         switch (new_position) {
         case AuxSwitchPos::HIGH:
-            temp = "HIGH";           
+            temp = "HIGH";
             break;
         case AuxSwitchPos::MIDDLE:
             temp = "MIDDLE";
             break;
         case AuxSwitchPos::LOW:
-            temp = "LOW";          
+            temp = "LOW";
             break;
         }
         gcs().send_text(MAV_SEVERITY_INFO, "%s %s", aux_string, temp);
@@ -701,6 +701,7 @@ void RC_Channel::do_aux_function_avoid_adsb(const AuxSwitchPos ch_flag)
 
 void RC_Channel::do_aux_function_avoid_proximity(const AuxSwitchPos ch_flag)
 {
+#if AC_AVOID_ENABLED
 #if !APM_BUILD_TYPE(APM_BUILD_ArduPlane)
     AC_Avoid *avoid = AP::ac_avoid();
     if (avoid == nullptr) {
@@ -719,6 +720,7 @@ void RC_Channel::do_aux_function_avoid_proximity(const AuxSwitchPos ch_flag)
         break;
     }
 #endif // !APM_BUILD_ArduPlane
+#endif
 }
 
 void RC_Channel::do_aux_function_camera_trigger(const AuxSwitchPos ch_flag)
@@ -777,12 +779,14 @@ void RC_Channel::do_aux_function_runcam_osd_control(const AuxSwitchPos ch_flag)
 // enable or disable the fence
 void RC_Channel::do_aux_function_fence(const AuxSwitchPos ch_flag)
 {
+#if AC_FENCE
     AC_Fence *fence = AP::fence();
     if (fence == nullptr) {
         return;
     }
 
     fence->enable(ch_flag == AuxSwitchPos::HIGH);
+#endif
 }
 
 void RC_Channel::do_aux_function_clear_wp(const AuxSwitchPos ch_flag)
@@ -1286,10 +1290,10 @@ bool RC_Channel::read_3pos_switch(RC_Channel::AuxSwitchPos &ret) const
     if (in <= RC_MIN_LIMIT_PWM || in >= RC_MAX_LIMIT_PWM) {
         return false;
     }
-    
+
     // switch is reversed if 'reversed' option set on channel and switches reverse is allowed by RC_OPTIONS
     bool switch_reversed = reversed && rc().switch_reverse_allowed();
-    
+
     if (in < AUX_SWITCH_PWM_TRIGGER_LOW) {
         ret = switch_reversed ? AuxSwitchPos::HIGH : AuxSwitchPos::LOW;
     } else if (in > AUX_SWITCH_PWM_TRIGGER_HIGH) {

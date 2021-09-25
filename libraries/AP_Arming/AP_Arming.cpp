@@ -1089,6 +1089,7 @@ bool AP_Arming::can_checks(bool report)
 
 bool AP_Arming::fence_checks(bool display_failure)
 {
+#if AC_FENCE
     const AC_Fence *fence = AP::fence();
     if (fence == nullptr) {
         return true;
@@ -1107,6 +1108,9 @@ bool AP_Arming::fence_checks(bool display_failure)
     }
 
     return false;
+#else
+    return true;
+#endif
 }
 
 bool AP_Arming::camera_checks(bool display_failure)
@@ -1373,7 +1377,7 @@ bool AP_Arming::arm_checks(AP_Arming::Method method)
             return false;
         }
     }
-
+#if AC_FENCE
     AC_Fence *fence = AP::fence();
     if (fence != nullptr) {
         // If a fence is set to auto-enable, turn on the fence
@@ -1381,6 +1385,7 @@ bool AP_Arming::arm_checks(AP_Arming::Method method)
             fence->enable(true);
         }
     }
+#endif
     
     // note that this will prepare AP_Logger to start logging
     // so should be the last check to be done before arming
@@ -1478,13 +1483,14 @@ bool AP_Arming::disarm(const AP_Arming::Method method, bool do_disarm_checks)
         fft->save_params_on_disarm();
     }
 #endif
-
+#if AC_FENCE
     AC_Fence *fence = AP::fence();
     if (fence != nullptr) {
         if(fence->auto_enabled() == AC_Fence::AutoEnable::ONLY_WHEN_ARMED) {
             fence->enable(false);
         }
     }
+#endif
 
     return true;
 }

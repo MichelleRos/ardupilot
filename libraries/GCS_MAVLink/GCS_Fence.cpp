@@ -2,6 +2,7 @@
 
 #include <AC_Fence/AC_Fence.h>
 #include <AC_Avoidance/AC_Avoid.h>
+#if AC_FENCE
 #include <AP_Vehicle/AP_Vehicle_Type.h>
 
 MAV_RESULT GCS_MAVLINK::handle_command_do_fence_enable(const mavlink_command_long_t &packet)
@@ -20,7 +21,7 @@ MAV_RESULT GCS_MAVLINK::handle_command_do_fence_enable(const mavlink_command_lon
         {
             return MAV_RESULT_FAILED;
         }
-    
+
         fence->enable(true);
         return MAV_RESULT_ACCEPTED;
     case 2: // disable fence floor only
@@ -96,3 +97,5 @@ void GCS_MAVLINK::send_fence_status() const
                                   fence->get_breach_time(),
                                   breach_mitigation);
 }
+
+#endif

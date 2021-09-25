@@ -1,6 +1,7 @@
 #include <AP_HAL/AP_HAL.h>
 #include "AC_WPNav.h"
 
+#if WPNAV
 extern const AP_HAL::HAL& hal;
 
 // maximum velocities and accelerations
@@ -893,3 +894,5 @@ void AC_WPNav::calc_scurve_jerk_and_snap()
     // reduce maximum snap by a factor of two from what the aircraft is capable of
     _scurve_snap *= 0.5;
 }
+
+#endif

@@ -1,4 +1,7 @@
 #include "AC_Avoid.h"
+
+#if AC_AVOID_ENABLED
+
 #include "AP_OADijkstra.h"
 #include "AP_OABendyRuler.h"
 #include <AP_Logger/AP_Logger.h>
@@ -76,3 +79,5 @@ void AC_Avoid::Write_SimpleAvoidance(const uint8_t state, const Vector3f& desire
     };
     AP::logger().WriteBlock(&pkt, sizeof(pkt));
 }
+
+#endif //AC_AVOID_ENABLED

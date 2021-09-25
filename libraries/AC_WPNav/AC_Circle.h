@@ -6,6 +6,7 @@
 #include <AP_InertialNav/AP_InertialNav.h>     // Inertial Navigation library
 #include <AC_AttitudeControl/AC_PosControl.h>      // Position control library
 
+#if WPNAV
 // loiter maximum velocities and accelerations
 #define AC_CIRCLE_RADIUS_DEFAULT    1000.0f     // radius of the circle in cm that the vehicle will fly
 #define AC_CIRCLE_RATE_DEFAULT      20.0f       // turn rate in deg/sec.  Positive to turn clockwise, negative for counter clockwise
@@ -160,3 +161,5 @@ private:
     bool        _rangefinder_healthy;   // true if range finder is healthy
     float       _rangefinder_alt_cm;    // latest rangefinder altitude
 };
+
+#endif

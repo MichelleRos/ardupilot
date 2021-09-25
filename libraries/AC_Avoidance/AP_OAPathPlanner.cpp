@@ -18,6 +18,8 @@
 #include <AP_AHRS/AP_AHRS.h>
 #include <AC_Fence/AC_Fence.h>
 #include <AP_Logger/AP_Logger.h>
+
+#if AC_AVOID_ENABLED
 #include "AP_OABendyRuler.h"
 #include "AP_OADijkstra.h"
 
@@ -381,3 +383,5 @@ AP_OAPathPlanner *ap_oapathplanner()
 }
 
 }
+
+#endif

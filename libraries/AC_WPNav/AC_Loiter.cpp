@@ -2,6 +2,7 @@
 #include "AC_Loiter.h"
 #include <AP_Vehicle/AP_Vehicle_Type.h>
 
+#if WPNAV
 extern const AP_HAL::HAL& hal;
 
 #define LOITER_SPEED_DEFAULT                1250.0f // default loiter speed in cm/s
@@ -290,3 +291,5 @@ void AC_Loiter::calc_desired_velocity(float nav_dt, bool avoidance_on)
     // send adjusted feed forward acceleration and velocity back to the Position Controller
     _pos_control.set_pos_vel_accel_xy(target_pos, desired_vel, _desired_accel);
 }
+
+#endif

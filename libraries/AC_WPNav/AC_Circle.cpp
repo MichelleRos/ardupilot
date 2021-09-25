@@ -5,6 +5,7 @@
 
 #include <AP_Logger/AP_Logger.h>
 
+#if WPNAV
 extern const AP_HAL::HAL& hal;
 
 const AP_Param::GroupInfo AC_Circle::var_info[] = {
@@ -381,3 +382,4 @@ void AC_Circle::check_param_change()
         _last_radius_param = _radius_parm;
     }
 }
+#endif

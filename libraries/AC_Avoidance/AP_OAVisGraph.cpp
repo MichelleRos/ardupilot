@@ -15,6 +15,8 @@
 
 #include "AP_OAVisGraph.h"
 
+#if AC_AVOID_ENABLED
+
 // constructor initialises expanding array to use 20 elements per chunk
 AP_OAVisGraph::AP_OAVisGraph() :
     _items(20)
@@ -39,3 +41,5 @@ bool AP_OAVisGraph::add_item(const OAItemID &id1, const OAItemID &id2, float dis
     _num_items++;
     return true;
 }
+
+#endif

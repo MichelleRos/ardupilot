@@ -17,6 +17,7 @@
 #include <GCS_MAVLink/GCS.h>
 #include <AP_Math/AP_Math.h>
 
+#if AC_AVOID_ENABLED
 extern const AP_HAL::HAL& hal;
 
 #ifndef AP_OADATABASE_TIMEOUT_SECONDS_DEFAULT
@@ -474,3 +475,5 @@ AP_OADatabase *oadatabase()
 }
 
 }
+
+#endif

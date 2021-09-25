@@ -2,6 +2,7 @@
 
 #include <AP_Logger/LogStructure.h>
 
+#if AC_AVOID_ENABLED
 #define LOG_IDS_FROM_AVOIDANCE \
     LOG_OA_BENDYRULER_MSG, \
     LOG_OA_DIJKSTRA_MSG, \
@@ -115,3 +116,4 @@ struct PACKED log_OD_Visgraph {
       "SA",  "QBffffffB","TimeUS,State,DVelX,DVelY,DVelZ,MVelX,MVelY,MVelZ,Back", "sbnnnnnnb", "F--------", true }, \
      { LOG_OD_VISGRAPH_MSG, sizeof(log_OD_Visgraph), \
       "OAVG", "QBBLL", "TimeUS,version,point_num,Lat,Lon", "s--DU", "F--GG", true},
+

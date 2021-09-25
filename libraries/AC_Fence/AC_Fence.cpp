@@ -3,7 +3,7 @@
 #include <AP_AHRS/AP_AHRS.h>
 #include <AP_HAL/AP_HAL.h>
 #include <AP_Logger/AP_Logger.h>
-
+#if AC_FENCE
 extern const AP_HAL::HAL& hal;
 
 #if APM_BUILD_TYPE(APM_BUILD_Rover)
@@ -705,3 +705,4 @@ AC_Fence *fence()
 }
 
 }
+#endif
