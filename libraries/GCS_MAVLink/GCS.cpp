@@ -31,7 +31,9 @@ void GCS::get_sensor_status_flags(uint32_t &present,
 
 MissionItemProtocol_Waypoints *GCS::_missionitemprotocol_waypoints;
 MissionItemProtocol_Rally *GCS::_missionitemprotocol_rally;
+#if 0 //SHOULD BE AC_Fence 
 MissionItemProtocol_Fence *GCS::_missionitemprotocol_fence;
+#endif
 
 const MAV_MISSION_TYPE GCS_MAVLINK::supported_mission_types[] = {
     MAV_MISSION_TYPE_MISSION,
@@ -241,6 +243,7 @@ void GCS::update_sensor_status_flags()
 #endif
 
 #if !defined(HAL_BUILD_AP_PERIPH)
+#if 0 //SHOULD BE AC_FENCE
     const AC_Fence *fence = AP::fence();
     if (fence != nullptr) {
         if (fence->sys_status_enabled()) {
@@ -253,6 +256,7 @@ void GCS::update_sensor_status_flags()
             control_sensors_health |= MAV_SYS_STATUS_GEOFENCE;
         }
     }
+#endif
 #endif
 
 #if HAL_VISUALODOM_ENABLED

@@ -7,11 +7,11 @@ include ../skyviper-f412-rev1/hwdef.dat
 undef FLASH_SIZE_KB
 FLASH_SIZE_KB 1024 #temp change to be able to see how far over it is...
 
-define WPNAV DISABLED
+define WPNAV 0
 define MORETHANQUAD 0
 
-define AC_AVOID_ENABLED DISABLED
-define AC_FENCE DISABLED
+define AC_AVOID_ENABLED 0
+define AC_FENCE 0
 define AC_RALLY DISABLED
 define AC_TERRAIN DISABLED
 define ADSB_ENABLED DISABLED
@@ -68,6 +68,8 @@ define HAL_LOGGING_ENABLED 0
 define HAL_LOGGING_MAVLINK_ENABLED 0
 define HAL_MISSION_ENABLED 0
 define HAL_RALLY_ENABLED 0
+define HAVE_FILESYSTEM_SUPPORT 0 #seemed to .increase. build size by 8 bytes??
+#define HAL_GCS_ENABLED 0
 
 define HAL_MINIMISE_FEATURES ENABLED
 

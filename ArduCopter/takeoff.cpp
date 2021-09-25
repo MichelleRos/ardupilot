@@ -95,6 +95,7 @@ void Mode::_TakeOff::do_pilot_takeoff(float& pilot_climb_rate_cm)
 
 void Mode::auto_takeoff_run()
 {
+#if WPNAV
     // if not armed set throttle to zero and exit immediately
     if (!motors->armed() || !copter.ap.auto_armed) {
         // do not spool down tradheli when on the ground with motor interlock enabled
@@ -155,6 +156,7 @@ void Mode::auto_takeoff_run()
 
     // roll & pitch from waypoint controller, yaw rate from pilot
     attitude_control->input_thrust_vector_rate_heading(thrustvector, target_yaw_rate);
+#endif
 }
 
 void Mode::auto_takeoff_set_start_alt(void)

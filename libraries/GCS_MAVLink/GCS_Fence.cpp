@@ -2,6 +2,7 @@
 
 #include <AC_Fence/AC_Fence.h>
 #include <AC_Avoidance/AC_Avoid.h>
+#if AC_FENCE
 
 MAV_RESULT GCS_MAVLINK::handle_command_do_fence_enable(const mavlink_command_long_t &packet)
 {
@@ -93,3 +94,5 @@ void GCS_MAVLINK::send_fence_status() const
                                   fence->get_breach_time(),
                                   breach_mitigation);
 }
+
+#endif

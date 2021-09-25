@@ -4,6 +4,8 @@
 #include <AP_Common/Location.h>
 #include <AP_Param/AP_Param.h>
 #include <AP_HAL/AP_HAL.h>
+
+#if AC_AVOID_ENABLED
 #include "AP_OABendyRuler.h"
 #include "AP_OADijkstra.h"
 #include "AP_OADatabase.h"
@@ -123,3 +125,5 @@ private:
 namespace AP {
     AP_OAPathPlanner *ap_oapathplanner();
 };
+
+#endif

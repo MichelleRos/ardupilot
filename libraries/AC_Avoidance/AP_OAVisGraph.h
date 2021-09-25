@@ -4,6 +4,7 @@
 #include <AP_Common/AP_ExpandingArray.h>
 #include <AP_HAL/AP_HAL.h>
 
+#if AC_AVOID_ENABLED
 /*
  * Visibility graph used by Dijkstra's algorithm for path planning around fence, stay-out zones and moving obstacles
  */
@@ -57,3 +58,5 @@ private:
     AP_ExpandingArray<VisGraphItem> _items;
     uint16_t _num_items;
 };
+
+#endif

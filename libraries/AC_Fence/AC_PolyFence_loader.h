@@ -5,6 +5,8 @@
 #include <AP_Math/AP_Math.h>
 #include <GCS_MAVLink/GCS_MAVLink.h>
 
+#if AC_FENCE
+
 #define AC_POLYFENCE_FENCE_POINT_PROTOCOL_SUPPORT 1
 
 // CIRCLE_INCLUSION_INT stores the radius an a 32-bit integer in
@@ -434,3 +436,5 @@ private:
 
     uint16_t fence_storage_space_required(const AC_PolyFenceItem *new_items, uint16_t count);
 };
+
+#endif

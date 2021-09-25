@@ -2,6 +2,7 @@
 
 #include <AP_Logger/LogStructure.h>
 
+#if AC_AVOID_ENABLED
 #define LOG_IDS_FROM_AVOIDANCE \
     LOG_OA_BENDYRULER_MSG, \
     LOG_OA_DIJKSTRA_MSG, \
@@ -96,3 +97,5 @@ struct PACKED log_SimpleAvoid {
       "OADJ","QBBBBLLLL","TimeUS,State,Err,CurrPoint,TotPoints,DLat,DLng,OALat,OALng", "sbbbbDUDU", "F----GGGG" , true }, \
     { LOG_SIMPLE_AVOID_MSG, sizeof(log_SimpleAvoid), \
       "SA",  "QBffffffB","TimeUS,State,DVelX,DVelY,DVelZ,MVelX,MVelY,MVelZ,Back", "sbnnnnnnb", "F--------", true },
+
+#endif

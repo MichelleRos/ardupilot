@@ -1,6 +1,7 @@
 #include <AP_HAL/AP_HAL.h>
 #include "AC_WPNav.h"
 
+#if WPNAV
 extern const AP_HAL::HAL& hal;
 
 // maximum velocities and accelerations
@@ -883,3 +884,5 @@ void AC_WPNav::calc_scurve_jerk_and_jerk_time()
     }
     _scurve_jerk_time *= 2.0f;
 }
+
+#endif

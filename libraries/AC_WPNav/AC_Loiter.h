@@ -9,6 +9,7 @@
 #include <AC_AttitudeControl/AC_AttitudeControl.h>
 #include <AC_Avoidance/AC_Avoid.h>
 
+#if WPNAV
 class AC_Loiter
 {
 public:
@@ -88,3 +89,5 @@ protected:
     uint32_t    _brake_timer;           // system time that brake was initiated
     float       _brake_accel;           // acceleration due to braking from previous iteration (used for jerk limiting)
 };
+
+#endif

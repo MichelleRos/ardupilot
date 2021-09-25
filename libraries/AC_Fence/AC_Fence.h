@@ -5,8 +5,10 @@
 #include <AP_Param/AP_Param.h>
 #include <AP_Math/AP_Math.h>
 #include <GCS_MAVLink/GCS.h>
-#include <AC_Fence/AC_PolyFence_loader.h>
 #include <AP_Common/Location.h>
+
+#if AC_FENCE
+#include <AC_Fence/AC_PolyFence_loader.h>
 
 // bit masks for enabled fence types.  Used for TYPE parameter
 #define AC_FENCE_TYPE_ALT_MAX                       1       // high alt fence which usually initiates an RTL
@@ -226,3 +228,5 @@ private:
 namespace AP {
     AC_Fence *fence();
 };
+
+#endif //AC_Fence

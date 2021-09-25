@@ -19,6 +19,8 @@
 #include <AP_AHRS/AP_AHRS.h>
 #include <AP_Logger/AP_Logger.h>
 
+#if AC_AVOID_ENABLED
+
 // parameter defaults
 const float OA_BENDYRULER_LOOKAHEAD_DEFAULT = 15.0f;
 const float OA_BENDYRULER_RATIO_DEFAULT = 1.5f;
@@ -691,3 +693,5 @@ bool AP_OABendyRuler::calc_margin_from_object_database(const Location &start, co
 
     return false;
 }
+
+#endif

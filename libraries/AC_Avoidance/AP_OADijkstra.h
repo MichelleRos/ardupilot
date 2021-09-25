@@ -4,6 +4,8 @@
 #include <AP_Common/Location.h>
 #include <AP_Math/AP_Math.h>
 #include <AP_HAL/AP_HAL.h>
+
+#if AC_AVOID_ENABLED
 #include "AP_OAVisGraph.h"
 
 /*
@@ -193,3 +195,5 @@ private:
     // Logging function
     void Write_OADijkstra(const uint8_t state, const uint8_t error_id, const uint8_t curr_point, const uint8_t tot_points, const Location &final_dest, const Location &oa_dest) const;
 };
+
+#endif

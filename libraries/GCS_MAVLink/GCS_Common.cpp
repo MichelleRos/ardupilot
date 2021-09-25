@@ -478,8 +478,10 @@ MissionItemProtocol *GCS::get_prot_for_mission_type(const MAV_MISSION_TYPE missi
         return _missionitemprotocol_waypoints;
     case MAV_MISSION_TYPE_RALLY:
         return _missionitemprotocol_rally;
+#if AC_FENCE
     case MAV_MISSION_TYPE_FENCE:
         return _missionitemprotocol_fence;
+#endif
     default:
         return nullptr;
     }
@@ -2081,10 +2083,12 @@ void GCS::update_send()
             _missionitemprotocol_rally = new MissionItemProtocol_Rally(*rally);
         }
 #endif
+#if AC_FENCE
         AC_Fence *fence = AP::fence();
         if (fence != nullptr) {
             _missionitemprotocol_fence = new MissionItemProtocol_Fence(*fence);
         }
+#endif
     }
     if (_missionitemprotocol_waypoints != nullptr) {
         _missionitemprotocol_waypoints->update();
@@ -2092,9 +2096,11 @@ void GCS::update_send()
     if (_missionitemprotocol_rally != nullptr) {
         _missionitemprotocol_rally->update();
     }
+#if AC_FENCE
     if (_missionitemprotocol_fence != nullptr) {
         _missionitemprotocol_fence->update();
     }
+#endif
 #endif // HAL_BUILD_AP_PERIPH
     // round-robin the GCS_MAVLINK backend that gets to go first so
     // one backend doesn't monopolise all of the time allowed for sending
@@ -3451,12 +3457,12 @@ void GCS_MAVLINK::handle_common_message(const mavlink_message_t &msg)
     case MAVLINK_MSG_ID_COMMAND_INT:
         handle_command_int(msg);
         break;
-
+#if AC_FENCE
     case MAVLINK_MSG_ID_FENCE_POINT:
     case MAVLINK_MSG_ID_FENCE_FETCH_POINT:
         handle_fence_message(msg);
         break;
-
+#endif
     case MAVLINK_MSG_ID_GIMBAL_REPORT:
         handle_mount_message(msg);
         break;
@@ -4175,11 +4181,11 @@ MAV_RESULT GCS_MAVLINK::handle_command_long_packet(const mavlink_command_long_t 
     case MAV_CMD_DO_SET_HOME:
         result = handle_command_do_set_home(packet);
         break;
-
+#if AC_FENCE
     case MAV_CMD_DO_FENCE_ENABLE:
         result = handle_command_do_fence_enable(packet);
         break;
-
+#endif
     case MAV_CMD_PREFLIGHT_REBOOT_SHUTDOWN:
         result = handle_preflight_reboot(packet);
         break;
@@ -4979,12 +4985,12 @@ bool GCS_MAVLINK::try_send_message(const enum ap_message id)
         CHECK_PAYLOAD_SIZE(MEMINFO);
         send_meminfo();
         break;
-
+#if AC_FENCE
     case MSG_FENCE_STATUS:
         CHECK_PAYLOAD_SIZE(FENCE_STATUS);
         send_fence_status();
         break;
-
+#endif
     case MSG_RANGEFINDER:
         CHECK_PAYLOAD_SIZE(RANGEFINDER);
         send_rangefinder();
@@ -5512,11 +5518,11 @@ uint64_t GCS_MAVLINK::capabilities() const
         ret |= MAV_PROTOCOL_CAPABILITY_MISSION_RALLY;
     }
 #endif
-
+#if AC_FENCE
     if (AP::fence()) {
         ret |= MAV_PROTOCOL_CAPABILITY_MISSION_FENCE;
     }
-
+#endif
     if (!AP_BoardConfig::ftp_disabled()){  //if ftp disable board option is not set
         ret |= MAV_PROTOCOL_CAPABILITY_FTP;
     }

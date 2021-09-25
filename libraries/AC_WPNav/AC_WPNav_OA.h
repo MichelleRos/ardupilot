@@ -4,6 +4,8 @@
 #include <AC_Avoidance/AP_OAPathPlanner.h>
 #include <AC_Avoidance/AP_OABendyRuler.h>
 
+#if WPNAV
+
 class AC_WPNav_OA : public AC_WPNav
 {
 
@@ -43,3 +45,4 @@ protected:
     bool        _terrain_alt_oabak;     // true if backup origin and destination z-axis are terrain altitudes
     Location    _oa_destination;        // intermediate destination during avoidance
 };
+#endif

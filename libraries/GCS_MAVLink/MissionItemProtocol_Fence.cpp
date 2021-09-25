@@ -1,7 +1,7 @@
 #include "MissionItemProtocol_Fence.h"
 
 #include <AC_Fence/AC_Fence.h>
-
+#if AC_FENCE
 /*
   public function to format mission item as mavlink_mission_item_int_t
  */
@@ -239,3 +239,5 @@ MAV_MISSION_RESULT MissionItemProtocol_Fence::allocate_update_resources()
     _new_items_count = _item_count;
     return MAV_MISSION_ACCEPTED;
 }
+
+#endif
