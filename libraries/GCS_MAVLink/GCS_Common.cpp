@@ -2205,10 +2205,12 @@ void GCS::update_send()
         if (mission != nullptr) {
             _missionitemprotocol_waypoints = new MissionItemProtocol_Waypoints(*mission);
         }
+#if HAL_RALLY_ENABLED
         AP_Rally *rally = AP::rally();
         if (rally != nullptr) {
             _missionitemprotocol_rally = new MissionItemProtocol_Rally(*rally);
         }
+#endif
         AC_Fence *fence = AP::fence();
         if (fence != nullptr) {
             _missionitemprotocol_fence = new MissionItemProtocol_Fence(*fence);
