@@ -716,6 +716,7 @@ bool AP_Arming::mission_checks(bool report)
             #endif // CONFIG_HAL_BOARD == HAL_BOARD_SITL
             return false;
         }
+#if HAL_RALLY_ENABLED
         AP_Rally *rally = AP::rally();
         if (rally == nullptr) {
             check_failed(ARMING_CHECK_MISSION, report, "No rally library present");
@@ -724,6 +725,7 @@ bool AP_Arming::mission_checks(bool report)
             #endif // CONFIG_HAL_BOARD == HAL_BOARD_SITL
             return false;
         }
+#endif
 
         const struct MisItemTable {
           MIS_ITEM_CHECK check;
@@ -744,6 +746,7 @@ bool AP_Arming::mission_checks(bool report)
                 }
             }
         }
+#if HAL_RALLY_ENABLED
         if (_required_mission_items & MIS_ITEM_CHECK_RALLY) {
             Location ahrs_loc;
             if (!AP::ahrs().get_position(ahrs_loc)) {
@@ -756,6 +759,7 @@ bool AP_Arming::mission_checks(bool report)
                 return false;
             }
           }
+#endif
     }
 
     return true;
