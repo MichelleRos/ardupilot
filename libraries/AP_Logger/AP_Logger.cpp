@@ -849,7 +849,9 @@ void AP_Logger::flush(void) {
 
 void AP_Logger::Write_EntireMission()
 {
+#if HAL_MISSION_ENABLED
     FOR_EACH_BACKEND(Write_EntireMission());
+#endif
 }
 
 void AP_Logger::Write_Message(const char *message)

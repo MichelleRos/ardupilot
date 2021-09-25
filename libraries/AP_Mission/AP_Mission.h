@@ -625,7 +625,7 @@ public:
     /*
       return true if MIS_OPTIONS is set to allow continue of mission
       logic after a land and the next waypoint is a takeoff. If this
-      is false then after a landing is complete the vehicle should 
+      is false then after a landing is complete the vehicle should
       disarm and mission logic should stop
      */
     bool continue_after_land_check_for_takeoff(void);
