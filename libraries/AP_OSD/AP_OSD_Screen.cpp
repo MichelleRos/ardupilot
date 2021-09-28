@@ -47,7 +47,9 @@
 
 #include <ctype.h>
 #include <GCS_MAVLink/GCS.h>
+#if AC_FENCE
 #include <AC_Fence/AC_Fence.h>
+#endif
 
 const AP_Param::GroupInfo AP_OSD_Screen::var_info[] = {
 
@@ -967,6 +969,7 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info[] = {
     // @Range: 0 15
     AP_SUBGROUPINFO(restvolt, "RESTVOLT", 58, AP_OSD_Screen, AP_OSD_Setting),
 
+#if AC_FENCE
     // @Param: FENCE_EN
     // @DisplayName: FENCE_EN
     // @Description: Displays indication of fence enable and breach
@@ -982,7 +985,7 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info[] = {
     // @Description: Vertical position on screen
     // @Range: 0 15
     AP_SUBGROUPINFO(fence, "FENCE", 59, AP_OSD_Screen, AP_OSD_Setting),
-
+#endif
     // @Param: RNGF_EN
     // @DisplayName: RNGF_EN
     // @Description: Displays a rangefinder's distance in cm
@@ -2124,9 +2127,9 @@ void AP_OSD_Screen::draw_hgt_abvterr(uint8_t x, uint8_t y)
 }
 #endif
 
-
 void AP_OSD_Screen::draw_fence(uint8_t x, uint8_t y)
 {
+#if AC_FENCE
     AC_Fence *fenceptr = AP::fence();
     if (fenceptr == nullptr) {
        return;
@@ -2136,6 +2139,7 @@ void AP_OSD_Screen::draw_fence(uint8_t x, uint8_t y)
     } else {
         backend->write(x, y, false, "%c", SYMBOL(SYM_FENCE_DISABLED));
     }
+#endif
 }
 
 void AP_OSD_Screen::draw_rngf(uint8_t x, uint8_t y)
@@ -2200,7 +2204,9 @@ void AP_OSD_Screen::draw(void)
     DRAW_SETTING(heading);
     DRAW_SETTING(wind);
     DRAW_SETTING(home);
+#if AC_FENCE
     DRAW_SETTING(fence);
+#endif
     DRAW_SETTING(roll_angle);
     DRAW_SETTING(pitch_angle);
     DRAW_SETTING(temp);
