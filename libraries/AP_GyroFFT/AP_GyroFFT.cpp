@@ -224,10 +224,10 @@ void AP_GyroFFT::init(uint16_t loop_rate_hz)
     // INS: XYZ_AXIS_COUNT * INS_MAX_INSTANCES * _window_size, DSP: 3 * _window_size, FFT: XYZ_AXIS_COUNT + 3 * _window_size
     const uint32_t allocation_count = (XYZ_AXIS_COUNT * INS_MAX_INSTANCES + 3 + XYZ_AXIS_COUNT + 3 + _num_frames) * sizeof(float);
     if (allocation_count * FFT_DEFAULT_WINDOW_SIZE > hal.util->available_memory() / 2) {
-        gcs().send_text(MAV_SEVERITY_WARNING, "AP_GyroFFT: disabled, required %u bytes", (unsigned int)allocation_count * FFT_DEFAULT_WINDOW_SIZE);
+        GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "AP_GyroFFT: disabled, required %u bytes", (unsigned int)allocation_count * FFT_DEFAULT_WINDOW_SIZE);
         return;
     } else if (allocation_count * _window_size > hal.util->available_memory() / 2) {
-        gcs().send_text(MAV_SEVERITY_WARNING, "AP_GyroFFT: req alloc %u bytes (free=%u)", (unsigned int)allocation_count * _window_size, (unsigned int)hal.util->available_memory());
+        GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "AP_GyroFFT: req alloc %u bytes (free=%u)", (unsigned int)allocation_count * _window_size, (unsigned int)hal.util->available_memory());
         _window_size = FFT_DEFAULT_WINDOW_SIZE;
     }
     // save any changes that were made
@@ -240,7 +240,7 @@ void AP_GyroFFT::init(uint16_t loop_rate_hz)
         _fft_sampling_rate_hz = loop_rate_hz / _sample_mode;
         for (uint8_t axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
             if (!_downsampled_gyro_data[axis].set_size(_window_size + _samples_per_frame)) {
-                gcs().send_text(MAV_SEVERITY_WARNING, "Failed to allocate window for AP_GyroFFT");
+                GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Failed to allocate window for AP_GyroFFT");
                 return;
             }
         }
@@ -249,7 +249,7 @@ void AP_GyroFFT::init(uint16_t loop_rate_hz)
 
     _ref_energy = new Vector3f[_window_size];
     if (_ref_energy == nullptr) {
-        gcs().send_text(MAV_SEVERITY_WARNING, "Failed to allocate window for AP_GyroFFT");
+        GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Failed to allocate window for AP_GyroFFT");
         return;
     }
 
@@ -277,7 +277,7 @@ void AP_GyroFFT::init(uint16_t loop_rate_hz)
     _tracked_peaks = constrain_int16(MAX(__builtin_popcount(harmonics),
                                          num_notches), 1, FrequencyPeak::MAX_TRACKED_PEAKS);
 
-    // calculate harmonic multiplier. this assumes the harmonics configured on the 
+    // calculate harmonic multiplier. this assumes the harmonics configured on the
     // harmonic notch reflect the multiples of the fundamental harmonic that should be tracked
     if (_harmonic_fit > 0) {
         uint8_t first_harmonic = 0;
@@ -300,7 +300,7 @@ void AP_GyroFFT::init(uint16_t loop_rate_hz)
     // initialise the HAL DSP subsystem
     _state = hal.dsp->fft_init(_window_size, _fft_sampling_rate_hz, _num_frames);
     if (_state == nullptr) {
-        gcs().send_text(MAV_SEVERITY_WARNING, "Failed to initialize DSP engine");
+        GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Failed to initialize DSP engine");
         return;
     }
 
@@ -436,7 +436,7 @@ uint16_t AP_GyroFFT::run_cycle()
 
     // get the appropriate gyro buffer
     FloatBuffer& gyro_buffer = (_sample_mode == 0 ?_ins->get_raw_gyro_window(_update_axis) : _downsampled_gyro_data[_update_axis]);
-    // if we have many more samples than the window size then we are struggling to 
+    // if we have many more samples than the window size then we are struggling to
     // stay ahead of the gyro loop so drop samples so that this cycle will use all available samples
     if (gyro_buffer.available() > uint32_t(_state->_window_size + uint16_t(_samples_per_frame >> 1))) { // half the frame size is a heuristic
         gyro_buffer.advance(gyro_buffer.available() - _state->_window_size);
@@ -580,7 +580,7 @@ bool AP_GyroFFT::pre_arm_check(char *failure_msg, const uint8_t failure_msg_len)
 
     // check for sane frequency resolution - for 1k backends with length 32 this will be 32Hz
     if (_state->_bin_resolution > 50.0f) {
-        gcs().send_text(MAV_SEVERITY_WARNING, "FFT: resolution is %.1fHz, increase length", _state->_bin_resolution);
+        GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "FFT: resolution is %.1fHz, increase length", _state->_bin_resolution);
         return true; // a low resolution is not fatal
     }
 #if 0 // these calculations do not result in a long enough expected delay
@@ -604,7 +604,7 @@ bool AP_GyroFFT::pre_arm_check(char *failure_msg, const uint8_t failure_msg_len)
 
     if (_calibrated) {
         // provide the user with some useful information about what they have configured
-        gcs().send_text(MAV_SEVERITY_INFO, "FFT: calibrated %.1fKHz/%.1fHz/%.1fHz", _fft_sampling_rate_hz * 0.001f,
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "FFT: calibrated %.1fKHz/%.1fHz/%.1fHz", _fft_sampling_rate_hz * 0.001f,
              _state->_bin_resolution * 0.5, 1000.0f * XYZ_AXIS_COUNT / _frame_time_ms);
     }
 
@@ -911,9 +911,9 @@ void AP_GyroFFT::write_log_messages()
     if ((now - _last_output_ms) > 1000) {
         // doing this from the update thread overflows the stack
         WITH_SEMAPHORE(_sem);
-        gcs().send_text(MAV_SEVERITY_WARNING, "FFT: f:%.1f, fr:%.1f, b:%u, fd:%.1f",
+        GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "FFT: f:%.1f, fr:%.1f, b:%u, fd:%.1f",
                         _debug_state._center_freq_hz_filtered[FrequencyPeak::CENTER][_update_axis], _debug_state._center_freq_hz[_update_axis], _debug_max_bin, _debug_max_bin_freq);
-        gcs().send_text(MAV_SEVERITY_WARNING, "FFT: bw:%.1f, e:%.1f, r:%.1f, snr:%.1f",
+        GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "FFT: bw:%.1f, e:%.1f, r:%.1f, snr:%.1f",
                         _debug_state._center_bandwidth_hz_filtered[FrequencyPeak::CENTER][_update_axis], _debug_max_freq_bin, _ref_energy[_update_axis][_debug_max_bin], _debug_snr);
         _last_output_ms = now;
     }
@@ -1246,7 +1246,7 @@ void AP_GyroFFT::update_ref_energy(uint16_t max_bin)
 float AP_GyroFFT::self_test_bin_frequencies()
 {
     if (_state->_window_size * sizeof(float) > hal.util->available_memory() / 2) {
-        gcs().send_text(MAV_SEVERITY_WARNING, "FFT: unable to run self-test, required %u bytes", (unsigned int)(_state->_window_size * sizeof(float)));
+        GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "FFT: unable to run self-test, required %u bytes", (unsigned int)(_state->_window_size * sizeof(float)));
         return 0.0f;
     }
 
@@ -1292,7 +1292,7 @@ float AP_GyroFFT::self_test(float frequency, FloatBuffer& test_window)
     uint16_t max_bin = hal.dsp->fft_analyse(_state, _config._fft_start_bin, _config._fft_end_bin, _config._attenuation_cutoff);
 
     if (max_bin == 0) {
-        gcs().send_text(MAV_SEVERITY_WARNING, "FFT: self-test failed, failed to find frequency %.1f", frequency);
+        GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "FFT: self-test failed, failed to find frequency %.1f", frequency);
     }
 
     calculate_noise(true, _config);
@@ -1301,11 +1301,11 @@ float AP_GyroFFT::self_test(float frequency, FloatBuffer& test_window)
     // make sure the selected frequencies are in the right bin
     max_divergence = MAX(max_divergence, fabsf(frequency - _thread_state._center_freq_hz[0]));
     if (_thread_state._center_freq_hz[0] < (frequency - MAX(_state->_bin_resolution * 0.5f, 1)) || _thread_state._center_freq_hz[0] > (frequency + MAX(_state->_bin_resolution * 0.5f, 1))) {
-        gcs().send_text(MAV_SEVERITY_WARNING, "FFT: self-test failed: wanted %.1f, had %.1f", frequency, _thread_state._center_freq_hz[0]);
+        GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "FFT: self-test failed: wanted %.1f, had %.1f", frequency, _thread_state._center_freq_hz[0]);
     }
 #if DEBUG_FFT
     else {
-        gcs().send_text(MAV_SEVERITY_INFO, "FFT: self-test succeeded: wanted %.1f, had %.1f", frequency, _thread_state._center_freq_hz[0]);
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "FFT: self-test succeeded: wanted %.1f, had %.1f", frequency, _thread_state._center_freq_hz[0]);
     }
 #endif
 

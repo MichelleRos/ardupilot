@@ -14,7 +14,7 @@ const AP_Param::GroupInfo AP_Tuning::var_info[] = {
     // @Values: 0:Disable,5:Chan5,6:Chan6,7:Chan7,8:Chan8,9:Chan9,10:Chan10,11:Chan11,12:Chan12,13:Chan13,14:Chan14,15:Chan15,16:Chan16
     // @User: Standard
     AP_GROUPINFO("CHAN", 1, AP_Tuning, channel, 0),
-    
+
     // @Param: CHAN_MIN
     // @DisplayName: Transmitter tuning channel minimum pwm
     // @Description: This sets the PWM lower limit for the tuning channel
@@ -35,7 +35,7 @@ const AP_Param::GroupInfo AP_Tuning::var_info[] = {
     // @Values: 0:Disable,1:Chan1,2:Chan3,3:Chan3,4:Chan4,5:Chan5,6:Chan6,7:Chan7,8:Chan8,9:Chan9,10:Chan10,11:Chan11,12:Chan12,13:Chan13,14:Chan14,15:Chan15,16:Chan16
     // @User: Standard
     AP_GROUPINFO("SELECTOR", 4, AP_Tuning, selector, 0),
-    
+
     // @Param: RANGE
     // @DisplayName: Transmitter tuning range
     // @Description: This sets the range over which tuning will change a parameter. A value of 2 means the tuning parameter will go from 0.5 times the start value to 2x the start value over the range of the tuning channel
@@ -55,7 +55,7 @@ const AP_Param::GroupInfo AP_Tuning::var_info[] = {
     // @Range: 0 1
     // @User: Standard
     AP_GROUPINFO("ERR_THRESH", 7, AP_Tuning, error_threshold, 0.15f),
-    
+
     AP_GROUPEND
 };
 
@@ -87,7 +87,7 @@ void AP_Tuning::check_selector_switch(void)
             // save tune
             save_parameters();
             re_center();
-            gcs().send_text(MAV_SEVERITY_INFO, "Tuning: Saved");
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Tuning: Saved");
             AP_Notify::events.tune_save = 1;
             changed = false;
             need_revert = 0;
@@ -101,7 +101,7 @@ void AP_Tuning::check_selector_switch(void)
             } else if (hold_time < 2000) {
                 // re-center the value
                 re_center();
-                gcs().send_text(MAV_SEVERITY_INFO, "Tuning: recentered %s", get_tuning_name(current_parm));
+                GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Tuning: recentered %s", get_tuning_name(current_parm));
             } else if (hold_time < 5000) {
                 // change parameter
                 next_parameter();
@@ -136,13 +136,13 @@ void AP_Tuning::check_input(uint8_t flightmode)
     // check for revert on changed flightmode
     if (flightmode != last_flightmode) {
         if (need_revert != 0 && mode_revert != 0) {
-            gcs().send_text(MAV_SEVERITY_INFO, "Tuning: reverted");
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Tuning: reverted");
             revert_parameters();
             re_center();
         }
         last_flightmode = flightmode;
     }
-    
+
     // only adjust values at 10Hz
     uint32_t now = AP_HAL::millis();
     uint32_t dt_ms = now - last_check_ms;
@@ -170,7 +170,7 @@ void AP_Tuning::check_input(uint8_t flightmode)
         re_center();
     }
     current_set = parmset;
-    
+
     check_selector_switch();
 
     if (selector_start_ms) {
@@ -181,7 +181,7 @@ void AP_Tuning::check_input(uint8_t flightmode)
     if (current_parm == 0) {
         return;
     }
-    
+
     RC_Channel *chan = rc().channel(channel-1);
     if (chan == nullptr) {
         return;
@@ -209,7 +209,7 @@ void AP_Tuning::check_input(uint8_t flightmode)
         }
         // starting tuning
         mid_point_wait = false;
-        gcs().send_text(MAV_SEVERITY_INFO, "Tuning: mid-point %s", get_tuning_name(current_parm));
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Tuning: mid-point %s", get_tuning_name(current_parm));
         AP_Notify::events.tune_started = 1;
     }
     last_channel_value = chan_value;
@@ -303,7 +303,7 @@ void AP_Tuning::next_parameter(void)
     if (set < set_base) {
         // nothing to do but re-center
         current_parm = set;
-        re_center();        
+        re_center();
         return;
     }
     for (uint8_t i=0; tuning_sets[i].num_parms != 0; i++) {
@@ -315,7 +315,7 @@ void AP_Tuning::next_parameter(void)
             }
             current_parm = tuning_sets[i].parms[current_parm_index];
             re_center();
-            gcs().send_text(MAV_SEVERITY_INFO, "Tuning: started %s", get_tuning_name(current_parm));
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Tuning: started %s", get_tuning_name(current_parm));
             AP_Notify::events.tune_next = current_parm_index+1;
             break;
         }

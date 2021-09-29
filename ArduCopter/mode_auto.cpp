@@ -26,7 +26,7 @@ bool ModeAuto::init(bool ignore_checks)
     if (mission.num_commands() > 1 || ignore_checks) {
         // reject switching to auto mode if landed with motors armed but first command is not a takeoff (reduce chance of flips)
         if (motors->armed() && copter.ap.land_complete && !mission.starts_with_takeoff_cmd()) {
-            gcs().send_text(MAV_SEVERITY_CRITICAL, "Auto: Missing Takeoff Cmd");
+            GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "Auto: Missing Takeoff Cmd");
             return false;
         }
 
@@ -99,10 +99,10 @@ void ModeAuto::run()
             // if mission is running restart the current command if it is a waypoint or spline command
             if ((mission.state() == AP_Mission::MISSION_RUNNING) && (_mode == SubMode::WP)) {
                 if (mission.restart_current_nav_cmd()) {
-                    gcs().send_text(MAV_SEVERITY_CRITICAL, "Auto mission changed, restarted command");
+                    GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "Auto mission changed, restarted command");
                 } else {
                     // failed to restart mission for some reason
-                    gcs().send_text(MAV_SEVERITY_CRITICAL, "Auto mission changed but failed to restart command");
+                    GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "Auto mission changed but failed to restart command");
                 }
             }
         }
@@ -219,9 +219,9 @@ bool ModeAuto::jump_to_landing_sequence_auto_RTL(ModeReason reason)
         // mode change failed, revert force resume flag
         mission.set_force_resume(false);
 
-        gcs().send_text(MAV_SEVERITY_WARNING, "Mode change to AUTO RTL failed");
+        GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Mode change to AUTO RTL failed");
     } else {
-        gcs().send_text(MAV_SEVERITY_WARNING, "Mode change to AUTO RTL failed: No landing sequence found");
+        GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Mode change to AUTO RTL failed: No landing sequence found");
     }
 
     AP::logger().Write_Error(LogErrorSubsystem::FLIGHT_MODE, LogErrorCode(Number::AUTO_RTL));
@@ -677,10 +677,10 @@ bool ModeAuto::start_command(const AP_Mission::Mission_Command& cmd)
 #if AC_FENCE == ENABLED
         if (cmd.p1 == 0) { //disable
             copter.fence.enable(false);
-            gcs().send_text(MAV_SEVERITY_INFO, "Fence Disabled");
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Fence Disabled");
         } else { //enable fence
             copter.fence.enable(true);
-            gcs().send_text(MAV_SEVERITY_INFO, "Fence Enabled");
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Fence Enabled");
         }
 #endif //AC_FENCE == ENABLED
         break;
@@ -907,7 +907,7 @@ bool ModeAuto::verify_command(const AP_Mission::Mission_Command& cmd)
 
     default:
         // error message
-        gcs().send_text(MAV_SEVERITY_WARNING,"Skipping invalid cmd #%i",cmd.id);
+        GCS_SEND_TEXT(MAV_SEVERITY_WARNING,"Skipping invalid cmd #%i",cmd.id);
         // return true if we do not recognize the command so that we move on to the next command
         cmd_complete = true;
         break;
@@ -1508,7 +1508,7 @@ void ModeAuto::do_loiter_to_alt(const AP_Mission::Mission_Command& cmd)
     if (!target_loc.get_alt_cm(Location::AltFrame::ABOVE_HOME, loiter_to_alt.alt)) {
         loiter_to_alt.reached_destination_xy = true;
         loiter_to_alt.reached_alt = true;
-        gcs().send_text(MAV_SEVERITY_INFO, "bad do_loiter_to_alt");
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "bad do_loiter_to_alt");
         return;
     }
     loiter_to_alt.reached_destination_xy = false;
@@ -1619,7 +1619,7 @@ void ModeAuto::do_nav_delay(const AP_Mission::Mission_Command& cmd)
         // absolute delay to utc time
         nav_delay_time_max_ms = AP::rtc().get_time_utc(cmd.content.nav_delay.hour_utc, cmd.content.nav_delay.min_utc, cmd.content.nav_delay.sec_utc, 0);
     }
-    gcs().send_text(MAV_SEVERITY_INFO, "Delaying %u sec", (unsigned)(nav_delay_time_max_ms/1000));
+    GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Delaying %u sec", (unsigned)(nav_delay_time_max_ms/1000));
 }
 
 #if AP_SCRIPTING_ENABLED
@@ -1881,7 +1881,7 @@ bool ModeAuto::verify_payload_place()
         case PayloadPlaceStateType_Calibrating_Hover:
         case PayloadPlaceStateType_Descending_Start:
         case PayloadPlaceStateType_Descending:
-            gcs().send_text(MAV_SEVERITY_INFO, "PayloadPlace: landed");
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "PayloadPlace: landed");
             nav_payload_place.state = PayloadPlaceStateType_Releasing_Start;
             break;
         case PayloadPlaceStateType_Releasing_Start:
@@ -1917,7 +1917,7 @@ bool ModeAuto::verify_payload_place()
         // we have a valid calibration.  Hopefully.
         nav_payload_place.hover_throttle_level = current_throttle_level;
         const float hover_throttle_delta = fabsf(nav_payload_place.hover_throttle_level - motors->get_throttle_hover());
-        gcs().send_text(MAV_SEVERITY_INFO, "hover throttle delta: %f", static_cast<double>(hover_throttle_delta));
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "hover throttle delta: %f", static_cast<double>(hover_throttle_delta));
         nav_payload_place.state = PayloadPlaceStateType_Descending_Start;
         }
         FALLTHROUGH;
@@ -1933,7 +1933,7 @@ bool ModeAuto::verify_payload_place()
         if (!is_zero(nav_payload_place.descend_max) &&
             nav_payload_place.descend_start_altitude - inertial_nav.get_position_z_up_cm()  > nav_payload_place.descend_max) {
             nav_payload_place.state = PayloadPlaceStateType_Ascending;
-            gcs().send_text(MAV_SEVERITY_WARNING, "Reached maximum descent");
+            GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Reached maximum descent");
             return false; // we'll do any cleanups required next time through the loop
         }
         // see if we've been descending long enough to calibrate a descend-throttle-level:
@@ -1964,15 +1964,15 @@ bool ModeAuto::verify_payload_place()
     case PayloadPlaceStateType_Releasing_Start:
 #if GRIPPER_ENABLED == ENABLED
         if (g2.gripper.valid()) {
-            gcs().send_text(MAV_SEVERITY_INFO, "Releasing the gripper");
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Releasing the gripper");
             g2.gripper.release();
         } else {
-            gcs().send_text(MAV_SEVERITY_INFO, "Gripper not valid");
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Gripper not valid");
             nav_payload_place.state = PayloadPlaceStateType_Ascending_Start;
             break;
         }
 #else
-        gcs().send_text(MAV_SEVERITY_INFO, "Gripper code disabled");
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Gripper code disabled");
 #endif
         nav_payload_place.state = PayloadPlaceStateType_Releasing;
         FALLTHROUGH;
@@ -2033,7 +2033,7 @@ bool ModeAuto::verify_loiter_time(const AP_Mission::Mission_Command& cmd)
 
     // check if loiter timer has run out
     if (((millis() - loiter_time) / 1000) >= loiter_time_max) {
-        gcs().send_text(MAV_SEVERITY_INFO, "Reached command #%i",cmd.index);
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Reached command #%i",cmd.index);
         return true;
     }
 
@@ -2116,7 +2116,7 @@ bool ModeAuto::verify_nav_wp(const AP_Mission::Mission_Command& cmd)
             // play a tone
             AP_Notify::events.waypoint_complete = 1;
         }
-        gcs().send_text(MAV_SEVERITY_INFO, "Reached command #%i",cmd.index);
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Reached command #%i",cmd.index);
         return true;
     }
     return false;
@@ -2153,7 +2153,7 @@ bool ModeAuto::verify_spline_wp(const AP_Mission::Mission_Command& cmd)
 
     // check if timer has run out
     if (((millis() - loiter_time) / 1000) >= loiter_time_max) {
-        gcs().send_text(MAV_SEVERITY_INFO, "Reached command #%i",cmd.index);
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Reached command #%i",cmd.index);
         return true;
     }
     return false;

@@ -119,7 +119,7 @@ bool AP_Generator_RichenPower::get_reading()
     const uint8_t minor = (version % 100) / 10;
     const uint8_t point = version % 10;
     if (!protocol_information_anounced) {
-        gcs().send_text(MAV_SEVERITY_INFO, "RichenPower: protocol %u.%u.%u", major, minor, point);
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "RichenPower: protocol %u.%u.%u", major, minor, point);
         protocol_information_anounced = true;
     }
 
@@ -259,7 +259,7 @@ void AP_Generator_RichenPower::update_runstate()
     // because the vehicle is crashed.
     if (AP::vehicle()->is_crashed()) {
         if (!vehicle_was_crashed) {
-            gcs().send_text(MAV_SEVERITY_INFO, "Crash; stopping generator");
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Crash; stopping generator");
             pilot_desired_runstate = RunState::STOP;
             vehicle_was_crashed = true;
         }

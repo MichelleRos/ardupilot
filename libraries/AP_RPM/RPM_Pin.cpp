@@ -25,7 +25,7 @@
 extern const AP_HAL::HAL& hal;
 AP_RPM_Pin::IrqState AP_RPM_Pin::irq_state[RPM_MAX_INSTANCES];
 
-/* 
+/*
    open the sensor in constructor
 */
 AP_RPM_Pin::AP_RPM_Pin(AP_RPM &_ap_rpm, uint8_t instance, AP_RPM::RPM_State &_state) :
@@ -70,7 +70,7 @@ void AP_RPM_Pin::update(void)
                     AP_HAL::GPIO::INTERRUPT_RISING)) {
                 interrupt_attached = true;
             } else {
-                gcs().send_text(MAV_SEVERITY_WARNING, "RPM: Failed to attach to pin %d", last_pin);
+                GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "RPM: Failed to attach to pin %d", last_pin);
             }
         }
     }

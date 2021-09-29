@@ -76,7 +76,7 @@ AP_RangeFinder_UAVCAN* AP_RangeFinder_UAVCAN::get_uavcan_backend(AP_UAVCAN* ap_u
                 if (driver == nullptr) {
                     break;
                 }
-                gcs().send_text(MAV_SEVERITY_INFO, "RangeFinder[%u]: added UAVCAN node %u addr %u",
+                GCS_SEND_TEXT(MAV_SEVERITY_INFO, "RangeFinder[%u]: added UAVCAN node %u addr %u",
                                 unsigned(i), unsigned(node_id), unsigned(address));
                 //Assign node id and respective uavcan driver, for identification
                 if (driver->_ap_uavcan == nullptr) {

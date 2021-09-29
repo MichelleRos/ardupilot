@@ -527,7 +527,7 @@ void RC_Channel::init_aux_function(const aux_func_t ch_option, const AuxSwitchPo
         run_aux_function(ch_option, ch_flag, AuxFuncTriggerSource::INIT);
         break;
     default:
-        gcs().send_text(MAV_SEVERITY_WARNING, "Failed to init: RC%u_OPTION: %u\n",
+        GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Failed to init: RC%u_OPTION: %u\n",
                            (unsigned)(this->ch_in+1), (unsigned)ch_option);
 #if CONFIG_HAL_BOARD == HAL_BOARD_SITL
         AP_BoardConfig::config_error("Failed to init: RC%u_OPTION: %u",
@@ -643,7 +643,7 @@ bool RC_Channel::read_aux()
             temp = "LOW";
             break;
         }
-        gcs().send_text(MAV_SEVERITY_INFO, "%s %s", aux_string, temp);
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "%s %s", aux_string, temp);
     }
 #endif
 
@@ -683,19 +683,19 @@ void RC_Channel::do_aux_function_avoid_adsb(const AuxSwitchPos ch_flag)
     if (ch_flag == AuxSwitchPos::HIGH) {
         // try to enable AP_Avoidance
         if (!adsb->enabled() || !adsb->healthy()) {
-            gcs().send_text(MAV_SEVERITY_CRITICAL, "ADSB not available");
+            GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "ADSB not available");
             return;
         }
         avoidance->enable();
         AP::logger().Write_Event(LogEvent::AVOIDANCE_ADSB_ENABLE);
-        gcs().send_text(MAV_SEVERITY_CRITICAL, "ADSB Avoidance Enabled");
+        GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "ADSB Avoidance Enabled");
         return;
     }
 
     // disable AP_Avoidance
     avoidance->disable();
     AP::logger().Write_Event(LogEvent::AVOIDANCE_ADSB_DISABLE);
-    gcs().send_text(MAV_SEVERITY_CRITICAL, "ADSB Avoidance Disabled");
+    GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "ADSB Avoidance Disabled");
 #endif
 }
 
@@ -1267,7 +1267,7 @@ bool RC_Channel::do_aux_function(const aux_func_t ch_option, const AuxSwitchPos 
         break;
 
     default:
-        gcs().send_text(MAV_SEVERITY_INFO, "Invalid channel option (%u)", (unsigned int)ch_option);
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Invalid channel option (%u)", (unsigned int)ch_option);
         return false;
     }
 

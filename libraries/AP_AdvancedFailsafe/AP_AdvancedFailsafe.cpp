@@ -180,7 +180,7 @@ AP_AdvancedFailsafe::check(bool geofence_breached, uint32_t last_valid_rc_ms)
     if(_enable_geofence_fs) {
         if (geofence_breached || check_altlimit()) {
             if (!_terminate) {
-                gcs().send_text(MAV_SEVERITY_CRITICAL, "Terminating due to fence breach");
+                GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "Terminating due to fence breach");
                 _terminate.set_and_notify(1);
             }
         }
@@ -197,7 +197,7 @@ AP_AdvancedFailsafe::check(bool geofence_breached, uint32_t last_valid_rc_ms)
         (mode == AFS_MANUAL || mode == AFS_STABILIZED || !_rc_term_manual_only) &&
         _rc_fail_time_seconds > 0 &&
             (AP_HAL::millis() - last_valid_rc_ms) > (_rc_fail_time_seconds * 1000.0f)) {
-        gcs().send_text(MAV_SEVERITY_CRITICAL, "Terminating due to RC failure");
+        GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "Terminating due to RC failure");
         _terminate.set_and_notify(1);
     }
     
@@ -209,7 +209,6 @@ AP_AdvancedFailsafe::check(bool geofence_breached, uint32_t last_valid_rc_ms)
         hal.gpio->write(_manual_pin, mode==AFS_MANUAL);
     }
 
-    const uint32_t last_heartbeat_ms = gcs().sysid_myggcs_last_seen_time_ms();
     uint32_t now = AP_HAL::millis();
     bool gcs_link_ok = ((now - last_heartbeat_ms) < 10000);
     bool gps_lock_ok = ((now - AP::gps().last_fix_time_ms()) < 3000);
@@ -225,7 +224,7 @@ AP_AdvancedFailsafe::check(bool geofence_breached, uint32_t last_valid_rc_ms)
         // we startup in preflight mode. This mode ends when
         // we first enter auto.
         if (mode == AFS_AUTO) {
-            gcs().send_text(MAV_SEVERITY_DEBUG, "AFS State: AFS_AUTO");
+            GCS_SEND_TEXT(MAV_SEVERITY_DEBUG, "AFS State: AFS_AUTO");
             _state = STATE_AUTO;
         }
         break;
@@ -233,7 +232,7 @@ AP_AdvancedFailsafe::check(bool geofence_breached, uint32_t last_valid_rc_ms)
     case STATE_AUTO:
         // this is the normal mode. 
         if (!gcs_link_ok) {
-            gcs().send_text(MAV_SEVERITY_DEBUG, "AFS State: DATA_LINK_LOSS");
+            GCS_SEND_TEXT(MAV_SEVERITY_DEBUG, "AFS State: DATA_LINK_LOSS");
             _state = STATE_DATA_LINK_LOSS;
             if (_wp_comms_hold) {
                 _saved_wp = mission.get_current_nav_cmd().index;
@@ -247,7 +246,7 @@ AP_AdvancedFailsafe::check(bool geofence_breached, uint32_t last_valid_rc_ms)
             break;
         }
         if (!gps_lock_ok) {
-            gcs().send_text(MAV_SEVERITY_DEBUG, "AFS State: GPS_LOSS");
+            GCS_SEND_TEXT(MAV_SEVERITY_DEBUG, "AFS State: GPS_LOSS");
             _state = STATE_GPS_LOSS;
             if (_wp_gps_loss) {
                 _saved_wp = mission.get_current_nav_cmd().index;
@@ -268,13 +267,13 @@ AP_AdvancedFailsafe::check(bool geofence_breached, uint32_t last_valid_rc_ms)
             // leads to termination if AFS_DUAL_LOSS is 1
             if(_enable_dual_loss) {
                 if (!_terminate) {
-                    gcs().send_text(MAV_SEVERITY_CRITICAL, "Terminating due to dual loss");
+                    GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "Terminating due to dual loss");
                     _terminate.set_and_notify(1);
                 }
             }
         } else if (gcs_link_ok) {
             _state = STATE_AUTO;
-            gcs().send_text(MAV_SEVERITY_DEBUG, "AFS State: AFS_AUTO, GCS now OK");
+            GCS_SEND_TEXT(MAV_SEVERITY_DEBUG, "AFS State: AFS_AUTO, GCS now OK");
             // we only return to the mission if we have not exceeded AFS_MAX_COM_LOSS
             if (_saved_wp != 0 && 
                 (_max_comms_loss <= 0 || 
@@ -290,11 +289,11 @@ AP_AdvancedFailsafe::check(bool geofence_breached, uint32_t last_valid_rc_ms)
             // losing GCS link when GPS lock lost
             // leads to termination if AFS_DUAL_LOSS is 1
             if (!_terminate && _enable_dual_loss) {
-                gcs().send_text(MAV_SEVERITY_CRITICAL, "Terminating due to dual loss");
+                GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "Terminating due to dual loss");
                 _terminate.set_and_notify(1);
             }
         } else if (gps_lock_ok) {
-            gcs().send_text(MAV_SEVERITY_DEBUG, "AFS State: AFS_AUTO, GPS now OK");
+            GCS_SEND_TEXT(MAV_SEVERITY_DEBUG, "AFS State: AFS_AUTO, GPS now OK");
             _state = STATE_AUTO;
             // we only return to the mission if we have not exceeded AFS_MAX_GPS_LOSS
             if (_saved_wp != 0 &&
@@ -408,7 +407,7 @@ bool AP_AdvancedFailsafe::should_crash_vehicle(void)
 // returns true if AFS is in the desired termination state
 bool AP_AdvancedFailsafe::gcs_terminate(bool should_terminate, const char *reason) {
     if (!_enable) {
-        gcs().send_text(MAV_SEVERITY_INFO, "AFS not enabled, can't terminate the vehicle");
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AFS not enabled, can't terminate the vehicle");
         return false;
     }
 
@@ -419,13 +418,13 @@ bool AP_AdvancedFailsafe::gcs_terminate(bool should_terminate, const char *reaso
 
     if(should_terminate == is_terminating) {
         if (is_terminating) {
-            gcs().send_text(MAV_SEVERITY_INFO, "Terminating due to %s", reason);
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Terminating due to %s", reason);
         } else {
-            gcs().send_text(MAV_SEVERITY_INFO, "Aborting termination due to %s", reason);
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Aborting termination due to %s", reason);
         }
         return true;
     } else if (should_terminate && _terminate_action != TERMINATE_ACTION_TERMINATE) {
-        gcs().send_text(MAV_SEVERITY_INFO, "Unable to terminate, termination is not configured");
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Unable to terminate, termination is not configured");
     }
     return false;
 }
@@ -462,7 +461,7 @@ void AP_AdvancedFailsafe::max_range_update(void)
     if (distance_km > _max_range_km) {
         uint32_t now = AP_HAL::millis();
         if (now - _term_range_notice_ms > 5000) {
-            gcs().send_text(MAV_SEVERITY_CRITICAL, "Terminating due to range %.1fkm", distance_km);
+            GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "Terminating due to range %.1fkm", distance_km);
             _term_range_notice_ms = now;
         }
         _terminate.set_and_notify(1);

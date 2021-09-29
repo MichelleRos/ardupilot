@@ -330,7 +330,7 @@ void AP_MotorsHeli_Dual::calculate_armed_scalars()
     if (_main_rotor._rsc_mode.get() != _main_rotor.get_control_mode()) {
         _main_rotor.reset_rsc_mode_param();
         _heliflags.save_rsc_mode = true;
-        gcs().send_text(MAV_SEVERITY_CRITICAL, "RSC control mode change failed");
+        GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "RSC control mode change failed");
     }
     // saves rsc mode parameter when disarmed if it had been reset while armed
     if (_heliflags.save_rsc_mode && !armed()) {
@@ -745,7 +745,7 @@ bool AP_MotorsHeli_Dual::parameter_check(bool display_msg) const
     // returns false if Phase Angle is outside of range for H3 swashplate 1
     if (_swashplate1.get_swash_type() == SWASHPLATE_TYPE_H3 && (_swashplate1.get_phase_angle() > 30 || _swashplate1.get_phase_angle() < -30)){
         if (display_msg) {
-            gcs().send_text(MAV_SEVERITY_CRITICAL, "PreArm: H_SW1_H3_PHANG out of range");
+            GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "PreArm: H_SW1_H3_PHANG out of range");
         }
         return false;
     }
@@ -753,7 +753,7 @@ bool AP_MotorsHeli_Dual::parameter_check(bool display_msg) const
     // returns false if Phase Angle is outside of range for H3 swashplate 2
     if (_swashplate2.get_swash_type() == SWASHPLATE_TYPE_H3 && (_swashplate2.get_phase_angle() > 30 || _swashplate2.get_phase_angle() < -30)){
         if (display_msg) {
-            gcs().send_text(MAV_SEVERITY_CRITICAL, "PreArm: H_SW2_H3_PHANG out of range");
+            GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "PreArm: H_SW2_H3_PHANG out of range");
         }
         return false;
     }

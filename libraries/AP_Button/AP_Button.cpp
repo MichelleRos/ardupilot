@@ -279,7 +279,7 @@ void AP_Button::run_aux_functions(bool force)
 #if !HAL_MINIMIZE_FEATURES
         const char *str = rc_channel->string_for_aux_function(func);
         if (str != nullptr) {
-            gcs().send_text(MAV_SEVERITY_INFO, "Button: executing (%s)", str);
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Button: executing (%s)", str);
         }
 #endif
         rc_channel->run_aux_function(func, pos, RC_Channel::AuxFuncTriggerSource::BUTTON);

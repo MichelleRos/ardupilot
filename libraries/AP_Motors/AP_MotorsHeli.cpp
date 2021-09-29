@@ -452,7 +452,7 @@ bool AP_MotorsHeli::parameter_check(bool display_msg) const
     // returns false if RSC Mode is not set to a valid control mode
     if (_main_rotor._rsc_mode.get() <= (int8_t)ROTOR_CONTROL_MODE_DISABLED || _main_rotor._rsc_mode.get() > (int8_t)ROTOR_CONTROL_MODE_AUTOTHROTTLE) {
         if (display_msg) {
-            gcs().send_text(MAV_SEVERITY_CRITICAL, "PreArm: H_RSC_MODE invalid");
+            GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "PreArm: H_RSC_MODE invalid");
         }
         return false;
     }
@@ -460,7 +460,7 @@ bool AP_MotorsHeli::parameter_check(bool display_msg) const
     // returns false if rsc_setpoint is out of range
     if ( _main_rotor._rsc_setpoint.get() > 100 || _main_rotor._rsc_setpoint.get() < 10){
         if (display_msg) {
-            gcs().send_text(MAV_SEVERITY_CRITICAL, "PreArm: H_RSC_SETPOINT out of range");
+            GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "PreArm: H_RSC_SETPOINT out of range");
         }
         return false;
     }
@@ -468,7 +468,7 @@ bool AP_MotorsHeli::parameter_check(bool display_msg) const
     // returns false if idle output is out of range
     if ( _main_rotor._idle_output.get() > 100 || _main_rotor._idle_output.get() < 0){
         if (display_msg) {
-            gcs().send_text(MAV_SEVERITY_CRITICAL, "PreArm: H_RSC_IDLE out of range");
+            GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "PreArm: H_RSC_IDLE out of range");
         }
         return false;
     }
@@ -476,7 +476,7 @@ bool AP_MotorsHeli::parameter_check(bool display_msg) const
     // returns false if _rsc_critical is not between 0 and 100
     if (_main_rotor._critical_speed.get() > 100 || _main_rotor._critical_speed.get() < 0) {
         if (display_msg) {
-            gcs().send_text(MAV_SEVERITY_CRITICAL, "PreArm: H_RSC_CRITICAL out of range");
+            GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "PreArm: H_RSC_CRITICAL out of range");
         }
         return false;
     }
@@ -484,7 +484,7 @@ bool AP_MotorsHeli::parameter_check(bool display_msg) const
     // returns false if RSC Runup Time is less than Ramp time as this could cause undesired behaviour of rotor speed estimate
     if (_main_rotor._runup_time.get() <= _main_rotor._ramp_time.get()){
         if (display_msg) {
-            gcs().send_text(MAV_SEVERITY_CRITICAL, "PreArm: H_RUNUP_TIME too small");
+            GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "PreArm: H_RUNUP_TIME too small");
         }
         return false;
     }

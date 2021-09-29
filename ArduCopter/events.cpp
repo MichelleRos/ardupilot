@@ -81,7 +81,7 @@ void Copter::failsafe_radio_off_event()
     // no need to do anything except log the error as resolved
     // user can now override roll, pitch, yaw and throttle and even use flight mode switch to restore previous flight mode
     AP::logger().Write_Error(LogErrorSubsystem::FAILSAFE_RADIO, LogErrorCode::FAILSAFE_RESOLVED);
-    gcs().send_text(MAV_SEVERITY_WARNING, "Radio Failsafe Cleared");
+    GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Radio Failsafe Cleared");
 }
 
 void Copter::announce_failsafe(const char *type, const char *action_undertaken)
@@ -229,7 +229,7 @@ void Copter::failsafe_gcs_on_event(void)
 // failsafe_gcs_off_event - actions to take when GCS contact is restored
 void Copter::failsafe_gcs_off_event(void)
 {
-    gcs().send_text(MAV_SEVERITY_WARNING, "GCS Failsafe Cleared");
+    GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "GCS Failsafe Cleared");
     AP::logger().Write_Error(LogErrorSubsystem::FAILSAFE_GCS, LogErrorCode::FAILSAFE_RESOLVED);
 }
 
@@ -275,7 +275,7 @@ void Copter::failsafe_terrain_set_status(bool data_ok)
 void Copter::failsafe_terrain_on_event()
 {
     failsafe.terrain = true;
-    gcs().send_text(MAV_SEVERITY_CRITICAL,"Failsafe: Terrain data missing");
+    GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL,"Failsafe: Terrain data missing");
     AP::logger().Write_Error(LogErrorSubsystem::FAILSAFE_TERRAIN, LogErrorCode::FAILSAFE_OCCURRED);
 
     if (should_disarm_on_failsafe()) {
@@ -389,7 +389,7 @@ void Copter::set_mode_SmartRTL_or_land_with_pause(ModeReason reason)
 {
     // attempt to switch to SMART_RTL, if this failed then switch to Land
     if (!set_mode(Mode::Number::SMART_RTL, reason)) {
-        gcs().send_text(MAV_SEVERITY_WARNING, "SmartRTL Unavailable, Using Land Mode");
+        GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "SmartRTL Unavailable, Using Land Mode");
         set_mode_land_with_pause(reason);
     } else {
         AP_Notify::events.failsafe_mode_change = 1;
@@ -403,7 +403,7 @@ void Copter::set_mode_SmartRTL_or_RTL(ModeReason reason)
     // attempt to switch to SmartRTL, if this failed then attempt to RTL
     // if that fails, then land
     if (!set_mode(Mode::Number::SMART_RTL, reason)) {
-        gcs().send_text(MAV_SEVERITY_WARNING, "SmartRTL Unavailable, Trying RTL Mode");
+        GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "SmartRTL Unavailable, Trying RTL Mode");
         set_mode_RTL_or_land_with_pause(reason);
     } else {
         AP_Notify::events.failsafe_mode_change = 1;
@@ -421,7 +421,7 @@ void Copter::set_mode_auto_do_land_start_or_RTL(ModeReason reason)
     }
 #endif
 
-    gcs().send_text(MAV_SEVERITY_WARNING, "Trying RTL Mode");
+    GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Trying RTL Mode");
     set_mode_RTL_or_land_with_pause(reason);
 }
 

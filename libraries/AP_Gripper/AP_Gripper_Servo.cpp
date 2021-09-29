@@ -23,7 +23,7 @@ void AP_Gripper_Servo::grab()
     is_releasing = false;
     is_released = true;
 #endif
-    gcs().send_text(MAV_SEVERITY_INFO, "Gripper load grabbing");
+    GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Gripper load grabbing");
     AP::logger().Write_Event(LogEvent::GRIPPER_GRAB);
 }
 
@@ -36,7 +36,7 @@ void AP_Gripper_Servo::release()
     is_releasing = true;
     is_released = false;
 #endif
-    gcs().send_text(MAV_SEVERITY_INFO, "Gripper load releasing");
+    GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Gripper load releasing");
     AP::logger().Write_Event(LogEvent::GRIPPER_RELEASE);
 }
 
@@ -59,9 +59,9 @@ bool AP_Gripper_Servo::has_state_pwm(const uint16_t pwm) const
     }
 #if CONFIG_HAL_BOARD == HAL_BOARD_SITL
     if (is_releasing) {
-        gcs().send_text(MAV_SEVERITY_INFO, "Gripper load released");
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Gripper load released");
     } else {
-        gcs().send_text(MAV_SEVERITY_INFO, "Gripper load grabbed");
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Gripper load grabbed");
     }
 #endif
     return true;

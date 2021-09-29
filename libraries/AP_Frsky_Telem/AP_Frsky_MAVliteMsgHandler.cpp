@@ -126,9 +126,9 @@ MAV_RESULT AP_Frsky_MAVliteMsgHandler::handle_command_preflight_calibration_baro
         return MAV_RESULT_DENIED;
     }
     // fast barometer calibration
-    gcs().send_text(MAV_SEVERITY_INFO, "Updating barometer calibration");
+    GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Updating barometer calibration");
     AP::baro().update_calibration();
-    gcs().send_text(MAV_SEVERITY_INFO, "Barometer calibration complete");
+    GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Barometer calibration complete");
 
 #if AP_AIRSPEED_ENABLED
     AP_Airspeed *airspeed = AP_Airspeed::get_singleton();
@@ -176,7 +176,7 @@ void AP_Frsky_MAVliteMsgHandler::handle_param_request_read(const AP_Frsky_MAVlit
     }
     // find existing param
     if (!AP_Param::get(param_name,param_value)) {
-        gcs().send_text(MAV_SEVERITY_WARNING, "Param read failed (%s)", param_name);
+        GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Param read failed (%s)", param_name);
         return;
     }
     AP_Frsky_MAVlite_Message txmsg;
@@ -228,7 +228,7 @@ void AP_Frsky_MAVliteMsgHandler::handle_param_set(const AP_Frsky_MAVlite_Message
     }
     // let's read back the last value, either the readonly one or the updated one
     if (!AP_Param::get(param_name,param_value)) {
-        gcs().send_text(MAV_SEVERITY_WARNING, "Param read failed (%s)", param_name);
+        GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Param read failed (%s)", param_name);
         return;
     }
     AP_Frsky_MAVlite_Message txmsg;
@@ -243,7 +243,7 @@ void AP_Frsky_MAVliteMsgHandler::handle_param_set(const AP_Frsky_MAVlite_Message
 }
 
 /*
-  Handle a MAV_CMD_PREFLIGHT_REBOOT_SHUTDOWN command 
+  Handle a MAV_CMD_PREFLIGHT_REBOOT_SHUTDOWN command
   for FrSky SPort Passthrough (OpenTX) protocol (X-receivers)
   Optionally disable PX4IO overrides. This is done for quadplanes to
   prevent the mixer running while rebooting which can start the VTOL

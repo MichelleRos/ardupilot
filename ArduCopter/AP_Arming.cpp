@@ -703,7 +703,7 @@ bool AP_Arming_Copter::arm(const AP_Arming::Method method, const bool do_arming_
     }
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_SITL
-    gcs().send_text(MAV_SEVERITY_INFO, "Arming motors");
+    GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Arming motors");
 #endif
 
     // Remember Orientation
@@ -795,7 +795,7 @@ bool AP_Arming_Copter::disarm(const AP_Arming::Method method, bool do_disarm_che
     }
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_SITL
-    gcs().send_text(MAV_SEVERITY_INFO, "Disarming motors");
+    GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Disarming motors");
 #endif
 
     auto &ahrs = AP::ahrs();
