@@ -82,7 +82,7 @@ void AP_EFI::init(void)
 #endif
         break;
     default:
-        gcs().send_text(MAV_SEVERITY_INFO, "Unknown EFI type");
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Unknown EFI type");
         break;
     }
 }

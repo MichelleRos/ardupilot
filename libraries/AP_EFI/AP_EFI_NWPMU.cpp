@@ -104,7 +104,7 @@ void AP_EFI_NWPMU::handle_frame(AP_HAL::CANFrame &frame)
         struct ecu_6 data;
         memcpy(&data, frame.data, sizeof(data));
         if (!_emitted_version && (AP_HAL::millis() > 10000)) { // don't emit a version early in the boot process
-            gcs().send_text(MAV_SEVERITY_INFO, "NWPMU Version: %d.%d.%d",
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "NWPMU Version: %d.%d.%d",
                             data.firmware_major,
                             data.firmware_minor,
                             data.firmware_build);

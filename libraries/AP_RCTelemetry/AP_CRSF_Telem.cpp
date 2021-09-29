@@ -98,7 +98,7 @@ void AP_CRSF_Telem::setup_custom_telemetry()
     // check if passthru already assigned
     const int8_t frsky_port = AP::serialmanager().find_portnum(AP_SerialManager::SerialProtocol_FrSky_SPort_Passthrough,0); 
     if (frsky_port != -1) {
-        gcs().send_text(MAV_SEVERITY_CRITICAL, "CRSF: passthrough telemetry conflict on SERIAL%d",frsky_port);
+        GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "CRSF: passthrough telemetry conflict on SERIAL%d",frsky_port);
        _custom_telem.init_done = true;
        return;
     }
@@ -129,7 +129,7 @@ void AP_CRSF_Telem::setup_custom_telemetry()
     // setup custom telemetry for current rf_mode
     update_custom_telemetry_rates(_telem_rf_mode);
 
-    gcs().send_text(MAV_SEVERITY_DEBUG,"CRSF: custom telem init done, fw %d.%02d", _crsf_version.major, _crsf_version.minor);
+    GCS_SEND_TEXT(MAV_SEVERITY_DEBUG,"CRSF: custom telem init done, fw %d.%02d", _crsf_version.major, _crsf_version.minor);
     _custom_telem.init_done = true;
 }
 
@@ -169,13 +169,13 @@ void AP_CRSF_Telem::process_rf_mode_changes()
     }
     // warn the user if their setup is sub-optimal
     if (_telem_last_report_ms == 0 && !uart->is_dma_enabled()) {
-        gcs().send_text(MAV_SEVERITY_WARNING, "CRSF: running on non-DMA serial port");
+        GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "CRSF: running on non-DMA serial port");
     }
     // report a change in RF mode or a chnage of more than 10Hz if we haven't done so in the last 5s
     if ((now - _telem_last_report_ms > 5000) &&
         (_telem_rf_mode != current_rf_mode || abs(int16_t(_telem_last_avg_rate) - int16_t(_scheduler.avg_packet_rate)) > 25)) {
         if (!rc().suppress_crsf_message()) {
-            gcs().send_text(MAV_SEVERITY_INFO, "CRSFv%d: RF mode %d, rate is %dHz", uint8_t(2 + AP::crsf()->is_crsf_v3_active()),
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "CRSFv%d: RF mode %d, rate is %dHz", uint8_t(2 + AP::crsf()->is_crsf_v3_active()),
                 (uint8_t)current_rf_mode, _scheduler.avg_packet_rate);
         }
         update_custom_telemetry_rates(current_rf_mode);
@@ -311,11 +311,11 @@ bool AP_CRSF_Telem::is_packet_ready(uint8_t idx, bool queue_empty)
                 _crsf_version.pending = false;
                 _crsf_version.minor = 0;
                 _crsf_version.major = 0;
-                gcs().send_text(MAV_SEVERITY_DEBUG,"CRSF: RX device ping failed");
+                GCS_SEND_TEXT(MAV_SEVERITY_DEBUG,"CRSF: RX device ping failed");
             } else {
                 _pending_request.destination = AP_RCProtocol_CRSF::CRSF_ADDRESS_CRSF_RECEIVER;
                 _pending_request.frame_type = AP_RCProtocol_CRSF::CRSF_FRAMETYPE_PARAM_DEVICE_PING;
-                gcs().send_text(MAV_SEVERITY_DEBUG,"CRSF: requesting RX device info");
+                GCS_SEND_TEXT(MAV_SEVERITY_DEBUG,"CRSF: requesting RX device info");
             }
         }
         return _pending_request.frame_type > 0;

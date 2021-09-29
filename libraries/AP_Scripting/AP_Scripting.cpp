@@ -135,14 +135,14 @@ void AP_Scripting::init(void) {
     const char *dir_name = SCRIPTING_DIRECTORY;
     if (AP::FS().mkdir(dir_name)) {
         if (errno != EEXIST) {
-            gcs().send_text(MAV_SEVERITY_INFO, "Lua: failed to create (%s)", dir_name);
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Lua: failed to create (%s)", dir_name);
         }
     }
 
     if (!hal.scheduler->thread_create(FUNCTOR_BIND_MEMBER(&AP_Scripting::thread, void),
                                       "Scripting", SCRIPTING_STACK_SIZE, AP_HAL::Scheduler::PRIORITY_SCRIPTING, 0)) {
-        gcs().send_text(MAV_SEVERITY_CRITICAL, "Could not create scripting stack (%d)", SCRIPTING_STACK_SIZE);
-        gcs().send_text(MAV_SEVERITY_ERROR, "Scripting failed to start");
+        GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "Could not create scripting stack (%d)", SCRIPTING_STACK_SIZE);
+        GCS_SEND_TEXT(MAV_SEVERITY_ERROR, "Scripting failed to start");
         _init_failed = true;
     }
 }
@@ -171,7 +171,7 @@ bool AP_Scripting::repl_start(void) {
     if ((AP::FS().stat(REPL_DIRECTORY, &st) == -1) &&
         (AP::FS().unlink(REPL_DIRECTORY)  == -1) &&
         (errno != EEXIST)) {
-        gcs().send_text(MAV_SEVERITY_INFO, "Unable to delete old REPL %s", strerror(errno));
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Unable to delete old REPL %s", strerror(errno));
     }
 
     // create a new folder
@@ -183,7 +183,7 @@ bool AP_Scripting::repl_start(void) {
     // make the output pointer
     terminal.output_fd = AP::FS().open(REPL_OUT, O_WRONLY|O_CREAT|O_TRUNC);
     if (terminal.output_fd == -1) {
-        gcs().send_text(MAV_SEVERITY_INFO, "Unable to make new REPL");
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Unable to make new REPL");
         return false;
     }
 
@@ -199,7 +199,7 @@ void AP_Scripting::repl_stop(void) {
 void AP_Scripting::thread(void) {
     lua_scripts *lua = new lua_scripts(_script_vm_exec_count, _script_heap_size, _debug_level, terminal);
     if (lua == nullptr || !lua->heap_allocated()) {
-        gcs().send_text(MAV_SEVERITY_CRITICAL, "Unable to allocate scripting memory");
+        GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "Unable to allocate scripting memory");
         delete lua;
         _init_failed = true;
         return;
@@ -207,7 +207,7 @@ void AP_Scripting::thread(void) {
     lua->run();
 
     // only reachable if the lua backend has died for any reason
-    gcs().send_text(MAV_SEVERITY_CRITICAL, "Scripting has stopped");
+    GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "Scripting has stopped");
 }
 
 void AP_Scripting::handle_mission_command(const AP_Mission::Mission_Command& cmd_in)
@@ -220,7 +220,7 @@ void AP_Scripting::handle_mission_command(const AP_Mission::Mission_Command& cmd
         // load buffer
         mission_data = new ObjectBuffer<struct AP_Scripting::scripting_mission_cmd>(mission_cmd_queue_size);
         if (mission_data == nullptr) {
-            gcs().send_text(MAV_SEVERITY_INFO, "scripting: unable to receive mission command");
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "scripting: unable to receive mission command");
             return;
         }
     }

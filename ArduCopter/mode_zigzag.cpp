@@ -171,13 +171,13 @@ void ModeZigZag::save_or_move_to_destination(Destination ab_dest)
                 // store point A
                 dest_A.x = curr_pos.x;
                 dest_A.y = curr_pos.y;
-                gcs().send_text(MAV_SEVERITY_INFO, "ZigZag: point A stored");
+                GCS_SEND_TEXT(MAV_SEVERITY_INFO, "ZigZag: point A stored");
                 AP::logger().Write_Event(LogEvent::ZIGZAG_STORE_A);
             } else {
                 // store point B
                 dest_B.x = curr_pos.x;
                 dest_B.y = curr_pos.y;
-                gcs().send_text(MAV_SEVERITY_INFO, "ZigZag: point B stored");
+                GCS_SEND_TEXT(MAV_SEVERITY_INFO, "ZigZag: point B stored");
                 AP::logger().Write_Event(LogEvent::ZIGZAG_STORE_B);
             }
             // if both A and B have been stored advance state
@@ -205,10 +205,10 @@ void ModeZigZag::save_or_move_to_destination(Destination ab_dest)
                     spray(true);
                     reach_wp_time_ms = 0;
                     if (is_auto == false || line_num == ZIGZAG_LINE_INFINITY) {
-                        gcs().send_text(MAV_SEVERITY_INFO, "ZigZag: moving to %s", (ab_dest == Destination::A) ? "A" : "B");
+                        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "ZigZag: moving to %s", (ab_dest == Destination::A) ? "A" : "B");
                     } else {
                         line_count++;
-                        gcs().send_text(MAV_SEVERITY_INFO, "ZigZag: moving to %s (line %d/%d)", (ab_dest == Destination::A) ? "A" : "B", line_count, line_num);
+                        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "ZigZag: moving to %s (line %d/%d)", (ab_dest == Destination::A) ? "A" : "B", line_count, line_num);
                     }
                 }
             }
@@ -230,7 +230,7 @@ void ModeZigZag::move_to_side()
                 current_terr_alt = terr_alt;
                 reach_wp_time_ms = 0;
                 char const *dir[] = {"forward", "right", "backward", "left"};
-                gcs().send_text(MAV_SEVERITY_INFO, "ZigZag: moving to %s", dir[(uint8_t)zigzag_direction]);
+                GCS_SEND_TEXT(MAV_SEVERITY_INFO, "ZigZag: moving to %s", dir[(uint8_t)zigzag_direction]);
             }
         }
     }
@@ -253,7 +253,7 @@ void ModeZigZag::return_to_manual_control(bool maintain_target)
             loiter_nav->init_target();
         }
         is_auto = false;
-        gcs().send_text(MAV_SEVERITY_INFO, "ZigZag: manual control");
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "ZigZag: manual control");
     }
 }
 
@@ -546,7 +546,7 @@ void ModeZigZag::run_auto()
                 stage = AUTO;
                 reach_wp_time_ms = 0;
                 char const *dir[] = {"forward", "right", "backward", "left"};
-                gcs().send_text(MAV_SEVERITY_INFO, "ZigZag: moving to %s", dir[(uint8_t)zigzag_direction]);
+                GCS_SEND_TEXT(MAV_SEVERITY_INFO, "ZigZag: moving to %s", dir[(uint8_t)zigzag_direction]);
             }
         }
     } else {

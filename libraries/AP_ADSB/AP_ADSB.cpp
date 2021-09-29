@@ -196,7 +196,7 @@ void AP_ADSB::init(void)
         if (in_state.vehicle_list == nullptr) {
             // dynamic RAM allocation of in_state.vehicle_list[] failed
             _init_failed = true; // this keeps us from constantly trying to init forever in main update
-            gcs().send_text(MAV_SEVERITY_INFO, "ADSB: Unable to initialize ADSB vehicle list");
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "ADSB: Unable to initialize ADSB vehicle list");
             return;
         }
         in_state.list_size_allocated = in_state.list_size_param;
@@ -220,7 +220,7 @@ void AP_ADSB::init(void)
 
     if (detected_num_instances == 0) {
         _init_failed = true;
-        gcs().send_text(MAV_SEVERITY_CRITICAL, "ADSB: Unable to initialize ADSB driver");
+        GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "ADSB: Unable to initialize ADSB driver");
     }
 }
 
@@ -370,7 +370,7 @@ void AP_ADSB::update(void)
             set_callsign("PING", true);
         }
 #endif
-        gcs().send_text(MAV_SEVERITY_INFO, "ADSB: Using ICAO_id %d and Callsign %s", (int)out_state.cfg.ICAO_id, out_state.cfg.callsign);
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "ADSB: Using ICAO_id %d and Callsign %s", (int)out_state.cfg.ICAO_id, out_state.cfg.callsign);
         out_state.last_config_ms = 0; // send now
     }
 
@@ -625,7 +625,7 @@ void AP_ADSB::handle_out_cfg(const mavlink_uavionix_adsb_out_cfg_t &packet)
     // guard against string with non-null end char
     const char c = out_state.cfg.callsign[MAVLINK_MSG_UAVIONIX_ADSB_OUT_CFG_FIELD_CALLSIGN_LEN-1];
     out_state.cfg.callsign[MAVLINK_MSG_UAVIONIX_ADSB_OUT_CFG_FIELD_CALLSIGN_LEN-1] = 0;
-    gcs().send_text(MAV_SEVERITY_INFO, "ADSB: Using ICAO_id %d and Callsign %s", (int)out_state.cfg.ICAO_id, out_state.cfg.callsign);
+    GCS_SEND_TEXT(MAV_SEVERITY_INFO, "ADSB: Using ICAO_id %d and Callsign %s", (int)out_state.cfg.ICAO_id, out_state.cfg.callsign);
     out_state.cfg.callsign[MAVLINK_MSG_UAVIONIX_ADSB_OUT_CFG_FIELD_CALLSIGN_LEN-1] = c;
 
     // send now
@@ -639,7 +639,7 @@ void AP_ADSB::handle_out_cfg(const mavlink_uavionix_adsb_out_cfg_t &packet)
 void AP_ADSB::handle_transceiver_report(const mavlink_channel_t chan, const mavlink_uavionix_adsb_transceiver_health_report_t &packet)
 {
     if (out_state.chan != chan) {
-        gcs().send_text(MAV_SEVERITY_DEBUG, "ADSB: Found transceiver on channel %d", chan);
+        GCS_SEND_TEXT(MAV_SEVERITY_DEBUG, "ADSB: Found transceiver on channel %d", chan);
     }
 
     out_state.chan_last_ms = AP_HAL::millis();

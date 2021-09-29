@@ -174,7 +174,7 @@ void AP_Vehicle::setup()
 #if GENERATOR_ENABLED
     generator.init();
 #endif
-    gcs().send_text(MAV_SEVERITY_INFO, "ArduPilot Ready");
+    GCS_SEND_TEXT(MAV_SEVERITY_INFO, "ArduPilot Ready");
 }
 
 void AP_Vehicle::loop()
@@ -202,7 +202,7 @@ void AP_Vehicle::loop()
     const uint32_t new_internal_errors = AP::internalerror().errors();
     if(_last_internal_errors != new_internal_errors) {
         AP::logger().Write_Error(LogErrorSubsystem::INTERNAL_ERROR, LogErrorCode::INTERNAL_ERRORS_DETECTED);
-        gcs().send_text(MAV_SEVERITY_CRITICAL, "Internal Errors %x", (unsigned)new_internal_errors);
+        GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "Internal Errors %x", (unsigned)new_internal_errors);
         _last_internal_errors = new_internal_errors;
     }
 }
@@ -286,9 +286,9 @@ void AP_Vehicle::scheduler_delay_callback()
     if (tnow - last_5s > 5000) {
         last_5s = tnow;
         if (AP_BoardConfig::in_config_error()) {
-            gcs().send_text(MAV_SEVERITY_CRITICAL, "Config Error: fix problem then reboot");
+            GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "Config Error: fix problem then reboot");
         } else {
-            gcs().send_text(MAV_SEVERITY_INFO, "Initialising ArduPilot");
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Initialising ArduPilot");
         }
     }
 
@@ -302,7 +302,7 @@ void AP_Vehicle::send_watchdog_reset_statustext()
         return;
     }
     const AP_HAL::Util::PersistentData &pd = hal.util->last_persistent_data;
-    gcs().send_text(MAV_SEVERITY_CRITICAL,
+    GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL,
                     "WDG: T%d SL%u FL%u FT%u FA%x FTP%u FLR%x FICSR%u MM%u MC%u IE%u IEC%u TN:%.4s",
                     pd.scheduler_task,
                     pd.semaphore_line,

@@ -64,7 +64,7 @@ failed:
     ftp.requests = nullptr;
     delete ftp.replies;
     ftp.replies = nullptr;
-    gcs().send_text(MAV_SEVERITY_WARNING, "failed to initialize MAVFTP");
+    GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "failed to initialize MAVFTP");
 
     return false;
 }
@@ -551,7 +551,7 @@ void GCS_MAVLINK::ftp_worker(void) {
                 case FTP_OP::Rename:
                 default:
                     // this was bad data, just nack it
-                    gcs().send_text(MAV_SEVERITY_DEBUG, "Unsupported FTP: %d", static_cast<int>(request.opcode));
+                    GCS_SEND_TEXT(MAV_SEVERITY_DEBUG, "Unsupported FTP: %d", static_cast<int>(request.opcode));
                     ftp_error(reply, FTP_ERROR::Fail);
                     break;
             }

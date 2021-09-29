@@ -23,7 +23,7 @@ static const uint8_t COMPASS_LEARN_WORST_ERROR_THRESHOLD = 65;
 CompassLearn::CompassLearn(Compass &_compass) :
     compass(_compass)
 {
-    gcs().send_text(MAV_SEVERITY_INFO, "CompassLearn: Initialised");
+    GCS_SEND_TEXT(MAV_SEVERITY_INFO, "CompassLearn: Initialised");
     for (Compass::Priority i(0); i<compass.get_count(); i++) {
         if (compass._use_for_yaw[Compass::Priority(i)]) {
             // reset scale factors, we can't learn scale factors in
@@ -79,7 +79,7 @@ void CompassLearn::update(void)
             errors[i] = intensity;
         }
 
-        gcs().send_text(MAV_SEVERITY_INFO, "CompassLearn: have earth field");
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "CompassLearn: have earth field");
         hal.scheduler->register_io_process(FUNCTOR_BIND_MEMBER(&CompassLearn::io_timer, void));
     }
 
@@ -171,7 +171,7 @@ void CompassLearn::update(void)
             best_error = 0;
             best_yaw_deg = 0;
             best_offsets.zero();
-            gcs().send_text(MAV_SEVERITY_INFO, "CompassLearn: finished");
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "CompassLearn: finished");
             AP_Notify::flags.compass_cal_running = false;
             AP_Notify::events.compass_cal_saved = true;
         }
@@ -261,7 +261,7 @@ void CompassLearn::process_sample(const struct sample &s)
         float percent = (MIN(num_samples / COMPASS_LEARN_NUM_SAMPLES, 1.0f) + 
                          MIN(COMPASS_LEARN_BEST_ERROR_THRESHOLD / (best_error + 1.0f), 1.0f) + 
                          MIN(worst_error / COMPASS_LEARN_WORST_ERROR_THRESHOLD, 1.0f)) / 3.0f * 100.f;
-        gcs().send_text(MAV_SEVERITY_INFO, "CompassLearn: %d%%", (int) percent);
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "CompassLearn: %d%%", (int) percent);
         last_learn_progress_sent_ms = now;
     }
 }

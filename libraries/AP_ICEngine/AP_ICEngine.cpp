@@ -233,7 +233,7 @@ void AP_ICEngine::update(void)
                 height_pending = false;
                 initial_height = -pos.z;
             } else if ((-pos.z) >= initial_height + height_required) {
-                gcs().send_text(MAV_SEVERITY_INFO, "Starting height reached %.1f",
+                GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Starting height reached %.1f",
                                                  (double)(-pos.z - initial_height));
                 state = ICE_STARTING;
             }
@@ -245,7 +245,7 @@ void AP_ICEngine::update(void)
         if (!should_run) {
             state = ICE_OFF;
         } else if (now - starter_last_run_ms >= starter_delay*1000) {
-            gcs().send_text(MAV_SEVERITY_INFO, "Starting engine");
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Starting engine");
             state = ICE_STARTING;
         }
         break;
@@ -261,7 +261,7 @@ void AP_ICEngine::update(void)
     case ICE_RUNNING:
         if (!should_run) {
             state = ICE_OFF;
-            gcs().send_text(MAV_SEVERITY_INFO, "Stopped engine");
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Stopped engine");
         } else if (rpm_instance > 0) {
             // check RPM to see if still running
             float rpm_value;
@@ -361,7 +361,7 @@ bool AP_ICEngine::engine_control(float start_control, float cold_start, float he
         // get starter control channel
         uint16_t cvalue = c->get_radio_in();
         if (cvalue >= start_chan_min_pwm && cvalue <= RC_Channel::AUX_PWM_TRIGGER_LOW) {
-            gcs().send_text(MAV_SEVERITY_INFO, "Engine: start control disabled");
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Engine: start control disabled");
             return false;
         }
     }
@@ -370,7 +370,7 @@ bool AP_ICEngine::engine_control(float start_control, float cold_start, float he
         initial_height = 0;
         height_required = height_delay;
         state = ICE_START_HEIGHT_DELAY;
-        gcs().send_text(MAV_SEVERITY_INFO, "Takeoff height set to %.1fm", (double)height_delay);
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Takeoff height set to %.1fm", (double)height_delay);
         return true;
     }
     state = ICE_STARTING;

@@ -242,21 +242,21 @@ const char *AC_AutoTune::level_issue_string() const
 void AC_AutoTune::send_step_string()
 {
     if (pilot_override) {
-        gcs().send_text(MAV_SEVERITY_INFO, "AutoTune: Paused: Pilot Override Active");
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AutoTune: Paused: Pilot Override Active");
         return;
     }
     switch (step) {
     case WAITING_FOR_LEVEL:
-        gcs().send_text(MAV_SEVERITY_INFO, "AutoTune: Leveling (%s %4.1f > %4.1f)", level_issue_string(), (double)(level_problem.current*0.01f), (double)(level_problem.maximum*0.01f));
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AutoTune: Leveling (%s %4.1f > %4.1f)", level_issue_string(), (double)(level_problem.current*0.01f), (double)(level_problem.maximum*0.01f));
         return;
     case UPDATE_GAINS:
-        gcs().send_text(MAV_SEVERITY_INFO, "AutoTune: Updating Gains");
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AutoTune: Updating Gains");
         return;
     case TWITCHING:
-        gcs().send_text(MAV_SEVERITY_INFO, "AutoTune: Twitching");
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AutoTune: Twitching");
         return;
     }
-    gcs().send_text(MAV_SEVERITY_INFO, "AutoTune: unknown step");
+    GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AutoTune: unknown step");
 }
 
 const char *AC_AutoTune::type_string() const
@@ -311,26 +311,26 @@ void AC_AutoTune::do_gcs_announcements()
         break;
     }
 
-    gcs().send_text(MAV_SEVERITY_INFO, "AutoTune: (%c) %s", axis_char, type_string());
+    GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AutoTune: (%c) %s", axis_char, type_string());
     send_step_string();
     if (!is_zero(lean_angle)) {
-        gcs().send_text(MAV_SEVERITY_INFO, "AutoTune: lean=%f target=%f", (double)lean_angle, (double)target_angle);
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AutoTune: lean=%f target=%f", (double)lean_angle, (double)target_angle);
     }
     if (!is_zero(rotation_rate)) {
-        gcs().send_text(MAV_SEVERITY_INFO, "AutoTune: rotation=%f target=%f", (double)(rotation_rate*0.01f), (double)(target_rate*0.01f));
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AutoTune: rotation=%f target=%f", (double)(rotation_rate*0.01f), (double)(target_rate*0.01f));
     }
     switch (tune_type) {
     case RD_UP:
     case RD_DOWN:
     case RP_UP:
-        gcs().send_text(MAV_SEVERITY_INFO, "AutoTune: p=%f d=%f", (double)tune_rp, (double)tune_rd);
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AutoTune: p=%f d=%f", (double)tune_rp, (double)tune_rd);
         break;
     case SP_DOWN:
     case SP_UP:
-        gcs().send_text(MAV_SEVERITY_INFO, "AutoTune: p=%f accel=%f", (double)tune_sp, (double)tune_accel);
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AutoTune: p=%f accel=%f", (double)tune_sp, (double)tune_accel);
         break;
     }
-    gcs().send_text(MAV_SEVERITY_INFO, "AutoTune: success %u/%u", counter, AUTOTUNE_SUCCESS_COUNT);
+    GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AutoTune: success %u/%u", counter, AUTOTUNE_SUCCESS_COUNT);
 
     announce_time = now;
 }
@@ -386,7 +386,7 @@ void AC_AutoTune::run()
     }
     if (pilot_override) {
         if (now - last_pilot_override_warning > 1000) {
-            gcs().send_text(MAV_SEVERITY_INFO, "AutoTune: pilot overrides active");
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AutoTune: pilot overrides active");
             last_pilot_override_warning = now;
         }
     }
@@ -439,7 +439,7 @@ bool AC_AutoTune::currently_level()
     // display warning if vehicle fails to level
     if ((now_ms - level_start_time_ms > AUTOTUNE_LEVEL_WARNING_INTERVAL_MS) &&
         (now_ms - level_fail_warning_time_ms > AUTOTUNE_LEVEL_WARNING_INTERVAL_MS)) {
-        gcs().send_text(MAV_SEVERITY_CRITICAL, "AutoTune: failing to level, please tune manually");
+        GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "AutoTune: failing to level, please tune manually");
         level_fail_warning_time_ms = now_ms;
     }
 
@@ -506,7 +506,7 @@ void AC_AutoTune::control_attitude()
 
         // if we have been level for a sufficient amount of time (0.5 seconds) move onto tuning step
         if (now - step_start_time_ms > AUTOTUNE_REQUIRED_LEVEL_TIME_MS) {
-            gcs().send_text(MAV_SEVERITY_INFO, "AutoTune: Twitch");
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AutoTune: Twitch");
             // initiate variables for next step
             step = TWITCHING;
             step_start_time_ms = now;
@@ -1241,22 +1241,22 @@ void AC_AutoTune::update_gcs(uint8_t message_id) const
 {
     switch (message_id) {
     case AUTOTUNE_MESSAGE_STARTED:
-        gcs().send_text(MAV_SEVERITY_INFO,"AutoTune: Started");
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO,"AutoTune: Started");
         break;
     case AUTOTUNE_MESSAGE_STOPPED:
-        gcs().send_text(MAV_SEVERITY_INFO,"AutoTune: Stopped");
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO,"AutoTune: Stopped");
         break;
     case AUTOTUNE_MESSAGE_SUCCESS:
-        gcs().send_text(MAV_SEVERITY_NOTICE,"AutoTune: Success");
+        GCS_SEND_TEXT(MAV_SEVERITY_NOTICE,"AutoTune: Success");
         break;
     case AUTOTUNE_MESSAGE_FAILED:
-        gcs().send_text(MAV_SEVERITY_NOTICE,"AutoTune: Failed");
+        GCS_SEND_TEXT(MAV_SEVERITY_NOTICE,"AutoTune: Failed");
         break;
     case AUTOTUNE_MESSAGE_TESTING:
-        gcs().send_text(MAV_SEVERITY_NOTICE,"AutoTune: Pilot Testing");
+        GCS_SEND_TEXT(MAV_SEVERITY_NOTICE,"AutoTune: Pilot Testing");
         break;
     case AUTOTUNE_MESSAGE_SAVED_GAINS:
-        gcs().send_text(MAV_SEVERITY_NOTICE,"AutoTune: Saved gains for %s%s%s",
+        GCS_SEND_TEXT(MAV_SEVERITY_NOTICE,"AutoTune: Saved gains for %s%s%s",
                         (axes_completed&AUTOTUNE_AXIS_BITMASK_ROLL)?"Roll ":"",
                         (axes_completed&AUTOTUNE_AXIS_BITMASK_PITCH)?"Pitch ":"",
                         (axes_completed&AUTOTUNE_AXIS_BITMASK_YAW)?"Yaw":"");

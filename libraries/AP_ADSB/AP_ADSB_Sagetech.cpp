@@ -190,10 +190,10 @@ void AP_ADSB_Sagetech::handle_ack(const Packet_XP &msg)
     last_ack_transponder_mode = (system_state >> 6) & 0x03;
     if (prev_transponder_mode != last_ack_transponder_mode) {
         switch (last_ack_transponder_mode) {
-        case 0: gcs().send_text(MAV_SEVERITY_INFO, "ADSB: %sOFF",   rfmode); break;
-        case 1: gcs().send_text(MAV_SEVERITY_INFO, "ADSB: %sSTBY",  rfmode); break;
-        case 2: gcs().send_text(MAV_SEVERITY_INFO, "ADSB: %sON",    rfmode); break;
-        case 3: gcs().send_text(MAV_SEVERITY_INFO, "ADSB: %sON-ALT",rfmode); break;
+        case 0: GCS_SEND_TEXT(MAV_SEVERITY_INFO, "ADSB: %sOFF",   rfmode); break;
+        case 1: GCS_SEND_TEXT(MAV_SEVERITY_INFO, "ADSB: %sSTBY",  rfmode); break;
+        case 2: GCS_SEND_TEXT(MAV_SEVERITY_INFO, "ADSB: %sON",    rfmode); break;
+        case 3: GCS_SEND_TEXT(MAV_SEVERITY_INFO, "ADSB: %sON-ALT",rfmode); break;
         default:  break;
         }
     }

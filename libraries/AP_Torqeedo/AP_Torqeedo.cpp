@@ -433,7 +433,7 @@ void AP_Torqeedo::log_and_debug()
     }
 
     if ((_options & options::DEBUG_TO_GCS) != 0) {
-        gcs().send_text(MAV_SEVERITY_INFO,"Trqd h:%u spd:%d succ:%ld err:%ld",
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO,"Trqd h:%u spd:%d succ:%ld err:%ld",
                 (unsigned)health,
                 (int)mot_speed,
                 (unsigned long)_parse_success_count,
