@@ -253,7 +253,7 @@ void AP_Camera::configure(float shooting_mode, float shutter_speed, float apertu
 {
     // we cannot process the configure command so convert to mavlink message
     // and send to all components in case they and process it
-
+#if HAL_GCS_ENABLED
     mavlink_command_long_t mav_cmd_long = {};
 
     // convert mission command to mavlink command_long
@@ -268,7 +268,7 @@ void AP_Camera::configure(float shooting_mode, float shutter_speed, float apertu
 
     // send to all components
     GCS_MAVLINK::send_to_components(MAVLINK_MSG_ID_COMMAND_LONG, (char*)&mav_cmd_long, sizeof(mav_cmd_long));
-
+#endif
     if (_type == AP_Camera::CAMERA_TYPE_BMMCC) {
         // Set a trigger for the additional functions that are flip controlled (so far just ISO and Record Start / Stop use this method, will add others if required)
         _trigger_counter_cam_function = constrain_int16(_trigger_duration*5,0,255);
@@ -299,7 +299,7 @@ void AP_Camera::control(float session, float zoom_pos, float zoom_step, float fo
     if (is_equal(shooting_cmd,1.0f)) {
         trigger_pic();
     }
-
+#if HAL_GCS_ENABLED
     mavlink_command_long_t mav_cmd_long = {};
 
     // convert command to mavlink command long
@@ -313,6 +313,7 @@ void AP_Camera::control(float session, float zoom_pos, float zoom_step, float fo
 
     // send to all components
     GCS_MAVLINK::send_to_components(MAVLINK_MSG_ID_COMMAND_LONG, (char*)&mav_cmd_long, sizeof(mav_cmd_long));
+#endif
 }
 
 /*
@@ -462,13 +463,14 @@ void AP_Camera::setup_feedback_callback(void)
 // log_picture - log picture taken and send feedback to GCS
 void AP_Camera::log_picture()
 {
+#if HAL_GCS_ENABLED
     if (!using_feedback_pin()) {
         // if we're using a feedback pin then when the event occurs we
         // stash the feedback data.  Since we're not using a feedback
         // pin, we just use "now".
         prep_mavlink_msg_camera_feedback(AP::gps().time_epoch_usec());
     }
-
+#endif
     AP_Logger *logger = AP_Logger::get_singleton();
     if (logger == nullptr) {
         return;
@@ -489,7 +491,7 @@ void AP_Camera::take_picture()
 {
     // take a local picture:
     trigger_pic();
-
+#if HAL_GCS_ENABLED
     // tell all of our components to take a picture:
     mavlink_command_long_t cmd_msg {};
     cmd_msg.command = MAV_CMD_DO_DIGICAM_CONTROL;
@@ -497,6 +499,7 @@ void AP_Camera::take_picture()
 
     // forward to all components
     GCS_MAVLINK::send_to_components(MAVLINK_MSG_ID_COMMAND_LONG, (char*)&cmd_msg, sizeof(cmd_msg));
+#endif
 }
 
 void AP_Camera::prep_mavlink_msg_camera_feedback(uint64_t timestamp_us)
@@ -520,7 +523,7 @@ void AP_Camera::prep_mavlink_msg_camera_feedback(uint64_t timestamp_us)
 void AP_Camera::update_trigger()
 {
     trigger_pic_cleanup();
-    
+
     if (_camera_trigger_logged != _camera_trigger_count) {
         uint32_t timestamp32 = _feedback_trigger_timestamp_us;
         _camera_trigger_logged = _camera_trigger_count;
@@ -550,7 +553,7 @@ AP_Camera::CamTrigType AP_Camera::get_trigger_type(void)
             return (CamTrigType)type;
         default:
             return CamTrigType::servo;
-    }   
+    }
 }
 
 // singleton instance

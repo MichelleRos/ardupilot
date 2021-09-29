@@ -93,9 +93,10 @@ public:
         return _singleton;
     }
 
+#if HAL_GCS_ENABLED
     // handle a data96 mavlink packet for fw upload
     void handle_data_packet(mavlink_channel_t chan, const mavlink_data96_t &m);
-
+#endif
     // set the 2.4GHz wifi channel used by companion computer, so it can be avoided
     void set_wifi_channel(uint8_t channel);
 

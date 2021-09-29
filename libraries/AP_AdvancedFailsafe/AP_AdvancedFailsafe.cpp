@@ -210,7 +210,12 @@ AP_AdvancedFailsafe::check(bool geofence_breached, uint32_t last_valid_rc_ms)
     }
 
     uint32_t now = AP_HAL::millis();
+#if HAL_GCS_ENABLED
+    const uint32_t last_heartbeat_ms = gcs().sysid_myggcs_last_seen_time_ms();
     bool gcs_link_ok = ((now - last_heartbeat_ms) < 10000);
+#else 
+    bool gcs_link_ok = true;
+#endif
     bool gps_lock_ok = ((now - AP::gps().last_fix_time_ms()) < 3000);
 
     AP_Mission *_mission = AP::mission();
