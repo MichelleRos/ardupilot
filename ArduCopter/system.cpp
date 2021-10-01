@@ -316,7 +316,8 @@ bool Copter::ekf_has_absolute_position() const
     }
 
     // with EKF use filter status and ekf check
-    nav_filter_status filt_status = inertial_nav.get_filter_status();
+    nav_filter_status filt_status;
+    ahrs.get_filter_status(filt_status);
 
     // if disarmed we accept a predicted horizontal position
     if (!motors->armed()) {
@@ -352,7 +353,8 @@ bool Copter::ekf_has_relative_position() const
     }
 
     // get filter status from EKF
-    nav_filter_status filt_status = inertial_nav.get_filter_status();
+    nav_filter_status filt_status;
+    ahrs.get_filter_status(filt_status);
 
     // if disarmed we accept a predicted horizontal relative position
     if (!motors->armed()) {
@@ -371,7 +373,8 @@ bool Copter::ekf_alt_ok() const
     }
 
     // with EKF use filter status and ekf check
-    nav_filter_status filt_status = inertial_nav.get_filter_status();
+    nav_filter_status filt_status;
+    ahrs.get_filter_status(filt_status);
 
     // require both vertical velocity and position
     return (filt_status.flags.vert_vel && filt_status.flags.vert_pos);
