@@ -66,7 +66,8 @@ bool AP_Arming_Blimp::barometer_checks(bool display_failure)
         // Check baro & inav alt are within 1m if EKF is operating in an absolute position mode.
         // Do not check if intending to operate in a ground relative height mode as EKF will output a ground relative height
         // that may differ from the baro height due to baro drift.
-        nav_filter_status filt_status = blimp.inertial_nav.get_filter_status();
+        nav_filter_status filt_status;
+        blimp.ahrs.get_filter_status(filt_status);
         bool using_baro_ref = (!filt_status.flags.pred_horiz_pos_rel && filt_status.flags.pred_horiz_pos_abs);
         if (using_baro_ref) {
             if (fabsf(blimp.inertial_nav.get_altitude() - blimp.baro_alt) > PREARM_MAX_ALT_DISPARITY_CM) {
@@ -218,7 +219,8 @@ bool AP_Arming_Blimp::gps_checks(bool display_failure)
 bool AP_Arming_Blimp::pre_arm_ekf_attitude_check()
 {
     // get ekf filter status
-    nav_filter_status filt_status = blimp.inertial_nav.get_filter_status();
+    nav_filter_status filt_status;
+    blimp.ahrs.get_filter_status(filt_status);
 
     return filt_status.flags.attitude;
 }

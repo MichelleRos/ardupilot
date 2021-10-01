@@ -13,7 +13,9 @@ void Blimp::read_inertia()
     current_loc.lng = loc.lng;
 
     // exit immediately if we do not have an altitude estimate
-    if (!inertial_nav.get_filter_status().flags.vert_pos) {
+    nav_filter_status filt_status;
+    ahrs.get_filter_status(filt_status);
+    if (!filt_status.flags.vert_pos) {
         return;
     }
 
