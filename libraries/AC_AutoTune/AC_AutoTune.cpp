@@ -1633,7 +1633,8 @@ bool AC_AutoTune::position_ok(void)
     }
 
     // with EKF use filter status and ekf check
-    nav_filter_status filt_status = inertial_nav->get_filter_status();
+    nav_filter_status filt_status;
+    AP::ahrs().get_filter_status(filt_status);
 
     // require a good absolute position and EKF must not be in const_pos_mode
     return (filt_status.flags.horiz_pos_abs && !filt_status.flags.const_pos_mode);
