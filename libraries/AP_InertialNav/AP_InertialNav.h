@@ -30,11 +30,6 @@ public:
      */
     virtual void update(bool high_vibes = false) = 0;
 
-    /**
-     * get_filter_status : returns filter status as a series of flags
-     */
-    virtual nav_filter_status get_filter_status() const = 0;
-
     //
     // XY Axis specific methods
     //
