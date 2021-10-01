@@ -13,7 +13,7 @@ void Copter::SurfaceTracking::update_surface_offset()
         // init based on tracking direction/state
         RangeFinderState &rf_state = (surface == Surface::GROUND) ? copter.rangefinder_state : copter.rangefinder_up_state;
         const float dir = (surface == Surface::GROUND) ? 1.0f : -1.0f;
-        offset_cm = copter.inertial_nav.get_altitude() - dir * rf_state.alt_cm;
+        offset_cm = copter.pos_neu.z - dir * rf_state.alt_cm;
 
         // reset target altitude if this controller has just been engaged
         // target has been changed between upwards vs downwards
@@ -61,7 +61,7 @@ void Copter::SurfaceTracking::set_target_alt_cm(float _target_alt_cm)
     if (surface != Surface::GROUND) {
         return;
     }
-    copter.pos_control->set_pos_offset_z_cm(copter.inertial_nav.get_altitude() - _target_alt_cm);
+    copter.pos_control->set_pos_offset_z_cm(copter.pos_neu.z - _target_alt_cm);
     last_update_ms = AP_HAL::millis();
 }
 

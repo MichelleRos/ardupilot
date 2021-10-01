@@ -5,12 +5,12 @@ Mode::AutoYaw Mode::auto_yaw;
 // roi_yaw - returns heading towards location held in roi
 float Mode::AutoYaw::roi_yaw() const
 {
-    return get_bearing_cd(copter.inertial_nav.get_position(), roi);
+    return get_bearing_cd(copter.pos_neu, roi);
 }
 
 float Mode::AutoYaw::look_ahead_yaw()
 {
-    const Vector3f& vel = copter.inertial_nav.get_velocity();
+    const Vector3f& vel = copter.vel_neu;
     float speed = vel.xy().length();
     // Commanded Yaw to automatically look ahead.
     if (copter.position_ok() && (speed > YAW_LOOK_AHEAD_MIN_SPEED)) {

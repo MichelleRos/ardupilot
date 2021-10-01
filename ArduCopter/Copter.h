@@ -631,7 +631,8 @@ private:
     static_assert(_failsafe_priorities[ARRAY_SIZE(_failsafe_priorities) - 1] == -1,
                   "_failsafe_priorities is missing the sentinel");
 
-
+    Vector3f pos_neu;
+    Vector3f vel_neu;
 
     // AP_State.cpp
     void set_auto_armed(bool b);
@@ -670,6 +671,7 @@ private:
     void update_super_simple_bearing(bool force_update);
     void read_AHRS(void);
     void update_altitude();
+    void update_posvel(bool high_vibes = false);
 
     // Attitude.cpp
     void update_throttle_hover();

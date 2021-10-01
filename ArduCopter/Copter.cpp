@@ -204,6 +204,7 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] = {
 #if STATS_ENABLED == ENABLED
     SCHED_TASK_CLASS(AP_Stats,             &copter.g2.stats,            update,           1, 100),
 #endif
+    // SCHED_TASK(update_posvel,    400,     75),
 };
 
 void Copter::get_scheduler_tasks(const AP_Scheduler::Task *&tasks,
@@ -696,6 +697,38 @@ bool Copter::get_wp_crosstrack_error_m(float &xtrack_error) const
     // see GCS_MAVLINK_Copter::send_nav_controller_output()
     xtrack_error = flightmode->crosstrack_error() * 0.01;
     return true;
+}
+
+void Copter::update_posvel(bool high_vibes)
+{
+    //These if-statements mean that when ahrs calls return false it just silently fails...
+
+    // get the NE position relative to the local earth frame origin
+    Vector2f posNE;
+    if (ahrs.get_relative_position_NE_origin(posNE)) {
+        pos_neu.x = posNE.x * 100; // convert from m to cm
+        pos_neu.y = posNE.y * 100; // convert from m to cm
+    }
+
+    // get the D position relative to the local earth frame origin
+    float posD;
+    if (ahrs.get_relative_position_D_origin(posD)) {
+        pos_neu.z = - posD * 100; // convert from m in NED to cm in NEU
+    }
+
+    // get the velocity relative to the local earth frame
+    Vector3f velNED;
+    if (ahrs.get_velocity_NED(velNED)) {
+        // during high vibration events use vertical position change
+        if (high_vibes) {
+            float rate_z;
+            if (ahrs.get_vert_pos_rate(rate_z)) {
+                velNED.z = rate_z;
+            }
+        }
+        vel_neu = velNED * 100; // convert to cm/s
+        vel_neu.z = -vel_neu.z; // convert from NED to NEU
+    }
 }
 
 /*

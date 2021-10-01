@@ -71,9 +71,9 @@ void ModeThrow::run()
         // initialise the demanded height to 3m above the throw height
         // we want to rapidly clear surrounding obstacles
         if (g2.throw_type == ThrowType::Drop) {
-            pos_control->set_pos_target_z_cm(inertial_nav.get_altitude() - 100);
+            pos_control->set_pos_target_z_cm(copter.pos_neu.z - 100);
         } else {
-            pos_control->set_pos_target_z_cm(inertial_nav.get_altitude() + 300);
+            pos_control->set_pos_target_z_cm(copter.pos_neu.z + 300);
         }
 
         // Set the auto_arm status to true to avoid a possible automatic disarm caused by selection of an auto mode with throttle at minimum
@@ -204,8 +204,8 @@ void ModeThrow::run()
     if ((stage != prev_stage) || (now - last_log_ms) > 100) {
         prev_stage = stage;
         last_log_ms = now;
-        const float velocity = inertial_nav.get_velocity().length();
-        const float velocity_z = inertial_nav.get_velocity().z;
+        const float velocity = copter.vel_neu.length();
+        const float velocity_z = copter.vel_neu.z;
         const float accel = copter.ins.get_accel().length();
         const float ef_accel_z = ahrs.get_accel_ef().z;
         const bool throw_detect = (stage > Throw_Detecting) || throw_detected();
@@ -256,14 +256,14 @@ bool ModeThrow::throw_detected()
     }
 
     // Check for high speed (>500 cm/s)
-    bool high_speed = inertial_nav.get_velocity().length() > THROW_HIGH_SPEED;
+    bool high_speed = copter.vel_neu.length() > THROW_HIGH_SPEED;
 
     // check for upwards or downwards trajectory (airdrop) of 50cm/s
     bool changing_height;
     if (g2.throw_type == ThrowType::Drop) {
-        changing_height = inertial_nav.get_velocity().z < -THROW_VERTICAL_SPEED;
+        changing_height = copter.vel_neu.z < -THROW_VERTICAL_SPEED;
     } else {
-        changing_height = inertial_nav.get_velocity().z > THROW_VERTICAL_SPEED;
+        changing_height = copter.vel_neu.z > THROW_VERTICAL_SPEED;
     }
 
     // Check the vertical acceleraton is greater than 0.25g
@@ -278,11 +278,11 @@ bool ModeThrow::throw_detected()
     // Record time and vertical velocity when we detect the possible throw
     if (possible_throw_detected && ((AP_HAL::millis() - free_fall_start_ms) > 500)) {
         free_fall_start_ms = AP_HAL::millis();
-        free_fall_start_velz = inertial_nav.get_velocity().z;
+        free_fall_start_velz = copter.vel_neu.z;
     }
 
     // Once a possible throw condition has been detected, we check for 2.5 m/s of downwards velocity change in less than 0.5 seconds to confirm
-    bool throw_condition_confirmed = ((AP_HAL::millis() - free_fall_start_ms < 500) && ((inertial_nav.get_velocity().z - free_fall_start_velz) < -250.0f));
+    bool throw_condition_confirmed = ((AP_HAL::millis() - free_fall_start_ms < 500) && ((copter.vel_neu.z - free_fall_start_velz) < -250.0f));
 
     // start motors and enter the control mode if we are in continuous freefall
     return throw_condition_confirmed;

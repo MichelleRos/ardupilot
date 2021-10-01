@@ -161,7 +161,7 @@ void ModeZigZag::run()
 void ModeZigZag::save_or_move_to_destination(Destination ab_dest)
 {
     // get current position as an offset from EKF origin
-    const Vector3f curr_pos = inertial_nav.get_position();
+    const Vector3f curr_pos = copter.pos_neu;
 
     // handle state machine changes
     switch (stage) {
@@ -429,7 +429,7 @@ bool ModeZigZag::calculate_next_dest(Destination ab_dest, bool use_wpnav_alt, Ve
     }
 
     // get distance from vehicle to start_pos
-    const Vector3f curr_pos = inertial_nav.get_position();
+    const Vector3f curr_pos = copter.pos_neu;
     const Vector2f curr_pos2d = Vector2f(curr_pos.x, curr_pos.y);
     Vector2f veh_to_start_pos = curr_pos2d - start_pos;
 
@@ -502,7 +502,7 @@ bool ModeZigZag::calculate_side_dest(Vector3f& next_dest, bool& terrain_alt) con
     float scalar = constrain_float(_side_dist, 0.1f, 100.0f) * 100 / safe_sqrt(AB_side.length_squared());
 
     // get distance from vehicle to start_pos
-    const Vector3f curr_pos = inertial_nav.get_position();
+    const Vector3f curr_pos = copter.pos_neu;
     const Vector2f curr_pos2d = Vector2f(curr_pos.x, curr_pos.y);
     next_dest.x = curr_pos2d.x + (AB_side.x * scalar);
     next_dest.y = curr_pos2d.y + (AB_side.y * scalar);
