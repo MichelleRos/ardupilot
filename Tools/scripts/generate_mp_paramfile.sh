@@ -34,6 +34,12 @@ echo "Append parameters to the complete file"
 cat ParameterMetaData.xml >> ParameterMetaDataBackup.xml
 
 ./Tools/autotest/param_metadata/param_parse.py --vehicle AntennaTracker --format xml_mp
+echo "Remove the two first lines and the last one"
+sed -i -e '1d' -e '2d' -e '$d' ParameterMetaData.xml
+echo "Append parameters to the complete file"
+cat ParameterMetaData.xml >> ParameterMetaDataBackup.xml
+
+./Tools/autotest/param_metadata/param_parse.py --vehicle Blimp --format xml_mp
 echo "Remove the two first lines"
 sed -i -e '1d' -e '2d' ParameterMetaData.xml
 echo "Append parameters to the complete file"

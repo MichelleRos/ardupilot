@@ -29,6 +29,7 @@ class VehicleType(enum.Enum):
     ArduSub = 7
     iofirmware = 8
     AP_Periph = 9
+    Blimp = 10
 
 
 class BoardType(enum.Enum):

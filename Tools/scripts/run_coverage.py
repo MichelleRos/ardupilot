@@ -172,7 +172,7 @@ class CoverageRunner(object):
         subprocess.run(["reset"], check=True)
         os.set_blocking(sys.stdout.fileno(), True)
         os.set_blocking(sys.stderr.fileno(), True)
-        test_list = ["Plane", "QuadPlane", "Sub", "Copter", "Helicopter", "Rover", "Tracker", "BalanceBot", "Sailboat"]
+        test_list = ["Plane", "QuadPlane", "Sub", "Copter", "Helicopter", "Rover", "Tracker", "BalanceBot", "Sailboat", "Blimp"]
         for test in test_list:
             self.progress("Running test.%s" % test)
             subprocess.run([self.autotest,

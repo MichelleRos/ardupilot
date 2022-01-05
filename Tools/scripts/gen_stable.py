@@ -6,7 +6,7 @@ create stable-x.y.z directories so we keep all past stable releases for users to
 import os
 import shutil
 
-VEHICLES = ['AntennaTracker', 'Copter', 'Plane', 'Rover', 'Sub']
+VEHICLES = ['AntennaTracker', 'Copter', 'Plane', 'Rover', 'Sub', 'Blimp']
 
 
 def make_stable(basedir, vehicle):
