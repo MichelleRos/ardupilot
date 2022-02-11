@@ -3,7 +3,19 @@
  * Init and run calls for srcloc flight mode
  */
 
- bool ModeSrcloc::init(bool ignore_checks){
+//randf to return random number between 0 and 1
+#define randf() (float)rand()/RAND_MAX
+
+#define c 1.0f
+#define mew 0.0f
+float levydis(float x){
+    return sqrtf(c/(2*M_PI))*(expf(-c/(2*(x-mew)))/pow(x-mew,3.0f/2.0f));
+}
+
+#define Lmin 1.5f //50 cm
+#define mu 3.0f
+
+bool ModeSrcloc::init(bool ignore_checks){
     target_pos = blimp.pos_ned;
     target_yaw = blimp.ahrs.get_yaw();
     right_mv = true;
@@ -16,7 +28,7 @@
     drift = false;
 
     return true;
- }
+}
 
 //Runs the main srcloc controller
 void ModeSrcloc::run()
@@ -45,7 +57,7 @@ void ModeSrcloc::run()
                 add_tar.y = g.sl_big * stage + g.sl_mul2;
                 right_mv = false;
             }
-            else {     
+            else {
                 add_tar.y = -(g.sl_big * stage + g.sl_mul2);
                 right_mv = true;
             }
@@ -77,8 +89,8 @@ void ModeSrcloc::run()
             fnd_pl = true;
             GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Found plume.");
         }
-        
-        
+
+
         if ((now - push) > (g.sl_push_time + g.sl_drift_time)) {
             GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Starting push. Now=%0.2f Push=%0.2f", now, push);
             motors->front_out = 1.0f;
@@ -90,5 +102,27 @@ void ModeSrcloc::run()
             drift = true;
         }
         blimp.loiter->run({0,0,0}, g.sl_wind_deg * DEG_TO_RAD, Vector4b{true,true,true,false});
+
+    //
+    // Levy Walk from rahbar_3-d_2017
+    //
+    } else if(g.sl_mode == 3){
+        //GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Rand %0.8f, Levy %0.8f", randf()*10, levydis(randf()*10));
+        float distsq = blimp.pos_ned.distance_squared(target_pos);
+        if (distsq < sq(g.wpnav_radius)){
+            Vector3f next;
+            float Ml = Lmin*pow(randf(),1/(1-mu));
+            float Ta = randf()*2*M_PI;
+            next.x = Ml*sinf(Ta);
+            next.y = Ml*cosf(Ta);
+            //blimp.rotate_BF_to_NE(next.xy());
+            float dist_tar = sqrt(next.distance_squared({0,0,0}));
+            target_pos.x += next.x;
+            target_pos.y += next.y;
+
+            target_yaw = wrap_PI(Ta);
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "New target %0.4f, %0.2f, %0.2f, %0.2f", dist_tar, target_pos.x, target_pos.y, target_yaw*RAD_TO_DEG);
+        }
+        blimp.loiter->run(target_pos, target_yaw, Vector4b{false,false,false,false});
     }
 }
