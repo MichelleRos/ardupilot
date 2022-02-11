@@ -305,6 +305,16 @@ const AP_Param::Info Blimp::var_info[] = {
     // @User: Standard
     GSCALAR(pid_dz, "PID_DZ", 0.5),
 
+    //MIR TEMP
+    GSCALAR(sl_mode, "SL_MODE", 1),
+    GSCALAR(sl_wind_deg, "SL_WIND_DEG", 0),
+    GSCALAR(sl_big, "SL_BIG", 1),
+    GSCALAR(sl_surg_dist, "SL_SURG_DIST", 2),
+    GSCALAR(sl_plume_found, "SL_PLUME_FOUND", 1.5),
+    GSCALAR(sl_mul2, "SL_MUL2", 0),
+    GSCALAR(sl_drift_time, "SL_DRIFT_TIME", 2),
+    GSCALAR(sl_push_time, "SL_PUSH_TIME", 1),
+
     // @Param: RC_SPEED
     // @DisplayName: ESC Update Speed
     // @Description: This is the speed in Hertz that your ESCs will receive updates

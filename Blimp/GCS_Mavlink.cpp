@@ -105,7 +105,7 @@ void GCS_MAVLINK_Blimp::send_pid_tuning()
         //No PIDs are used in Manual or Land mode.
         return;
     }
-    
+
     static const int8_t axes[] = {
         PID_SEND::VELX,
         PID_SEND::VELY,
@@ -537,6 +537,18 @@ void GCS_MAVLINK_Blimp::handleMessage(const mavlink_message_t &msg)
     case MAVLINK_MSG_ID_TERRAIN_CHECK:
         break;
 
+    case MAVLINK_MSG_ID_PLUME_STRENGTH: {
+        Location plume_loc;
+        float plume_cov;
+        if(blimp.handle_plume_str(msg, plume_loc, plume_cov)){
+            mavlink_msg_plume_est_loc_send(chan, plume_loc.lat, plume_loc.lng, plume_loc.alt, plume_cov);
+        }
+        break;
+    }
+    case MAVLINK_MSG_ID_PLUME_EST_LOC: {
+        blimp.handle_plume_loc(msg);
+        break;
+    }
     default:
         handle_common_message(msg);
         break;

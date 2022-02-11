@@ -111,6 +111,20 @@ public:
         k_param_pid_dz,
 
         //
+        // 80: MIR Temp
+        //
+        k_param_sl_mode = 80,
+        k_param_sl_wind_deg,
+        k_param_sl_big,
+        k_param_sl_push_time,
+        k_param_sl_mul, //no
+        k_param_sl_mx_stg, //85 no
+        k_param_sl_surg_dist,
+        k_param_sl_plume_found,
+        k_param_sl_mul2, //88
+        k_param_sl_drift_time,
+
+        //
         // 90: misc2
         //
         k_param_motors = 90,
@@ -134,7 +148,7 @@ public:
         k_param_gcs2,
         k_param_serial_manager,
         k_param_gcs3,
-        k_param_gcs_pid_mask,    // 126
+        k_param_gcs_pid_mask,
         k_param_gcs4,
         k_param_gcs5,
         k_param_gcs6,
@@ -255,6 +269,16 @@ public:
     AP_Int16        dis_mask;
     AP_Float        wpnav_radius;
     AP_Float        pid_dz;
+
+    //MIR TEMP
+    AP_Int16        sl_mode;
+    AP_Float        sl_wind_deg;
+    AP_Float        sl_big;
+    AP_Float        sl_surg_dist;
+    AP_Float        sl_plume_found;
+    AP_Float        sl_mul2;
+    AP_Float        sl_drift_time;
+    AP_Float        sl_push_time;
 
     AP_Int8         rtl_alt_type;
 

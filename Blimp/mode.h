@@ -20,6 +20,7 @@ public:
         AUTO =          4,  // auto mode
         GUIDED =        5,  // guided
         RTL =           6,  // rtl
+        SRCLOC =        7,  // source localisation
     };
 
     // constructor
@@ -484,4 +485,56 @@ protected:
     {
         return "RTL";
     }
+};
+
+class ModeSrcloc : public Mode
+{
+
+public:
+    // inherit constructor
+    using Mode::Mode;
+
+    virtual bool init(bool ignore_checks) override;
+    virtual void run() override;
+
+    bool requires_GPS() const override
+    {
+        return true;
+    }
+    bool has_manual_throttle() const override
+    {
+        return false;
+    }
+    bool allows_arming(bool from_gcs) const override
+    {
+        return true;
+    };
+    bool is_autopilot() const override
+    {
+        return false;
+        //TODO
+    }
+
+protected:
+
+    const char *name() const override
+    {
+        return "SRCLOC";
+    }
+    const char *name4() const override
+    {
+        return "SRCL";
+    }
+
+private:
+    Vector3f target_pos;
+    float target_yaw;
+    bool right_mv;
+    int16_t stage;
+    bool cast;
+    bool atwp;
+    bool surging;
+    float push;
+    bool drift;
+    bool fnd_pl;
 };

@@ -93,6 +93,7 @@ public:
     friend class ModeAuto;
     friend class ModeGuided;
     friend class ModeRTL;
+    friend class ModeSrcloc;
 
     friend class Fins;
     friend class Loiter;
@@ -225,6 +226,10 @@ private:
     NotchFilterVector2f vel_xy_filter;
     NotchFilterFloat vel_z_filter;
     NotchFilterFloat vel_yaw_filter;
+    float plume_str_curr;
+    float plume_strs[10];
+    int16_t plume_arr_pos;
+    float plume_update;
 
     // Inertial Navigation
     AP_InertialNav inertial_nav;
@@ -309,6 +314,8 @@ private:
     void update_altitude();
     void rotate_NE_to_BF(Vector2f &vec);
     void rotate_BF_to_NE(Vector2f &vec);
+    bool handle_plume_str(const mavlink_message_t &msg, Location &plume_loc, float &plume_cov);
+    bool handle_plume_loc(const mavlink_message_t &msg);
 
     // commands.cpp
     void update_home_from_EKF();
@@ -370,6 +377,7 @@ private:
     void log_init(void);
     void Write_FINI(float right, float front, float down, float yaw);
     void Write_FINO(float *amp, float *off);
+    void Write_PLU(float plume_strength, Location loc, Vector3f vec, float cov);
 
     // mode.cpp
     bool set_mode(Mode::Number mode, ModeReason reason);
@@ -437,6 +445,7 @@ private:
     ModeAuto mode_auto;
     ModeGuided mode_guided;
     ModeRTL mode_rtl;
+    ModeSrcloc mode_srcloc;
 
     // mode.cpp
     Mode *mode_from_mode_num(const Mode::Number mode);
