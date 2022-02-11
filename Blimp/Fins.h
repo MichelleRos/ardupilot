@@ -10,6 +10,7 @@ class Fins
 {
 public:
     friend class Blimp;
+    friend class Loiter;
 
     enum motor_frame_class {
         MOTOR_FRAME_UNDEFINED = 0,

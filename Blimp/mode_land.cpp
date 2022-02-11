@@ -1,9 +1,9 @@
 #include "Blimp.h"
 /*
- * Init and run calls for land flight mode
+ * Init and run calls for hold flight mode
  */
 
-// Runs the main land controller
+// Runs the main hold controller
 void ModeLand::run()
 {
     //Stop moving
@@ -13,11 +13,11 @@ void ModeLand::run()
     motors->down_out = 0;
 }
 
-// set_mode_land_with_pause - sets mode to LAND and triggers 4 second delay before descent starts
+// set_mode_hold_failsafe - sets mode to HOLD and triggers 4 second delay before descent starts
 //  this is always called from a failsafe so we trigger notification to pilot
-void Blimp::set_mode_land_with_pause(ModeReason reason)
+void Blimp::set_mode_hold_failsafe(ModeReason reason)
 {
-    set_mode(Mode::Number::LAND, reason);
+    set_mode(Mode::Number::HOLD, reason);
     //TODO: Add pause
 
     // alert pilot to mode change

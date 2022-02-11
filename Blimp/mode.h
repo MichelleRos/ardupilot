@@ -13,10 +13,13 @@ public:
 
     // Auto Pilot Modes enumeration
     enum class Number : uint8_t {
-        LAND =          0,  // currently just stops moving
+        HOLD =          0,  // just stops moving
         MANUAL =        1,  // manual control
         VELOCITY =      2,  // velocity mode
         LOITER =        3,  // loiter mode (position hold)
+        AUTO =          4,  // auto mode
+        GUIDED =        5,  // guided
+        RTL =           6,  // rtl
     };
 
     // constructor
@@ -104,6 +107,7 @@ protected:
     AP_InertialNav &inertial_nav;
     AP_AHRS &ahrs;
     Fins *&motors;
+    Loiter *&loiter;
     RC_Channel *&channel_right;
     RC_Channel *&channel_front;
     RC_Channel *&channel_down;
@@ -304,7 +308,6 @@ protected:
 private:
     Vector3f target_pos;
     float target_yaw;
-    float loop_period;
 };
 
 class ModeLand : public Mode
@@ -346,4 +349,135 @@ protected:
 
 private:
 
+};
+
+class ModeAuto : public Mode
+{
+
+public:
+    // inherit constructor
+    using Mode::Mode;
+
+    virtual bool init(bool ignore_checks) override;
+    virtual void run() override;
+
+    bool requires_GPS() const override
+    {
+        return true;
+    }
+    bool has_manual_throttle() const override
+    {
+        return false;
+    }
+    bool allows_arming(bool from_gcs) const override
+    {
+        return true;
+    };
+    bool is_autopilot() const override
+    {
+        return false;
+        //TODO
+    }
+
+protected:
+
+    const char *name() const override
+    {
+        return "AUTO";
+    }
+    const char *name4() const override
+    {
+        return "AUTO";
+    }
+
+private:
+    Vector3f target_pos;
+    float target_yaw;
+    int step;
+
+};
+
+class ModeGuided : public Mode
+{
+
+public:
+    // inherit constructor
+    using Mode::Mode;
+
+    virtual bool init(bool ignore_checks) override;
+    virtual void run() override;
+    void set_target(Location tar);
+
+    bool requires_GPS() const override
+    {
+        return true;
+    }
+    bool has_manual_throttle() const override
+    {
+        return false;
+    }
+    bool allows_arming(bool from_gcs) const override
+    {
+        return true;
+    };
+    bool is_autopilot() const override
+    {
+        return false;
+        //TODO
+    }
+
+protected:
+
+    const char *name() const override
+    {
+        return "GUIDED";
+    }
+    const char *name4() const override
+    {
+        return "GUID";
+    }
+
+private:
+    Vector3f target_pos;
+    float target_yaw;
+};
+
+class ModeRTL : public Mode
+{
+
+public:
+    // inherit constructor
+    using Mode::Mode;
+
+    virtual bool init(bool ignore_checks) override;
+    virtual void run() override;
+
+    bool requires_GPS() const override
+    {
+        return true;
+    }
+    bool has_manual_throttle() const override
+    {
+        return false;
+    }
+    bool allows_arming(bool from_gcs) const override
+    {
+        return true;
+    };
+    bool is_autopilot() const override
+    {
+        return false;
+        //TODO
+    }
+
+protected:
+
+    const char *name() const override
+    {
+        return "RTL";
+    }
+    const char *name4() const override
+    {
+        return "RTL";
+    }
 };

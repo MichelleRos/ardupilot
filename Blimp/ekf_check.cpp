@@ -157,7 +157,7 @@ void Blimp::failsafe_ekf_event()
     case FS_EKF_ACTION_LAND:
     case FS_EKF_ACTION_LAND_EVEN_STABILIZE:
     default:
-        set_mode_land_with_pause(ModeReason::EKF_FAILSAFE);
+        set_mode_hold_failsafe(ModeReason::EKF_FAILSAFE);
         break;
     }
 }

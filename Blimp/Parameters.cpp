@@ -278,6 +278,20 @@ const AP_Param::Info Blimp::var_info[] = {
     // @User: Standard
     GSCALAR(dis_mask, "DIS_MASK", 0),
 
+    // @Param: WPNAV_RADIUS
+    // @DisplayName: Waypoint acceptance distance
+    // @Description: Distance from waypoint when Blimp is considered to have reached it.
+    // @Values: 0.01 2
+    // @User: Standard
+    GSCALAR(wpnav_radius, "WPNAV_RADIUS", 0.5),
+
+    // @Param: PID_DZ
+    // @DisplayName: Deadzone for the position PIDs
+    // @Description: Output 0 thrust signal when blimp is within this distance (in meters) of the target position.
+    // @Values: 0.1 1
+    // @User: Standard
+    GSCALAR(pid_dz, "PID_DZ", 0.5),
+
     // @Param: RC_SPEED
     // @DisplayName: ESC Update Speed
     // @Description: This is the speed in Hertz that your ESCs will receive updates
