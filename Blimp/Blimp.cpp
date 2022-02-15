@@ -148,6 +148,9 @@ void Blimp::full_rate_logging()
     if (should_log(MASK_LOG_PID)) {
         Log_Write_PIDs();
     }
+    if (should_log(MASK_LOG_RCOUT)) {
+        logger.Write_RCOUT();
+    }
 }
 
 // ten_hz_logging_loop
@@ -167,9 +170,6 @@ void Blimp::ten_hz_logging_loop()
         if (rssi.enabled()) {
             logger.Write_RSSI();
         }
-    }
-    if (should_log(MASK_LOG_RCOUT)) {
-        logger.Write_RCOUT();
     }
     if (should_log(MASK_LOG_IMU) || should_log(MASK_LOG_IMU_FAST) || should_log(MASK_LOG_IMU_RAW)) {
         AP::ins().Write_Vibration();
