@@ -40,8 +40,13 @@ public:
     friend class Blimp;
     friend class Fins;
 
+    float scaler_xz;
+    float scaler_yyaw;
+
     //constructor
     Loiter(uint16_t loop_rate){
+        scaler_xz = 1;
+        scaler_yyaw = 1;
         GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Created Loiter class");
     };
 
