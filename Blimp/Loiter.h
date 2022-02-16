@@ -39,11 +39,9 @@ class Loiter
 public:
     friend class Blimp;
     friend class Fins;
-    Vector4b limit_int;
 
     //constructor
     Loiter(uint16_t loop_rate){
-        limit_int = {false,false,false,false};
         GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Created Loiter class");
     };
 
