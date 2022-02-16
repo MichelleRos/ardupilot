@@ -1,8 +1,6 @@
 #include "Blimp.h"
-#include "Loiter.h"
 
 void Loiter::run(Vector3f target_pos, float target_yaw, Vector4b axes_disabled){
-    //Pos controller's output becomes target for velocity controller
     float yaw_ef = blimp.ahrs.get_yaw();
     Vector3f err_xyz = target_pos - blimp.pos_ned;
     float err_yaw = wrap_PI(target_yaw - yaw_ef);
