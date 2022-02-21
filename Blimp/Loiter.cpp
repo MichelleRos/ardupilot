@@ -16,8 +16,11 @@ void Loiter::run(Vector3f target_pos, float target_yaw, Vector4b axes_disabled){
     else scaler_yyaw_n = 1;
     scaler_yyaw = scaler_yyaw*MA + scaler_yyaw_n*MO;
 
-    if (int(AP_HAL::micros()*1e-3) % 1000 < 20) GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Scaler xz = %0.1f Scaler yyaw = %0.1f", scaler_xz, scaler_yyaw);
-
+    if (AP_HAL::millis() % 1000 < 30) {
+        send_BSC(scaler_xz, scaler_yyaw, scaler_xz_n, scaler_yyaw_n);
+        gcs().send_named_float("TarX", target_pos.x);
+        gcs().send_named_float("TarY", target_pos.y);
+    }
     AP::logger().WriteStreaming("BSC", "TimeUS,xz,yyaw,xzn,yyawn",
                               "Qffff",
                               AP_HAL::micros64(),
@@ -92,4 +95,13 @@ void Loiter::run(Vector3f target_pos, float target_yaw, Vector4b axes_disabled){
     AP::logger().Write_PSCN(target_pos.x * 100.0, blimp.pos_ned.x * 100.0, 0.0, target_vel_ef_c.x * 100.0, blimp.vel_ned_filtd.x * 100.0, 0.0, 0.0, 0.0);
     AP::logger().Write_PSCE(target_pos.y * 100.0, blimp.pos_ned.y * 100.0, 0.0, target_vel_ef_c.y * 100.0, blimp.vel_ned_filtd.y * 100.0, 0.0, 0.0, 0.0);
     AP::logger().Write_PSCD(-target_pos.z * 100.0, -blimp.pos_ned.z * 100.0, 0.0, -target_vel_ef_c.z * 100.0, -blimp.vel_ned_filtd.z * 100.0, 0.0, 0.0, 0.0);
+}
+
+
+void Loiter::send_BSC(float s_xz, float s_yyaw, float s_xz_n, float s_yyaw_n){
+    gcs().send_named_float("BSCxz", s_xz);
+    gcs().send_named_float("BSCyyaw", s_yyaw);
+    gcs().send_named_float("BSCxz_n", s_xz_n);
+    gcs().send_named_float("BSCyyaw_n", s_yyaw_n);
+    // GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Scaler xz = %0.1f Scaler yyaw = %0.1f", s_xz, s_yyaw);
 }
