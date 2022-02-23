@@ -537,4 +537,6 @@ private:
     float push;
     bool drift;
     bool fnd_pl;
+
+    float levydis(float x);
 };

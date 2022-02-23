@@ -8,9 +8,6 @@
 
 #define c 1.0f
 #define mew 0.0f
-float levydis(float x){
-    return sqrtf(c/(2*M_PI))*(expf(-c/(2*(x-mew)))/pow(x-mew,3.0f/2.0f));
-}
 
 #define Lmin 1.5f //50 cm
 #define mu 3.0f
@@ -111,12 +108,12 @@ void ModeSrcloc::run()
         float distsq = blimp.pos_ned.distance_squared(target_pos);
         if (distsq < sq(g.wpnav_radius)){
             Vector3f next;
-            float Ml = Lmin*pow(randf(),1/(1-mu));
+            float Ml = Lmin*powf(randf(),1/(1-mu));
             float Ta = randf()*2*M_PI;
             next.x = Ml*sinf(Ta);
             next.y = Ml*cosf(Ta);
             //blimp.rotate_BF_to_NE(next.xy());
-            float dist_tar = sqrt(next.distance_squared({0,0,0}));
+            float dist_tar = sqrtf(next.distance_squared({0,0,0}));
             target_pos.x += next.x;
             target_pos.y += next.y;
 
@@ -125,4 +122,8 @@ void ModeSrcloc::run()
         }
         blimp.loiter->run(target_pos, target_yaw, Vector4b{false,false,false,false});
     }
+}
+
+float ModeSrcloc::levydis(float x){
+    return sqrtf(c/(2*M_PI))*(expf(-c/(2*(x-mew)))/powf(x-mew,3.0f/2.0f));
 }
