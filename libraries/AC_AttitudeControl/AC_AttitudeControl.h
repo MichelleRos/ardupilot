@@ -364,6 +364,9 @@ public:
     // enable inverted flight on backends that support it
     virtual void set_inverted_flight(bool inverted) {}
 
+    // enable/disable alternative rate control
+    virtual void set_alt_rate_control(bool enable) {}
+
     // User settable parameters
     static const struct AP_Param::GroupInfo var_info[];
 
