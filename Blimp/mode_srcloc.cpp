@@ -32,9 +32,10 @@ void ModeSrcloc::run()
 {
     // GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Mode srcloc");
     if(g.sl_mode == 1){ //Cast & surge
-        if (blimp.plume_str_curr > (blimp.plume_strs[blimp.plume_arr_pos] * g.sl_plume_found)) {
+        if (blimp.plume_str_curr > (blimp.plume_strs[blimp.plume_arr_pos] * g.sl_plume_found)) { //1.6 works well
+        //if (blimp.plume_str_curr > g.sl_plume_found) {
             cast = false; //check for source, if found, set cast to false to go to surge
-            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Found plume.");
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Found plume. %f %f", blimp.plume_str_curr, float(g.sl_plume_found));
         }
         float distsq = blimp.pos_ned.distance_squared(target_pos);
         if (distsq < sq(g.wpnav_radius)) {
