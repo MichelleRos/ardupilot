@@ -527,13 +527,19 @@ protected:
     }
 
 private:
+
+    enum class CS : uint8_t {
+        CASTING_RUN =   0,
+        CASTING_START =  1,
+        SURGING_START =  2,
+        SURGING_RUN = 3,        
+    };
+
+    CS cs;
     Vector3f target_pos;
     float target_yaw;
     bool right_mv;
     int16_t stage;
-    bool cast;
-    bool atwp;
-    bool surging;
     float push;
     bool drift;
     bool fnd_pl;
