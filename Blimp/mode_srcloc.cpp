@@ -30,6 +30,7 @@ bool ModeSrcloc::init(bool ignore_checks){
 //Runs the main srcloc controller
 void ModeSrcloc::run()
 {
+    GCS_SEND_TEXT(MAV_SEVERITY_INFO, "RSSI: %.2f", blimp.rssi.read_receiver_rssi());
     // GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Mode srcloc");
     if(g.sl_mode == 1){ //Cast & surge
         switch(cs){
