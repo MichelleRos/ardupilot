@@ -32,7 +32,7 @@ void ModeSrcloc::run()
 {
     GCS_SEND_TEXT(MAV_SEVERITY_INFO, "RSSI: %.2f", blimp.rssi.read_receiver_rssi());
     // GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Mode srcloc");
-    if(g.sl_mode == 1){ //Cast & surge
+    if(g.sl_mode == (int)SLMode::CASTSURGEPOS){ //Cast & surge
         switch(cs){
             case CS::CASTING_RUN:{
                 if (blimp.plume_str_curr > (blimp.plume_strs[blimp.plume_arr_pos] * g.sl_plume_found)){
@@ -86,7 +86,7 @@ void ModeSrcloc::run()
     //
     //Novel push & drift
     //
-    } else if(g.sl_mode == 2){
+    } else if(g.sl_mode == (int)SLMode::PUSHDRIFT){
         float now = AP_HAL::micros() * 1.0e-6;
         if (blimp.plume_str_curr > (blimp.plume_strs[blimp.plume_arr_pos] * g.sl_plume_found)) {
             fnd_pl = true;
@@ -107,7 +107,7 @@ void ModeSrcloc::run()
     //
     // Levy Walk from rahbar_3-d_2017
     //
-    } else if(g.sl_mode == 3){
+    } else if(g.sl_mode == (int)SLMode::LEVYWALK){
         //GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Rand %0.8f, Levy %0.8f", randf()*10, levydis(randf()*10));
         float distsq = blimp.pos_ned.distance_squared(target_pos);
         if (distsq < sq(g.wpnav_radius)){

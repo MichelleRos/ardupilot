@@ -535,6 +535,13 @@ private:
         SURGING_RUN = 3,        
     };
 
+    enum class SLMode : uint8_t {
+        CASTSURGEPOS =   1,
+        CASTSURGEACCEL =  2,
+        PUSHDRIFT =  3,
+        LEVYWALK = 4,        
+    };
+
     CS cs;
     Vector3f target_pos;
     float target_yaw;
