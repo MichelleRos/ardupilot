@@ -20,6 +20,7 @@ bool ModeSrcloc::init(bool ignore_checks){
     right_mv = true;
     stage = 0;
     cs = CS::CASTING_START;
+    cast_time = 0.0f;
     push = 0.0f;
     fnd_pl = false;
     drift = false;
@@ -79,6 +80,61 @@ void ModeSrcloc::run()
         }
         blimp.loiter->run(target_pos, target_yaw, Vector4b{false,false,false,false});
 
+    } else if(g.sl_mode == (int)SLMode::CASTSURGEACCEL){
+        float now = AP_HAL::micros() * 1.0e-6;
+        switch(cs){
+            case CS::CASTING_RUN:{
+                if (blimp.plume_str_curr > (blimp.plume_strs[blimp.plume_arr_pos] * g.sl_plume_found)){
+                    cs = CS::SURGING_START;
+                    GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Found plume. %f %f", blimp.plume_str_curr, float(g.sl_plume_found));
+                }
+                if ((now - cast_time) > (g.sl_push_time)) {
+                    cs = CS::CASTING_START;
+                    GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Reached cast time.");
+                }
+            } break;
+            case CS::SURGING_RUN:{
+                if ((now - cast_time) > (g.sl_drift_time)) {
+                    cs = CS::CASTING_START;
+                    motors->front_out = 0.0f;
+                    GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Reached surging time.");
+                }
+            }break;
+            case CS::CASTING_START: {
+                cs = CS::CASTING_RUN;
+                cast_time = now;
+                stage++;
+                Vector3f add_tar;
+                //Here, x is upwind, y is side to side
+                add_tar.x = 0.2f;
+                if (right_mv) {
+                    motors->right_out = 1.0f;
+                    GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Casting: Right.");
+                    right_mv = false;
+                }
+                else {
+                    motors->right_out = -1.0f;
+                    GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Casting: Left.");
+                    right_mv = true;
+                }
+                // add_tar.rotate_xy(g.sl_wind_deg * DEG_TO_RAD);
+                // target_pos = blimp.pos_ned + add_tar; //should it be currpos instead?
+                // if (right_mv) GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Casting: Forward %0.2f, Left %0.2f, stage %d, tar %0.2f %0.2f plum %0.2f %0.2f", add_tar.x, -add_tar.y, stage, target_pos.x, target_pos.y, blimp.plume_str_curr, blimp.plume_strs[blimp.plume_arr_pos]*g.sl_plume_found);
+                // else          GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Casting: Forward %0.2f, Right %0.2f, stage %d, tar %0.2f %0.2f plum %0.2f %0.2f", add_tar.x, add_tar.y, stage, target_pos.x, target_pos.y, blimp.plume_str_curr, blimp.plume_strs[blimp.plume_arr_pos]*g.sl_plume_found);
+            }break;
+            case CS::SURGING_START:{
+                cs = CS::SURGING_RUN;
+                stage = 0;
+                cast_time = now;
+                // Vector3f add_tar;
+                // add_tar.x = g.sl_surg_dist;
+                // add_tar.rotate_xy(g.sl_wind_deg * DEG_TO_RAD);
+        // //assume north
+                // target_pos = blimp.pos_ned + add_tar;
+                // GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Surging. Forward %0.2f, tar %0.2f %0.2f", add_tar.x, target_pos.x, target_pos.y);
+                motors->front_out = 1.0f;
+            }break;
+        }
     //Add CS with just flapping & time
     //Add wind capability for CS
     //Add "found "" radiuza
