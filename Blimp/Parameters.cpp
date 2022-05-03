@@ -308,12 +308,13 @@ const AP_Param::Info Blimp::var_info[] = {
     //MIR TEMP
     GSCALAR(sl_mode, "SL_MODE", 1),
     GSCALAR(sl_wind_deg, "SL_WIND_DEG", 0),
-    GSCALAR(sl_big, "SL_BIG", 1),
+    GSCALAR(sl_mulp, "SL_MULP", 1),
     GSCALAR(sl_surg_dist, "SL_SURG_DIST", 2),
     GSCALAR(sl_plume_found, "SL_PLUME_FOUND", 1.5),
-    GSCALAR(sl_mul2, "SL_MUL2", 0),
+    GSCALAR(sl_mula, "SL_MULA", 0),
     GSCALAR(sl_drift_time, "SL_DRIFT_TIME", 2),
     GSCALAR(sl_push_time, "SL_PUSH_TIME", 1),
+    GSCALAR(sl_source_found, "SL_SOURCE_FOUND", 0.01),
 
     // @Param: RC_SPEED
     // @DisplayName: ESC Update Speed

@@ -543,6 +543,7 @@ private:
     };
 
     CS cs;
+    float beta;
     float cast_time;
     Vector3f target_pos;
     float target_yaw;
