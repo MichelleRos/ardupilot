@@ -18,7 +18,7 @@ bool ModeSrcloc::init(bool ignore_checks){
     target_pos = blimp.pos_ned;
     target_yaw = blimp.ahrs.get_yaw();
     right_mv = true;
-    stage = 0;
+    stage = -1;
     cs = CS::CASTING_START;
     beta = 30;
     cast_time = 0.0f;
@@ -73,11 +73,11 @@ void ModeSrcloc::run()
                 //Here, x is upwind, y is side to side
                 add_tar.x = 0.2f;
                 if (right_mv) {
-                    add_tar.y = g.sl_mulp * stage;
+                    add_tar.y = g.sl_mulp * (stage+1);
                     right_mv = false;
                 }
                 else {
-                    add_tar.y = -(g.sl_mulp * stage);
+                    add_tar.y = -(g.sl_mulp * (stage+1));
                     right_mv = true;
                 }
                 add_tar.rotate_xy(g.sl_wind_deg * DEG_TO_RAD);
@@ -87,7 +87,7 @@ void ModeSrcloc::run()
             }break;
             case CS::SURGING_START:{
                 cs = CS::SURGING_RUN;
-                stage = 0;
+                stage = -1;
                 Vector3f add_tar;
                 add_tar.x = g.sl_surg_dist;
                 if(right_mv)
@@ -114,13 +114,18 @@ void ModeSrcloc::run()
                     cs = CS::SURGING_START;
                     GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Found plume. Surging. %f %f", blimp.plume_str_curr, float(g.sl_plume_found));
                 }
+                if ((!right_mv && blimp.vel_ned_filtd.y<g.sl_vel_stop) || (right_mv && blimp.vel_ned_filtd.y>g.sl_vel_stop)){ //wait for left-right velocity to neutralise before starting timer.
+                //right_mv is opposite to what would be expected as it's set ready for the next move once CASTING_START has set fins
+                    cast_time = now;
+                    // GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Resetting timer. %d", right_mv);
+                } // else GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Starting timer.");
                 if ((now - cast_time) > (g.sl_push_time + stage*g.sl_mula)) {
                     cs = CS::CASTING_START;
-                    GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Reached cast time - %f", g.sl_push_time + stage*g.sl_mula);
+                    GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Reached cast time - %f, %d", g.sl_push_time + stage*g.sl_mula, stage);
                 }
-                if ((now - cast_time) > (g.sl_push_time*0.75) && stage == 0) {
+                if ((now - cast_time) > (g.sl_push_time*0.8) && stage == 0) {
                     cs = CS::CASTING_START;
-                    GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Reached cast time - %f", g.sl_push_time*0.75);
+                    GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Reached cast time - %f, %d", g.sl_push_time*0.8, stage);
                 }
             } break;
             case CS::SURGING_RUN:{
@@ -135,14 +140,14 @@ void ModeSrcloc::run()
                 cs = CS::CASTING_RUN;
                 cast_time = now;
                 stage++;
-                motors->front_out = 0.0f;
+                motors->front_out = g.sl_thst_cf;
                 if (right_mv) {
-                    motors->right_out = 1.0f;
+                    motors->right_out = g.sl_thst_cr;
                     GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Casting: Right.");
                     right_mv = false;
                 }
                 else {
-                    motors->right_out = -1.0f;
+                    motors->right_out = -g.sl_thst_cr;
                     GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Casting: Left.");
                     right_mv = true;
                 }
@@ -152,12 +157,12 @@ void ModeSrcloc::run()
                 stage = -1;
                 cast_time = now;
                 if(right_mv)
-                    motors->right_out = 0.4f;
+                    motors->right_out = g.sl_thst_sr;
                 else
-                    motors->right_out = -0.4f;
-                motors->front_out = 0.7f;
+                    motors->right_out = -g.sl_thst_sr;
+                motors->front_out = g.sl_thst_sf;
                 right_mv = !right_mv;
-            }break; 
+            }break;
         }
         blimp.loiter->run({0,0,0}, g.sl_wind_deg * DEG_TO_RAD, Vector4b{true,true,true,false});
     //Add wind capability for CS
@@ -203,6 +208,11 @@ void ModeSrcloc::run()
 
             target_yaw = wrap_PI(Ta);
             GCS_SEND_TEXT(MAV_SEVERITY_INFO, "New target %0.4f, %0.2f, %0.2f, %0.2f", dist_tar, target_pos.x, target_pos.y, target_yaw*RAD_TO_DEG);
+        }
+        if (blimp.plume_str_curr > g.sl_plume_found){
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Found plume. Switching to srcloc.");
+            //This just sets it temporarily. A reboot resets it.
+            g.sl_mode = 2;
         }
         blimp.loiter->run(target_pos, target_yaw, Vector4b{false,false,false,false});
     }

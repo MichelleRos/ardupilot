@@ -315,6 +315,11 @@ const AP_Param::Info Blimp::var_info[] = {
     GSCALAR(sl_drift_time, "SL_DRIFT_TIME", 2),
     GSCALAR(sl_push_time, "SL_PUSH_TIME", 1),
     GSCALAR(sl_source_found, "SL_SOURCE_FOUND", 0.01),
+    GSCALAR(sl_vel_stop, "SL_VEL_STOP", 0.05),
+    GSCALAR(sl_thst_cf, "SL_THST_CF", 0.00),
+    GSCALAR(sl_thst_cr, "SL_THST_CR", 1),
+    GSCALAR(sl_thst_sf, "SL_THST_SF", 0.7),
+    GSCALAR(sl_thst_sr, "SL_THST_SR", 0.4),
 
     // @Param: RC_SPEED
     // @DisplayName: ESC Update Speed
