@@ -11,11 +11,13 @@ void ModeVelocity::run()
     const float dt = blimp.scheduler.get_last_loop_time_s();
     
     Vector3f target_vel;
-    target_vel.x = channel_front->get_control_in() / float(RC_SCALE) * g.max_vel_xy;
-    target_vel.y = channel_right->get_control_in() / float(RC_SCALE) * g.max_vel_xy;
+    float target_vel_yaw;
+    get_pilot_input(target_vel, target_vel_yaw);
+    target_vel.x *= g.max_vel_xy;
+    target_vel.y *= g.max_vel_xy;
     blimp.rotate_BF_to_NE(target_vel.xy());
-    target_vel.z = channel_down->get_control_in()  / float(RC_SCALE) * g.max_vel_z;
-    float target_vel_yaw = channel_yaw->get_control_in() / float(RC_SCALE) * g.max_vel_yaw;
+    target_vel.z *= g.max_vel_z;
+    target_vel_yaw *= g.max_vel_yaw;
 
     Vector2f actuator = blimp.pid_vel_xy.update_all(target_vel, blimp.vel_ned_filtd, dt, {0,0,0});
     blimp.rotate_NE_to_BF(actuator);

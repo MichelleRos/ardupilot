@@ -86,7 +86,7 @@ public:
     void update_navigation();
 
     // pilot input processing
-    void get_pilot_desired_accelerations(float &right_out, float &front_out) const;
+    void get_pilot_input(Vector3f &pilot, float &yaw);
 
 protected:
 

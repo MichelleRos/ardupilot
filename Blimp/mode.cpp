@@ -162,18 +162,22 @@ void Mode::update_navigation()
     run_autopilot();
 }
 
-// returns desired angle in centi-degrees
-void Mode::get_pilot_desired_accelerations(float &right_out, float &front_out) const
+// returns desired thrust/acceleration
+void Mode::get_pilot_input(Vector3f &pilot, float &yaw)
 {
     // throttle failsafe check
     if (blimp.failsafe.radio || !blimp.ap.rc_receiver_present) {
-        right_out = 0;
-        front_out = 0;
+        pilot.y = 0;
+        pilot.x = 0;
+        pilot.z = 0;
+        yaw = 0;
         return;
     }
-    // fetch roll and pitch inputs
-    right_out = channel_right->get_control_in();
-    front_out = channel_front->get_control_in();
+    // fetch pilot inputs
+    pilot.y = channel_right->get_control_in() / float(RC_SCALE);
+    pilot.x = channel_front->get_control_in() / float(RC_SCALE);
+    pilot.z = channel_down->get_control_in() / float(RC_SCALE);
+    yaw = channel_yaw->get_control_in() / float(RC_SCALE);
 }
 
 bool Mode::is_disarmed_or_landed() const
