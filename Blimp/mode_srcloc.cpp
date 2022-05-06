@@ -12,7 +12,9 @@
 #define Lmin 1.5f //50 cm
 #define mu 3.0f
 
+#if defined(__GNUC__) &&  __GNUC__ >= 7 || defined(__clang_major__) && __clang_major__ >= 10
 #pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
+#endif
 
 bool ModeSrcloc::init(bool ignore_checks){
     target_pos = blimp.pos_ned;
