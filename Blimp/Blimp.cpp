@@ -197,7 +197,7 @@ void Blimp::three_hz_loop()
     failsafe_gcs_check();
     float plu = rssi.read_receiver_rssi();
     gcs().send_named_float("PLU_STR", plu);
-    AP::logger().WriteStreaming("PLU", "TimeUS,p,x,y,z,yaw",
+    AP::logger().WriteStreaming("PLUR", "TimeUS,p,x,y,z,yaw",
                               "Qfffff",
                               AP_HAL::micros64(),
                               plu, pos_ned.x, pos_ned.y, pos_ned.z, ahrs.get_yaw());
