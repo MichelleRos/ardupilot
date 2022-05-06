@@ -166,7 +166,7 @@ void ModeSrcloc::run()
                 right_mv = !right_mv;
             }break;
         }
-        blimp.loiter->run({0,0,0}, g.sl_wind_deg * DEG_TO_RAD, Vector4b{true,true,true,false});
+        blimp.loiter->run({0,0,target_pos.z}, g.sl_wind_deg * DEG_TO_RAD, Vector4b{true,true,false,false});
     //Add wind capability for CS
     //Add "found "" radiuza
 
