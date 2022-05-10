@@ -65,6 +65,10 @@ void Loiter::run(Vector3f target_pos, float target_yaw, Vector4b axes_disabled){
     blimp.rotate_NE_to_BF(actuator);
     float act_yaw = blimp.pid_vel_yaw.update_all(target_vel_yaw_c * scaler_yyaw, blimp.vel_yaw_filtd * scaler_yyaw, limit.yaw);
 
+    if(!blimp.motors->armed()){
+        blimp.zero_integrators();
+    }
+
     if(zero.x){
         blimp.motors->front_out = 0;
     } else if (axes_disabled.x);

@@ -215,7 +215,7 @@ void Blimp::read_AHRS(void)
     ahrs.update(true);
 
     IGNORE_RETURN(ahrs.get_velocity_NED(vel_ned));
-    IGNORE_RETURN(ahrs.get_relative_position_NED_home(pos_ned));
+    IGNORE_RETURN(ahrs.get_relative_position_NED_origin(pos_ned));
 
     vel_yaw = ahrs.get_yaw_rate_earth();
     Vector2f vel_xy_filtd = vel_xy_filter.apply({vel_ned.x, vel_ned.y});
@@ -253,6 +253,16 @@ void Blimp::rotate_NE_to_BF(Vector2f &vec)
     vec.x = bf_x;
     vec.y = bf_y;
 
+}
+
+void Blimp::zero_integrators()
+{
+    pid_pos_xy.set_integrator(Vector2f(0,0));
+    pid_pos_z.set_integrator(0);
+    pid_pos_yaw.set_integrator(0);
+    pid_vel_xy.set_integrator(Vector2f(0,0));
+    pid_vel_z.set_integrator(0);
+    pid_vel_yaw.set_integrator(0);
 }
 
 /*

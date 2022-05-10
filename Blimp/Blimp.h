@@ -311,6 +311,7 @@ private:
     void update_altitude();
     void rotate_NE_to_BF(Vector2f &vec);
     void rotate_BF_to_NE(Vector2f &vec);
+    void zero_integrators();
 
     // commands.cpp
     void update_home_from_EKF();
