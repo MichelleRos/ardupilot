@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Usage - From ardupilot root directory, run - libraries/SITL/examples/follow-copter.sh $GCS_IP
+# Usage - From ardupilot root directory, run - libraries/SITL/examples/multi-blimp.sh $GCS_IP
 # $GCS_IP is the IP address of the system running the GCs, by default is 127.0.0.1
 # Use "follow-mavproxy.sh" to run MAVProxy with all vehicles
 # Or connect your GCS using multicast UDP
@@ -8,12 +8,12 @@
 # from the other vehicles
 
 # Kill all SITL binaries when exiting
-trap "killall -9 arducopter" SIGINT SIGTERM EXIT
+trap "killall -9 blimp" SIGINT SIGTERM EXIT
 
 # Get the ArduPilot directory (ROOTDIR)
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 ROOTDIR="$(dirname "$(dirname "$(dirname $SCRIPT_DIR)")")"
-COPTER=$ROOTDIR/build/sitl/bin/arducopter
+BLIMP=$ROOTDIR/build/sitl/bin/blimp
 
 # Drones will be located here
 HOMELAT=-35.280252
@@ -27,12 +27,12 @@ else
     GCS_IP=$1
 fi
 
-# Check if SITL copter has been built
-if [ -f "$COPTER" ]
+# Check if SITL blimp has been built
+if [ -f "$BLIMP" ]
 then
    echo "Found SITL executable"
 else
-   echo "SITL executable not found ($COPTER). Exiting"
+   echo "SITL executable not found ($BLIMP). Exiting"
    exit
 fi
 
@@ -54,42 +54,42 @@ elif [ "$(expr substr $unameOut 1 6)" == "CYGWIN" ]; then
     MCAST_IP_PORT="0.0.0.0:14550"
 fi
 
-BASE_DEFAULTS="$ROOTDIR/Tools/autotest/default_params/copter.parm"
+BASE_DEFAULTS="$ROOTDIR/Tools/autotest/default_params/blimp.parm"
 
-[ -x "$COPTER" ] || {
+[ -x "$BLIMP" ] || {
 	./waf configure --board sitl
-	./waf copter
+	./waf blimp
 }
 
-# Set number of extra copters to be simulated, change this for increasing the count
-NCOPTERS="4"
+# Set number of extra blimps to be simulated, change this for increasing the count
+NBLIMPS="2"
 
-# start up main (leader) copter in the subdir (copter1)
-echo "Starting copter 1"
-mkdir -p copter1
+# start up main (leader) blimp in the subdir (blimp1)
+echo "Starting blimp 1"
+mkdir -p blimp1
 
 # create default parameter file for the leader
-cat <<EOF > copter1/leader.parm
+cat <<EOF > blimp1/leader.parm
 SYSID_THISMAV 1
 AUTO_OPTIONS 7
 EOF
 
-pushd copter1
-$COPTER --model quad --home=$HOMELAT,$HOMELONG,$HOMEALT,0 --uartA udpclient:$GCS_IP --uartC mcast:$MCAST_IP_PORT --defaults $BASE_DEFAULTS,leader.parm &
+pushd blimp1
+$BLIMP --model blimp --home=$HOMELAT,$HOMELONG,$HOMEALT,0 --uartA udpclient:$GCS_IP --uartC mcast:$MCAST_IP_PORT --defaults $BASE_DEFAULTS,leader.parm &
 popd
 
-# now start other copters to follow the first, using
+# now start other blimps to follow the first, using
 # a separate directory to keep the eeprom.bin and logs separate
-# each copter will have an offset starting location (5*SYSID,5*SYSID)m from leader copter
-# each copter will follow at SYSID*5m in X dir from leader
-for i in $(seq $NCOPTERS); do
+# each blimp will have an offset starting location (5*SYSID,5*SYSID)m from leader blimp
+# each blimp will follow at SYSID*5m in X dir from leader
+for i in $(seq $NBLIMPS); do
     SYSID=$(expr $i + 1)
-    
-    echo "Starting copter $SYSID"
-    mkdir -p copter$SYSID
+
+    echo "Starting blimp $SYSID"
+    mkdir -p blimp$SYSID
 
     # create default parameter file for the follower
-    cat <<EOF > copter$i/follow.parm
+    cat <<EOF > blimp$i/follow.parm
 SYSID_THISMAV $SYSID
 FOLL_ENABLE 1
 FOLL_OFS_X $(echo "-5*$i" | bc -l)
@@ -100,10 +100,10 @@ FOLL_YAW_BEHAVE 2
 FOLL_ALT_TYPE 1
 AUTO_OPTIONS 7
 EOF
-    pushd copter$i
-    LAT=$(echo "$HOMELAT + 0.0005*$i" | bc -l)
-    LONG=$(echo "$HOMELONG + 0.0005*$i" | bc -l)
-    $COPTER --model quad --home=$LAT,$LONG,$HOMEALT,0 --uartA tcp:0 --uartC mcast:$MCAST_IP_PORT --instance $i --defaults $BASE_DEFAULTS,follow.parm &
+    pushd blimp$i
+    LAT=$(echo "$HOMELAT" | bc -l)
+    LONG=$(echo "$HOMELONG + 0.00001*$i" | bc -l)
+    $BLIMP --model blimp --home=$LAT,$LONG,$HOMEALT,0 --uartA tcp:0 --uartC mcast:$MCAST_IP_PORT --instance $i --defaults $BASE_DEFAULTS,follow.parm &
     popd
 done
 wait
