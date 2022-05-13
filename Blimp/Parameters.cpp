@@ -303,17 +303,17 @@ const AP_Param::Info Blimp::var_info[] = {
     // @Description: Output 0 thrust signal when blimp is within this distance (in meters) of the target position.
     // @Values: 0.1 1
     // @User: Standard
-    GSCALAR(pid_dz, "PID_DZ", 0.5),
+    GSCALAR(pid_dz, "PID_DZ", 0),
 
     //MIR TEMP
-    GSCALAR(sl_mode, "SL_MODE", 1),
+    GSCALAR(sl_mode, "SL_MODE", 2),
     GSCALAR(sl_wind_deg, "SL_WIND_DEG", 0),
-    GSCALAR(sl_mulp, "SL_MULP", 1),
+    GSCALAR(sl_mulp, "SL_MULP", 0.5),
     GSCALAR(sl_surg_dist, "SL_SURG_DIST", 2),
-    GSCALAR(sl_plume_found, "SL_PLUME_FOUND", 1.5),
-    GSCALAR(sl_mula, "SL_MULA", 0),
-    GSCALAR(sl_drift_time, "SL_DRIFT_TIME", 2),
-    GSCALAR(sl_push_time, "SL_PUSH_TIME", 1),
+    GSCALAR(sl_plume_found, "SL_PLUME_FOUND", 0.00007),
+    GSCALAR(sl_mula, "SL_MULA", 1.5),
+    GSCALAR(sl_drift_time, "SL_DRIFT_TIME", 1),
+    GSCALAR(sl_push_time, "SL_PUSH_TIME", 3),
     GSCALAR(sl_source_found, "SL_SOURCE_FOUND", 0.01),
     GSCALAR(sl_vel_stop, "SL_VEL_STOP", 0.05),
     GSCALAR(sl_thst_cf, "SL_THST_CF", 0.00),
