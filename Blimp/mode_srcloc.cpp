@@ -31,6 +31,7 @@ bool ModeSrcloc::init(bool ignore_checks){
     motors->front_out = 0.0f;
     motors->down_out = 0.0f;
     motors->yaw_out = 0.0f;
+    out = {0,0};
 
     return true;
 }
@@ -107,7 +108,7 @@ void ModeSrcloc::run()
     // Cast & Surge - accel/fin flap time version
     //
     //
-    } else if(g.sl_mode == (int)SLMode::CASTSURGEACCEL){
+    } else if(g.sl_mode == (int)SLMode::CASTSURGEACCEL || g.sl_mode == (int)SLMode::CASTSURGEVEL){
         float now = AP_HAL::micros() * 1.0e-6;
         switch(cs){
             case CS::CASTING_RUN:{
@@ -142,14 +143,14 @@ void ModeSrcloc::run()
                 cs = CS::CASTING_RUN;
                 cast_time = now;
                 stage++;
-                motors->front_out = g.sl_thst_cf;
+                out.x = g.sl_thst_cf;
                 if (right_mv) {
-                    motors->right_out = g.sl_thst_cr;
+                    out.y = g.sl_thst_cr;
                     GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Casting: Right.");
                     right_mv = false;
                 }
                 else {
-                    motors->right_out = -g.sl_thst_cr;
+                    out.y = -g.sl_thst_cr;
                     GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Casting: Left.");
                     right_mv = true;
                 }
@@ -159,14 +160,29 @@ void ModeSrcloc::run()
                 stage = -1;
                 cast_time = now;
                 if(right_mv)
-                    motors->right_out = g.sl_thst_sr;
+                    out.y = g.sl_thst_sr;
                 else
-                    motors->right_out = -g.sl_thst_sr;
-                motors->front_out = g.sl_thst_sf;
+                    out.y = -g.sl_thst_sr;
+                out.x = g.sl_thst_sf;
                 right_mv = !right_mv;
             }break;
         }
-        blimp.loiter->run({0,0,target_pos.z}, g.sl_wind_deg * DEG_TO_RAD, Vector4b{true,true,false,false});
+        if(g.sl_mode == (int)SLMode::CASTSURGEACCEL){
+            // GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Output a: %f %f", out.x, out.y);
+            motors->front_out = out.x;
+            motors->right_out = out.y;
+        } else {
+            // GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Output v: %f %f", out.x, out.y);
+            Vector2f out2;
+            out2 = out * g.max_vel_xy;
+            blimp.rotate_BF_to_NE(out2);
+            Vector2f actuator = blimp.pid_vel_xy.update_all(out2, blimp.vel_ned_filtd.xy(), {0,0});
+            blimp.rotate_NE_to_BF(actuator);
+            motors->front_out = actuator.x;
+            motors->right_out = actuator.y;
+        }
+        target_yaw = g.sl_wind_deg * DEG_TO_RAD;
+        blimp.loiter->run(target_pos, target_yaw, Vector4b{true,true,false,false});
     //Add wind capability for CS
     //Add "found "" radiuza
 
@@ -189,7 +205,8 @@ void ModeSrcloc::run()
             motors->front_out = 0.0f;
             drift = true;
         }
-        blimp.loiter->run({0,0,0}, g.sl_wind_deg * DEG_TO_RAD, Vector4b{true,true,true,false});
+        target_yaw = g.sl_wind_deg * DEG_TO_RAD;
+        blimp.loiter->run(target_pos, target_yaw, Vector4b{true,true,true,false});
 
     //
     // Levy Walk from rahbar_3-d_2017

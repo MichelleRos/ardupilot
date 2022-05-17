@@ -281,6 +281,10 @@ bool Blimp::handle_plume_str(const mavlink_message_t &msg, Location &plume_loc, 
         //Thus, using plume_strs[plume_arr_pos] will always give the strength 2 seconds ago.
     }
     plume_str_curr = packet.strength;
+    AP::logger().WriteStreaming("PLUS", "TimeUS,p,x,y,z,yaw",
+                              "Qfffff",
+                              AP_HAL::micros64(),
+                              plume_str_curr, pos_ned.x, pos_ned.y, pos_ned.z, ahrs.get_yaw());
 
     // if ((now - last_plume_call) > 1){
     //     last_plume_call = now;

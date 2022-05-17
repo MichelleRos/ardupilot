@@ -532,14 +532,15 @@ private:
         CASTING_RUN =   0,
         CASTING_START =  1,
         SURGING_START =  2,
-        SURGING_RUN = 3,        
+        SURGING_RUN = 3,
     };
 
     enum class SLMode : uint8_t {
         CASTSURGEPOS =   1,
         CASTSURGEACCEL =  2,
         PUSHDRIFT =  3,
-        LEVYWALK = 4,        
+        LEVYWALK = 4,
+        CASTSURGEVEL = 5,
     };
 
     CS cs;
@@ -552,6 +553,7 @@ private:
     float push;
     bool drift;
     bool fnd_pl;
+    Vector2f out;
 
     float levydis(float x);
 };
