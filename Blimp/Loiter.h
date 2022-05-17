@@ -50,6 +50,6 @@ public:
         GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Created Loiter class");
     };
 
-    void run(Vector3f target_pos, float target_yaw, Vector4b axes_disabled);
+    void run(Vector3f& target_pos, float& target_yaw, Vector4b axes_disabled);
     void send_BSC(float s_xz, float s_yyaw, float s_xz_n, float s_yyaw_n);
 };

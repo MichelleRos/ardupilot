@@ -316,7 +316,6 @@ private:
     void rotate_BF_to_NE(Vector2f &vec);
     bool handle_plume_str(const mavlink_message_t &msg, Location &plume_loc, float &plume_cov);
     bool handle_plume_loc(const mavlink_message_t &msg);
-    void zero_integrators();
 
     // commands.cpp
     void update_home_from_EKF();

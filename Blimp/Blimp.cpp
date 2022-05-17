@@ -317,16 +317,6 @@ bool Blimp::handle_plume_loc(const mavlink_message_t &msg)
     return true;
 }
 
-void Blimp::zero_integrators()
-{
-    pid_pos_xy.set_integrator(Vector2f(0,0));
-    pid_pos_z.set_integrator(0);
-    pid_pos_yaw.set_integrator(0);
-    pid_vel_xy.set_integrator(Vector2f(0,0));
-    pid_vel_z.set_integrator(0);
-    pid_vel_yaw.set_integrator(0);
-}
-
 /*
   constructor for main Blimp class
  */

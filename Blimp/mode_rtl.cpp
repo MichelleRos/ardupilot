@@ -13,5 +13,7 @@
 //Runs the main rtl controller
 void ModeRTL::run()
 {
-    blimp.loiter->run({0,0,0}, 0, Vector4b{false,false,false,false});
+    Vector3f target_pos = {0,0,0};
+    float target_yaw = 0;
+    blimp.loiter->run(target_pos, target_yaw, Vector4b{false,false,false,false});
 }
