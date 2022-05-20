@@ -307,19 +307,19 @@ const AP_Param::Info Blimp::var_info[] = {
 
     //MIR TEMP
     GSCALAR(sl_mode, "SL_MODE", 2),
-    GSCALAR(sl_wind_deg, "SL_WIND_DEG", 0),
-    GSCALAR(sl_mulp, "SL_MULP", 0.5),
-    GSCALAR(sl_surg_dist, "SL_SURG_DIST", 2),
+    GSCALAR(sl_wind_deg, "SL_WIND_DEG", 0), //Wind direction in degrees from straight forwards for the two C&S modes.
+    GSCALAR(sl_mulp, "SL_MULP", 0.5), //Target-stage multiplier for plume in position C&S mode
+    GSCALAR(sl_surg_dist, "SL_SURG_DIST", 2), //Surge distance for position C&S mode
     GSCALAR(sl_plume_found, "SL_PLUME_FOUND", 0.00007),
-    GSCALAR(sl_mula, "SL_MULA", 1.5),
-    GSCALAR(sl_drift_time, "SL_DRIFT_TIME", 1),
-    GSCALAR(sl_push_time, "SL_PUSH_TIME", 3),
-    GSCALAR(sl_source_found, "SL_SOURCE_FOUND", 0.01),
-    GSCALAR(sl_vel_stop, "SL_VEL_STOP", 0.05),
-    GSCALAR(sl_thst_cf, "SL_THST_CF", 0.00),
-    GSCALAR(sl_thst_cr, "SL_THST_CR", 1),
-    GSCALAR(sl_thst_sf, "SL_THST_SF", 0.7),
-    GSCALAR(sl_thst_sr, "SL_THST_SR", 0.4),
+    GSCALAR(sl_mula, "SL_MULA", 1.5), //Target-stage multiplier for plume in accel/vel C&S mode
+    GSCALAR(sl_drift_time, "SL_DRIFT_TIME", 1), //Drift for push & drift mode
+    GSCALAR(sl_push_time, "SL_PUSH_TIME", 3), //Push for push & drift mode, also cast time for accel/vel C&S.
+    GSCALAR(sl_source_found, "SL_SOURCE_FOUND", 0.01), //When it considers source to be found & thus stops source loc
+    GSCALAR(sl_vel_stop, "SL_VEL_STOP", 0.05), //When it considers itself to have stopped momentum & started going in the opposite direction.
+    GSCALAR(sl_thst_cf, "SL_THST_CF", 0.00), //This can be set slightly negative instead to allow regaining the plume if it overhoots.
+    GSCALAR(sl_thst_cr, "SL_THST_CR", 1), //Strength of cast to sides in accel/vel C&S (relative to fin thrust for accel, relative to max_vel_xy param for vel)
+    GSCALAR(sl_thst_sf, "SL_THST_SF", 0.7), //Strength of surge in accel/vel C&S (relative to as above)
+    GSCALAR(sl_thst_sr, "SL_THST_SR", 0.4), //This should be a certain proportion of SR to approximate that angle Beta from the literature.
 
     // @Param: RC_SPEED
     // @DisplayName: ESC Update Speed
