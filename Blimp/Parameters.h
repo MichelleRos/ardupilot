@@ -119,6 +119,8 @@ public:
         k_param_sl_thst_cr,
         k_param_sl_thst_sf,
         k_param_sl_thst_sr, //75
+        k_param_guid_ofs_x,
+        k_param_guid_ofs_y,
         k_param_sl_mode = 80,
         k_param_sl_wind_deg,
         k_param_sl_mulp,
@@ -292,6 +294,8 @@ public:
     AP_Float        sl_thst_cr;
     AP_Float        sl_thst_sf;
     AP_Float        sl_thst_sr;
+    AP_Float        guid_ofs_x;
+    AP_Float        guid_ofs_y;
 
     AP_Int8         rtl_alt_type;
 
