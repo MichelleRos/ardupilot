@@ -290,7 +290,7 @@ const AP_Param::Info Blimp::var_info[] = {
     // @Description: Output 0 thrust signal when blimp is within this distance (in meters) of the target position.
     // @Values: 0.1 1
     // @User: Standard
-    GSCALAR(pid_dz, "PID_DZ", 0.5),
+    GSCALAR(pid_dz, "PID_DZ", 0),
 
     // @Param: RC_SPEED
     // @DisplayName: ESC Update Speed

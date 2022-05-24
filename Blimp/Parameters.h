@@ -114,7 +114,13 @@ public:
         k_param_pid_dz,
 
         //
-        // 90: misc2
+        // 70-89: Misc1
+        //
+        k_param_guid_ofs_x = 70,
+        k_param_guid_ofs_y,
+
+        //
+        // 90: Misc2
         //
         k_param_motors = 90,
         k_param_disarm_delay,
@@ -258,6 +264,9 @@ public:
     AP_Int16        dis_mask;
     AP_Float        wpnav_radius;
     AP_Float        pid_dz;
+
+    AP_Float        guid_ofs_x;
+    AP_Float        guid_ofs_y;
 
     AP_Int8         rtl_alt_type;
 
