@@ -20,6 +20,8 @@ HOMELAT=-35.280252
 HOMELONG=149.005821
 HOMEALT=597.3
 
+REPARM = 0
+
 # Set GCS_IP address
 if [ -z $1 ]; then
     GCS_IP="127.0.0.1"
@@ -68,11 +70,13 @@ NBLIMPS="2"
 echo "Starting blimp 1"
 mkdir -p blimp1
 
+if REPARM ; then
 # create default parameter file for the leader
 cat <<EOF > blimp1/leader.parm
 SYSID_THISMAV 1
 AUTO_OPTIONS 7
 EOF
+fi
 
 pushd blimp1
 $BLIMP --model blimp --home=$HOMELAT,$HOMELONG,$HOMEALT,0 --uartA udpclient:$GCS_IP --uartC mcast:$MCAST_IP_PORT --defaults $BASE_DEFAULTS,leader.parm &
@@ -88,18 +92,14 @@ for i in $(seq $NBLIMPS); do
     echo "Starting blimp $SYSID"
     mkdir -p blimp$SYSID
 
+if REPARM ; then
     # create default parameter file for the follower
     cat <<EOF > blimp$i/follow.parm
 SYSID_THISMAV $SYSID
-FOLL_ENABLE 1
-FOLL_OFS_X $(echo "-5*$i" | bc -l)
-FOLL_OFS_TYPE 1
-FOLL_SYSID 1
-FOLL_DIST_MAX 1000
-FOLL_YAW_BEHAVE 2
-FOLL_ALT_TYPE 1
-AUTO_OPTIONS 7
+GUID_OFS_X $(echo "-1*$i" | bc -l)
 EOF
+fi
+# GUID_OFS_Y $(echo "-1*($NBLIMPS-$i)" | bc -l)
     pushd blimp$i
     LAT=$(echo "$HOMELAT" | bc -l)
     LONG=$(echo "$HOMELONG + 0.00001*$i" | bc -l)
