@@ -85,7 +85,7 @@ MAX_VEL_XY       0.4
 MAX_VEL_YAW      0.5
 MAX_VEL_Z        0.2
 
-VELXY_D          0.0
+VELXY_D          1.0
 VELXY_FF         0.0
 VELXY_FLTD       3.0
 VELXY_FLTE       3.0
@@ -98,7 +98,7 @@ VELYAW_FLTD      3.0
 VELYAW_FLTE      3.0
 VELYAW_I         0.8
 VELYAW_IMAX      5.0
-VELYAW_P         15.0
+VELYAW_P         10.0
 VELZ_D           0.0
 VELZ_FF          0.0
 VELZ_FLTD        3.0
