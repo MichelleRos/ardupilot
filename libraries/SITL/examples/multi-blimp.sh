@@ -10,9 +10,15 @@
 # Kill all SITL binaries when exiting
 trap "killall -9 blimp" SIGINT SIGTERM EXIT
 
+# Compile blimp
+./waf configure --board sitl
+./waf blimp
+
 # Get the ArduPilot directory (ROOTDIR)
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+echo "SCRIPT_DIR = $SCRIPT_DIR"
 ROOTDIR="$(dirname "$(dirname "$(dirname $SCRIPT_DIR)")")"
+echo "ROOT_DIR = $ROOT_DIR"
 BLIMP=$ROOTDIR/build/sitl/bin/blimp
 
 # Drones will be located here
