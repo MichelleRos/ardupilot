@@ -50,7 +50,7 @@ void Loiter::run(Vector3f& target_pos, float& target_yaw, Vector4b axes_disabled
     if(!axes_disabled.x && !axes_disabled.x) target_vel_ef = {blimp.pid_pos_xy.update_all(target_pos, blimp.pos_ned, {(float)limit.x, (float)limit.y, (float)limit.z}), 0};
     if(!axes_disabled.z) target_vel_ef.z = blimp.pid_pos_z.update_all(target_pos.z, blimp.pos_ned.z, limit.z);
 
-    float target_vel_yaw;
+    float target_vel_yaw = 0;
     if(!axes_disabled.yaw){
         target_vel_yaw = blimp.pid_pos_yaw.update_error(wrap_PI(target_yaw - yaw_ef), limit.yaw);
         blimp.pid_pos_yaw.set_target_rate(target_yaw);
