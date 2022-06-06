@@ -26,7 +26,7 @@ HOMELAT=-35.280252
 HOMELONG=149.005821
 HOMEALT=597.3
 
-REPARM = 0
+# REPARM=1
 
 # Set GCS_IP address
 if [ -z $1 ]; then
@@ -70,19 +70,19 @@ BASE_DEFAULTS="$ROOTDIR/Tools/autotest/default_params/blimp.parm"
 }
 
 # Set number of extra blimps to be simulated, change this for increasing the count
-NBLIMPS="2"
+NBLIMPS="9"
 
 # start up main (leader) blimp in the subdir (blimp1)
 echo "Starting blimp 1"
 mkdir -p blimp1
 
-if REPARM ; then
+# if $REPARM ; then
 # create default parameter file for the leader
 cat <<EOF > blimp1/leader.parm
 SYSID_THISMAV 1
 AUTO_OPTIONS 7
 EOF
-fi
+# fi
 
 pushd blimp1
 $BLIMP --model blimp --home=$HOMELAT,$HOMELONG,$HOMEALT,0 --uartA udpclient:$GCS_IP --uartC mcast:$MCAST_IP_PORT --defaults $BASE_DEFAULTS,leader.parm &
@@ -98,13 +98,13 @@ for i in $(seq $NBLIMPS); do
     echo "Starting blimp $SYSID"
     mkdir -p blimp$SYSID
 
-if REPARM ; then
+# if $REPARM ; then
     # create default parameter file for the follower
     cat <<EOF > blimp$i/follow.parm
 SYSID_THISMAV $SYSID
 GUID_OFS_X $(echo "-1*$i" | bc -l)
 EOF
-fi
+# fi
 # GUID_OFS_Y $(echo "-1*($NBLIMPS-$i)" | bc -l)
     pushd blimp$i
     LAT=$(echo "$HOMELAT" | bc -l)
