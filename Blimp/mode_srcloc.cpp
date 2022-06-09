@@ -23,7 +23,8 @@ bool ModeSrcloc::init(bool ignore_checks){
     stage = -1;
     cs = CS::CASTING_START;
     beta = 30;
-    cast_time = 0.0f;
+    cast_time = 0.0f; //all times are in seconds
+    lost_time = 0.0f;
     push = 0.0f;
     fnd_pl = false;
     drift = false;
@@ -130,13 +131,16 @@ void ModeSrcloc::run()
                     cs = CS::CASTING_START;
                     GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Reached cast time - %f, %d", g.sl_push_time*0.8, stage);
                 }
-            } break;
+            }break;
             case CS::SURGING_RUN:{
-                if(blimp.plume_str_curr < g.sl_plume_found){
-                //if ((now - cast_time) > (g.sl_drift_time)) {
+                if(blimp.plume_str_curr > g.sl_plume_found){
+                    lost_time = now; //lost time is time since it lost the plume. Setting to current time whenever it finds the plume.
+                    // GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Setting lost_time to curr.");
+                }
+                if((now - lost_time) > (g.sl_drift_time)){
                     cs = CS::CASTING_START;
                     //GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Reached surging time - %f", (float)g.sl_drift_time);
-                    GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Lost plume. Stopping surge - %f", (float)g.sl_drift_time);
+                    GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Lost plume. Stopping surge: %f %f", (now - lost_time), (float)g.sl_drift_time);
                 }
             }break;
             case CS::CASTING_START: {
@@ -159,6 +163,7 @@ void ModeSrcloc::run()
                 cs = CS::SURGING_RUN;
                 stage = -1;
                 cast_time = now;
+                lost_time = now;
                 if(right_mv)
                     out.y = g.sl_thst_sr;
                 else
