@@ -10,7 +10,7 @@
 # Kill all SITL binaries when exiting
 trap "killall -9 blimp" SIGINT SIGTERM EXIT
 
-# Compile blimp
+# Always recompile blimp
 ./waf configure --board sitl
 ./waf blimp
 
@@ -72,6 +72,11 @@ BASE_DEFAULTS="$ROOTDIR/Tools/autotest/default_params/blimp.parm"
 # Set number of extra blimps to be simulated, change this for increasing the count
 NBLIMPS="9"
 
+#keep all files in Blimp/multi-blimp subdirectory
+pushd Blimp
+mkdir -p multi-blimp
+pushd multi-blimp
+
 # start up main (leader) blimp in the subdir (blimp1)
 echo "Starting blimp 1"
 mkdir -p blimp1
@@ -100,16 +105,16 @@ for i in $(seq $NBLIMPS); do
 
 # if $REPARM ; then
     # create default parameter file for the follower
-    cat <<EOF > blimp$i/follow.parm
+    cat <<EOF > blimp$SYSID/follow.parm
 SYSID_THISMAV $SYSID
-GUID_OFS_X $(echo "-1*$i" | bc -l)
+GUID_OFS_X $(echo "-1*$SYSID" | bc -l)
 EOF
 # fi
 # GUID_OFS_Y $(echo "-1*($NBLIMPS-$i)" | bc -l)
-    pushd blimp$i
+    pushd blimp$SYSID
     LAT=$(echo "$HOMELAT" | bc -l)
-    LONG=$(echo "$HOMELONG + 0.00001*$i" | bc -l)
-    $BLIMP --model blimp --home=$LAT,$LONG,$HOMEALT,0 --uartA tcp:0 --uartC mcast:$MCAST_IP_PORT --instance $i --defaults $BASE_DEFAULTS,follow.parm &
+    LONG=$(echo "$HOMELONG + 0.00001*$SYSID" | bc -l)
+    $BLIMP --model blimp --home=$LAT,$LONG,$HOMEALT,0 --uartA tcp:0 --uartC mcast:$MCAST_IP_PORT --instance $SYSID --defaults $BASE_DEFAULTS,follow.parm &
     popd
 done
 wait
