@@ -236,12 +236,8 @@ void ModeSrcloc::run()
         if (blimp.plume_str_curr > g.sl_plume_found){
             GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Found plume. Switching to srcloc.");
             //This just sets it temporarily. A reboot resets it.
-            g.sl_mode = 2;
+            g.sl_mode = (int)SLMode::CASTSURGEVEL;
         }
         blimp.loiter->run(target_pos, target_yaw, Vector4b{false,false,false,false});
     }
-}
-
-float ModeSrcloc::levydis(float x){
-    return sqrtf(c/(2*M_PI))*(expf(-c/(2*(x-mew)))/powf(x-mew,3.0f/2.0f));
 }
