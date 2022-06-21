@@ -311,6 +311,7 @@ bool Blimp::handle_plume_loc(const mavlink_message_t &msg)
 
     //Send target for Blimp to fly to
     blimp.mode_guided.set_target(tar);
+    blimp.mode_boids.set_target(tar);
 
     //Write log message
     Vector3f tar_vec;

@@ -94,6 +94,7 @@ public:
     friend class ModeGuided;
     friend class ModeRTL;
     friend class ModeSrcloc;
+    friend class ModeBoids;
 
     friend class Fins;
     friend class Loiter;
@@ -446,6 +447,7 @@ private:
     ModeGuided mode_guided;
     ModeRTL mode_rtl;
     ModeSrcloc mode_srcloc;
+    ModeBoids mode_boids;
 
     // mode.cpp
     Mode *mode_from_mode_num(const Mode::Number mode);
