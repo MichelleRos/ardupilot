@@ -24,12 +24,13 @@ public:
 
 Boid boidarr[5];
 
-bool ModeBoids::init(bool ignore_checks){
+bool ModeBoids::init(bool ignore_checks)
+{
     target_pos = blimp.pos_ned;
     target_yaw = blimp.ahrs.get_yaw();
 
     return true;
- }
+}
 
 //Runs the main loiter controller
 void ModeBoids::run()
