@@ -52,8 +52,8 @@ void GCS_MAVLINK_Blimp::send_position_target_global_int()
     }
     static constexpr uint16_t POSITION_TARGET_TYPEMASK_LAST_BYTE = 0xF000;
     static constexpr uint16_t TYPE_MASK = POSITION_TARGET_TYPEMASK_VX_IGNORE | POSITION_TARGET_TYPEMASK_VY_IGNORE | POSITION_TARGET_TYPEMASK_VZ_IGNORE |
-            POSITION_TARGET_TYPEMASK_AX_IGNORE | POSITION_TARGET_TYPEMASK_AY_IGNORE | POSITION_TARGET_TYPEMASK_AZ_IGNORE |
-            POSITION_TARGET_TYPEMASK_YAW_IGNORE | POSITION_TARGET_TYPEMASK_YAW_RATE_IGNORE | POSITION_TARGET_TYPEMASK_LAST_BYTE;
+                                          POSITION_TARGET_TYPEMASK_AX_IGNORE | POSITION_TARGET_TYPEMASK_AY_IGNORE | POSITION_TARGET_TYPEMASK_AZ_IGNORE |
+                                          POSITION_TARGET_TYPEMASK_YAW_IGNORE | POSITION_TARGET_TYPEMASK_YAW_RATE_IGNORE | POSITION_TARGET_TYPEMASK_LAST_BYTE;
 
     mavlink_msg_position_target_global_int_send(
         chan,
@@ -102,11 +102,11 @@ int16_t GCS_MAVLINK_Blimp::vfr_hud_throttle() const
  */
 void GCS_MAVLINK_Blimp::send_pid_tuning()
 {
-    if(blimp.control_mode == Mode::Number::MANUAL || blimp.control_mode == Mode::Number::HOLD) {
+    if (blimp.control_mode == Mode::Number::MANUAL || blimp.control_mode == Mode::Number::HOLD) {
         //No PIDs are used in Manual or Land mode.
         return;
     }
-    
+
     static const int8_t axes[] = {
         PID_SEND::VELX,
         PID_SEND::VELY,

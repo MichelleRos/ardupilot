@@ -30,7 +30,7 @@ struct PACKED log_FINO {
 //Write a fin input packet
 void Blimp::Write_FINI(float right, float front, float down, float yaw)
 {
-    const struct log_FINI pkt{
+    const struct log_FINI pkt {
         LOG_PACKET_HEADER_INIT(LOG_FINI_MSG),
         time_us       : AP_HAL::micros64(),
         Right         : right,
@@ -44,7 +44,7 @@ void Blimp::Write_FINI(float right, float front, float down, float yaw)
 //Write a fin output packet
 void Blimp::Write_FINO(float *amp, float *off)
 {
-    const struct log_FINO pkt{
+    const struct log_FINO pkt {
         LOG_PACKET_HEADER_INIT(LOG_FINO_MSG),
         time_us       : AP_HAL::micros64(),
         Fin1_Amp      : amp[0],

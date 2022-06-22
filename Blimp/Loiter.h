@@ -20,12 +20,14 @@ public:
         , z(z0)
         , yaw(yaw0) {}
 
-    Vector4b operator &&(const Vector4b &v){
+    Vector4b operator &&(const Vector4b &v)
+    {
         Vector4b temp{x && v.x, y && v.y, z && v.z, yaw && v.yaw};
         return temp;
     }
 
-    Vector4b operator ||(const Vector4b &v){
+    Vector4b operator ||(const Vector4b &v)
+    {
         Vector4b temp{x || v.x, y || v.y, z || v.z, yaw || v.yaw};
         return temp;
     }
@@ -44,7 +46,8 @@ public:
     float scaler_yyaw;
 
     //constructor
-    Loiter(uint16_t loop_rate){
+    Loiter(uint16_t loop_rate)
+    {
         scaler_xz = 1;
         scaler_yyaw = 1;
         GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Created Loiter class");
