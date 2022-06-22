@@ -569,7 +569,8 @@ public:
 
     virtual bool init(bool ignore_checks) override;
     virtual void run() override;
-    void set_target(Location tar);
+    void set_target(float angle);
+    void handle_msg(const mavlink_message_t &msg);
 
     bool requires_GPS() const override
     {
