@@ -70,7 +70,7 @@ BASE_DEFAULTS="$ROOTDIR/Tools/autotest/default_params/blimp.parm"
 }
 
 # Set number of extra blimps to be simulated, change this for increasing the count
-NBLIMPS="9"
+NBLIMPS="4"
 
 #keep all files in Blimp/multi-blimp subdirectory
 pushd Blimp
