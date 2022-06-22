@@ -198,9 +198,9 @@ void Blimp::three_hz_loop()
     float plu = rssi.read_receiver_rssi();
     gcs().send_named_float("PLU_STR", plu);
     AP::logger().WriteStreaming("PLUR", "TimeUS,p,x,y,z,yaw",
-                              "Qfffff",
-                              AP_HAL::micros64(),
-                              plu, pos_ned.x, pos_ned.y, pos_ned.z, ahrs.get_yaw());
+                                "Qfffff",
+                                AP_HAL::micros64(),
+                                plu, pos_ned.x, pos_ned.y, pos_ned.z, ahrs.get_yaw());
 }
 
 // one_hz_loop - runs at 1Hz
@@ -270,10 +270,10 @@ bool Blimp::handle_plume_str(const mavlink_message_t &msg, Location &plume_loc, 
     mavlink_msg_plume_strength_decode(&msg, &packet);
 
     float curr_time = AP_HAL::micros() * 1.0e-6;
-    if (is_zero(plume_update) || (curr_time - plume_update) > 0.2f){
+    if (is_zero(plume_update) || (curr_time - plume_update) > 0.2f) {
         plume_update = curr_time;
         plume_strs[plume_arr_pos] = packet.strength;
-        if(plume_arr_pos < 9) {
+        if (plume_arr_pos < 9) {
             plume_arr_pos++;
         } else {
             plume_arr_pos = 0; //i.e range is 0 to 9
@@ -282,9 +282,9 @@ bool Blimp::handle_plume_str(const mavlink_message_t &msg, Location &plume_loc, 
     }
     plume_str_curr = packet.strength;
     AP::logger().WriteStreaming("PLUS", "TimeUS,p,x,y,z,yaw",
-                              "Qfffff",
-                              AP_HAL::micros64(),
-                              plume_str_curr, pos_ned.x, pos_ned.y, pos_ned.z, ahrs.get_yaw());
+                                "Qfffff",
+                                AP_HAL::micros64(),
+                                plume_str_curr, pos_ned.x, pos_ned.y, pos_ned.z, ahrs.get_yaw());
 
     // if ((now - last_plume_call) > 1){
     //     last_plume_call = now;
@@ -314,7 +314,7 @@ bool Blimp::handle_plume_loc(const mavlink_message_t &msg)
 
     //Write log message
     Vector3f tar_vec;
-    if(tar.get_vector_from_origin_NEU(tar_vec)){
+    if (tar.get_vector_from_origin_NEU(tar_vec)) {
         blimp.Write_PLU(blimp.plume_str_curr, tar, tar_vec/100.0, packet.cov);
     }
 

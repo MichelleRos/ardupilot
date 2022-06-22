@@ -6,12 +6,13 @@
 //Number of seconds of movement that the target position can be ahead of actual position.
 #define POS_LAG 1
 
- bool ModeLoiter::init(bool ignore_checks){
+bool ModeLoiter::init(bool ignore_checks)
+{
     target_pos = blimp.pos_ned;
     target_yaw = blimp.ahrs.get_yaw();
 
     return true;
- }
+}
 
 //Runs the main loiter controller
 void ModeLoiter::run()
@@ -24,7 +25,7 @@ void ModeLoiter::run()
     pilot.z *= g.max_pos_z * blimp.scheduler.get_loop_period_s();
     pilot_yaw *= g.max_pos_yaw * blimp.scheduler.get_loop_period_s();
 
-    if (g.simple_mode == 0){
+    if (g.simple_mode == 0) {
         //If simple mode is disabled, input is in body-frame, thus needs to be rotated.
         blimp.rotate_BF_to_NE(pilot.xy());
     }

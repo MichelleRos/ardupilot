@@ -6,9 +6,10 @@
 //Number of seconds of movement that the target position can be ahead of actual position.
 #define POS_LAG 1
 
- bool ModeRTL::init(bool ignore_checks){
+bool ModeRTL::init(bool ignore_checks)
+{
     return true;
- }
+}
 
 //Runs the main rtl controller
 void ModeRTL::run()

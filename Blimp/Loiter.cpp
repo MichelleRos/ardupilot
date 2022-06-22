@@ -3,7 +3,8 @@
 #define MA 0.99
 #define MO (1-MA)
 
-void Loiter::run(Vector3f& target_pos, float& target_yaw, Vector4b axes_disabled){
+void Loiter::run(Vector3f& target_pos, float& target_yaw, Vector4b axes_disabled)
+{
     float scaler_xz_n;
     float xz_out = fabsf(blimp.motors->front_out) + fabsf(blimp.motors->down_out);
     if (xz_out > 1) scaler_xz_n = 1 / xz_out;
@@ -22,9 +23,9 @@ void Loiter::run(Vector3f& target_pos, float& target_yaw, Vector4b axes_disabled
         gcs().send_named_float("TarY", target_pos.y);
     }
     AP::logger().WriteStreaming("BSC", "TimeUS,xz,yyaw,xzn,yyawn",
-                              "Qffff",
-                              AP_HAL::micros64(),
-                              scaler_xz, scaler_yyaw, scaler_xz_n, scaler_yyaw_n);
+                                "Qffff",
+                                AP_HAL::micros64(),
+                                scaler_xz, scaler_yyaw, scaler_xz_n, scaler_yyaw_n);
 
     float yaw_ef = blimp.ahrs.get_yaw();
     Vector3f err_xyz = target_pos - blimp.pos_ned;
@@ -51,29 +52,29 @@ void Loiter::run(Vector3f& target_pos, float& target_yaw, Vector4b axes_disabled
     if(!axes_disabled.z) target_vel_ef.z = blimp.pid_pos_z.update_all(target_pos.z, blimp.pos_ned.z, limit.z);
 
     float target_vel_yaw = 0;
-    if(!axes_disabled.yaw){
+    if (!axes_disabled.yaw) {
         target_vel_yaw = blimp.pid_pos_yaw.update_error(wrap_PI(target_yaw - yaw_ef), limit.yaw);
         blimp.pid_pos_yaw.set_target_rate(target_yaw);
         blimp.pid_pos_yaw.set_actual_rate(yaw_ef);
     }
 
     Vector3f target_vel_ef_c{constrain_float(target_vel_ef.x, -blimp.g.max_vel_xy, blimp.g.max_vel_xy),
-                              constrain_float(target_vel_ef.y, -blimp.g.max_vel_xy, blimp.g.max_vel_xy),
-                              constrain_float(target_vel_ef.z, -blimp.g.max_vel_z, blimp.g.max_vel_z)};
+                             constrain_float(target_vel_ef.y, -blimp.g.max_vel_xy, blimp.g.max_vel_xy),
+                             constrain_float(target_vel_ef.z, -blimp.g.max_vel_z, blimp.g.max_vel_z)};
     float target_vel_yaw_c = constrain_float(target_vel_yaw, -blimp.g.max_vel_yaw, blimp.g.max_vel_yaw);
 
     Vector2f target_vel_ef_c_scaled_xy = {target_vel_ef_c.x * scaler_xz, target_vel_ef_c.y * scaler_yyaw};
     Vector2f vel_ned_filtd_scaled_xy = {blimp.vel_ned_filtd.x * scaler_xz, blimp.vel_ned_filtd.y * scaler_yyaw};
 
     Vector2f actuator;
-    if(!axes_disabled.x && !axes_disabled.y) actuator = blimp.pid_vel_xy.update_all(target_vel_ef_c_scaled_xy, vel_ned_filtd_scaled_xy, {(float)limit.x, (float)limit.y});
+    if (!axes_disabled.x && !axes_disabled.y) actuator = blimp.pid_vel_xy.update_all(target_vel_ef_c_scaled_xy, vel_ned_filtd_scaled_xy, {(float)limit.x, (float)limit.y});
     float act_down;
     if(!axes_disabled.z) act_down = blimp.pid_vel_z.update_all(target_vel_ef_c.z * scaler_xz, blimp.vel_ned_filtd.z * scaler_xz, limit.z);
     blimp.rotate_NE_to_BF(actuator);
     float act_yaw;
     if(!axes_disabled.yaw) act_yaw = blimp.pid_vel_yaw.update_all(target_vel_yaw_c * scaler_yyaw, blimp.vel_yaw_filtd * scaler_yyaw, limit.yaw);
 
-    if(!blimp.motors->armed()){
+    if (!blimp.motors->armed()) {
         blimp.pid_pos_xy.set_integrator(Vector2f(0,0));
         blimp.pid_pos_z.set_integrator(0);
         blimp.pid_pos_yaw.set_integrator(0);
@@ -84,25 +85,25 @@ void Loiter::run(Vector3f& target_pos, float& target_yaw, Vector4b axes_disabled
         target_yaw = blimp.ahrs.get_yaw();
     }
 
-    if(zero.x){
+    if (zero.x) {
         blimp.motors->front_out = 0;
     } else if (axes_disabled.x);
     else {
         blimp.motors->front_out = actuator.x;
     }
-    if(zero.y){
+    if (zero.y) {
         blimp.motors->right_out = 0;
     } else if (axes_disabled.y);
     else {
         blimp.motors->right_out = actuator.y;
     }
-    if(zero.z){
+    if (zero.z) {
         blimp.motors->down_out = 0;
     } else if (axes_disabled.z);
     else {
         blimp.motors->down_out = act_down;
     }
-    if(zero.yaw){
+    if (zero.yaw) {
         blimp.motors->yaw_out  = 0;
     } else if (axes_disabled.yaw);
     else {
@@ -117,7 +118,8 @@ void Loiter::run(Vector3f& target_pos, float& target_yaw, Vector4b axes_disabled
 }
 
 
-void Loiter::send_BSC(float s_xz, float s_yyaw, float s_xz_n, float s_yyaw_n){
+void Loiter::send_BSC(float s_xz, float s_yyaw, float s_xz_n, float s_yyaw_n)
+{
     gcs().send_named_float("BSCxz", s_xz);
     gcs().send_named_float("BSCyyaw", s_yyaw);
     gcs().send_named_float("BSCxz_n", s_xz_n);

@@ -20,16 +20,16 @@ void ModeVelocity::run()
     float act_down = blimp.pid_vel_z.update_all(target_vel.z, blimp.vel_ned_filtd.z);
     float act_yaw = blimp.pid_vel_yaw.update_all(target_vel_yaw, blimp.vel_yaw_filtd);
 
-    if(!(blimp.g.dis_mask & (1<<(2-1)))){
+    if (!(blimp.g.dis_mask & (1<<(2-1)))) {
         motors->front_out = actuator.x;
     }
-    if(!(blimp.g.dis_mask & (1<<(1-1)))){
+    if (!(blimp.g.dis_mask & (1<<(1-1)))) {
         motors->right_out = actuator.y;
     }
-    if(!(blimp.g.dis_mask & (1<<(3-1)))){
+    if (!(blimp.g.dis_mask & (1<<(3-1)))) {
         motors->down_out = act_down;
     }
-    if(!(blimp.g.dis_mask & (1<<(4-1)))){
+    if (!(blimp.g.dis_mask & (1<<(4-1)))) {
         motors->yaw_out = act_yaw;
     }
 

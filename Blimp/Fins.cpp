@@ -79,7 +79,7 @@ void Fins::output()
     }
 
     blimp.Write_FINI(right_out, front_out, down_out, yaw_out);
-    if (AP_HAL::millis() % 1000 < 30){
+    if (AP_HAL::millis() % 1000 < 30) {
         gcs().send_named_float("FINIr", right_out);
         gcs().send_named_float("FINIf", front_out);
         gcs().send_named_float("FINId", down_out);
