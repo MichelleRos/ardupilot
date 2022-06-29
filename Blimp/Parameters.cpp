@@ -312,7 +312,7 @@ const AP_Param::Info Blimp::var_info[] = {
     GSCALAR(sl_surg_dist, "SL_SURG_DIST", 2), //Surge distance for position C&S mode
     GSCALAR(sl_plume_found, "SL_PLUME_FOUND", 0.00007),
     GSCALAR(sl_mula, "SL_MULA", 1.5), //Target-stage multiplier for plume in accel/vel C&S mode
-    GSCALAR(sl_drift_time, "SL_LOST_TIME", 5), //Drift for push & drift mode, also lost time for accel/vel C&S.
+    GSCALAR(sl_drift_time, "SL_LOST_TIME", 0), //Drift for push & drift mode (5 sec is good), also lost time for accel/vel C&S.
     GSCALAR(sl_push_time, "SL_CAST_TIME", 3), //Push for push & drift mode, also cast time for accel/vel C&S.
     GSCALAR(sl_source_found, "SL_SOURCE_FOUND", 0.01), //When it considers source to be found & thus stops source loc
     GSCALAR(sl_vel_stop, "SL_VEL_STOP", 0.05), //When it considers itself to have stopped momentum & started going in the opposite direction.

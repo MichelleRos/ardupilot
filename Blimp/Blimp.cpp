@@ -195,8 +195,9 @@ void Blimp::three_hz_loop()
 {
     // check if we've lost contact with the ground station
     failsafe_gcs_check();
+    //Currently all we're doing with the real plume value is sending it to the GCS and logging it.
     float plu = rssi.read_receiver_rssi();
-    gcs().send_named_float("PLU_STR", plu);
+    gcs().send_named_float("PLUR", plu);
     AP::logger().WriteStreaming("PLUR", "TimeUS,p,x,y,z,yaw",
                                 "Qfffff",
                                 AP_HAL::micros64(),
@@ -263,6 +264,7 @@ void Blimp::rotate_NE_to_BF(Vector2f &vec)
 }
 
 //bool is whether to send pos
+//This is used with simulated plume strength sent from GCS.
 bool Blimp::handle_plume_str(const mavlink_message_t &msg, Location &plume_loc, float &plume_cov)
 {
     // float now = AP_HAL::micros() * 1.0e-6;
@@ -285,6 +287,7 @@ bool Blimp::handle_plume_str(const mavlink_message_t &msg, Location &plume_loc, 
                                 "Qfffff",
                                 AP_HAL::micros64(),
                                 plume_str_curr, pos_ned.x, pos_ned.y, pos_ned.z, ahrs.get_yaw());
+    gcs().send_named_float("PLUS", plume_str_curr);
 
     // if ((now - last_plume_call) > 1){
     //     last_plume_call = now;
@@ -302,6 +305,7 @@ bool Blimp::handle_plume_str(const mavlink_message_t &msg, Location &plume_loc, 
     return false;
 }
 
+//This is used for srcloc with GCS-based algorithm
 bool Blimp::handle_plume_loc(const mavlink_message_t &msg)
 {
     mavlink_plume_est_loc_t packet;
