@@ -12,10 +12,6 @@
 #define Lmin 1.5f //50 cm
 #define mu 3.0f
 
-#if defined(__GNUC__) &&  __GNUC__ >= 7 || defined(__clang_major__) && __clang_major__ >= 10
-#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
-#endif
-
 bool ModeSrcloc::init(bool ignore_checks)
 {
     target_pos = blimp.pos_ned;
@@ -59,7 +55,7 @@ void ModeSrcloc::run()
                 cs = CS::SURGING_START;
                 GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Found plume. Surging. %f %f", blimp.plume_str_curr, float(g.sl_plume_found));
             }
-        } //No break so casting run also does wp check.
+        } FALLTHROUGH;
         case CS::SURGING_RUN: {
             float distsq = blimp.pos_ned.distance_squared(target_pos);
             if (distsq < sq(g.wpnav_radius)) { //Should set surging distance far enough that it always loses the plume before getting to the waypoint.
