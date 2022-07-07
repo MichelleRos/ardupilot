@@ -40,21 +40,6 @@ void ModeBoids::run()
     GCS_SEND_TEXT(MAV_SEVERITY_NOTICE, "Curr plu: %f, %f, %f, %f, %f", boidarr[0].plu, boidarr[1].plu, boidarr[2].plu, boidarr[3].plu, boidarr[4].plu);
 }
 
-void ModeBoids::set_target(float angle) //angle is in radians
-{
-    // Vector3f tar_vec;
-    // if(tar.get_vector_from_origin_NEU(tar_vec)){ //Unfortunately returns vector in cm instead of m...
-    //     target_pos.x = tar_vec.x/100.0 + g.guid_ofs_x;
-    //     target_pos.y = tar_vec.y/100.0 + g.guid_ofs_y;
-    //     //GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Received target: %f, %f", target_pos.x, target_pos.y);
-    // }
-    Vector3f target = {0.2,0.0,0.0};
-    target.rotate_xy(angle);
-    target_yaw = angle;
-    blimp.rotate_NE_to_BF(target.xy());
-    target_pos = target_pos + target;
-}
-
 //This is called by Blimp's main GCS mavlink whenever any mavlink message comes in.
 void ModeBoids::handle_msg(const mavlink_message_t &msg)
 {
