@@ -73,6 +73,11 @@ void Blimp::init_ardupilot()
     AP::compass().set_log_bit(MASK_LOG_COMPASS);
     AP::compass().init();
 
+#if AP_OPTICALFLOW_ENABLED
+    // initialise optical flow sensor
+    optflow.init(MASK_LOG_OPTFLOW);
+#endif      // AP_OPTICALFLOW_ENABLE
+
     // read Baro pressure at ground
     //-----------------------------
     barometer.set_log_baro_bit(MASK_LOG_IMU);
@@ -177,8 +182,13 @@ bool Blimp::ekf_has_relative_position() const
         return false;
     }
 
-    // return immediately if neither optflow nor visual odometry is enabled
+    // return immediately if optflow not enabled
     bool enabled = false;
+#if AP_OPTICALFLOW_ENABLED
+    if (optflow.enabled()) {
+        enabled = true;
+    }
+#endif
     if (!enabled) {
         return false;
     }

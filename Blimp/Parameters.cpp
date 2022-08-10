@@ -409,6 +409,12 @@ const AP_Param::Info Blimp::var_info[] = {
     // @Path: ../libraries/AP_RSSI/AP_RSSI.cpp
     GOBJECT(rssi, "RSSI_",  AP_RSSI),
 
+#if AP_OPTICALFLOW_ENABLED
+    // @Group: FLOW
+    // @Path: ../libraries/AP_OpticalFlow/AP_OpticalFlow.cpp
+    GOBJECT(optflow,   "FLOW", OpticalFlow),
+#endif
+
     // @Group: NTF_
     // @Path: ../libraries/AP_Notify/AP_Notify.cpp
     GOBJECT(notify, "NTF_",  AP_Notify),

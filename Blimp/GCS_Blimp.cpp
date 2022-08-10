@@ -30,6 +30,17 @@ void GCS_Blimp::update_vehicle_sensor_status_flags(void)
         MAV_SYS_STATUS_SENSOR_ATTITUDE_STABILIZATION |
         MAV_SYS_STATUS_SENSOR_YAW_POSITION;
 
+#if AP_OPTICALFLOW_ENABLED
+    const OpticalFlow *optflow = AP::opticalflow();
+    if (optflow && optflow->enabled()) {
+        control_sensors_present |= MAV_SYS_STATUS_SENSOR_OPTICAL_FLOW;
+        control_sensors_enabled |= MAV_SYS_STATUS_SENSOR_OPTICAL_FLOW;
+    }
+    if (optflow && optflow->healthy()) {
+        control_sensors_health |= MAV_SYS_STATUS_SENSOR_OPTICAL_FLOW;
+    }
+#endif
+
     control_sensors_present |= MAV_SYS_STATUS_SENSOR_Z_ALTITUDE_CONTROL;
     control_sensors_present |= MAV_SYS_STATUS_SENSOR_XY_POSITION_CONTROL;
 
