@@ -22,6 +22,7 @@ public:
         RTL =           6,  // rtl
         SRCLOC =        7,  // source localisation
         BOIDS =         8,  // boids flock-like behaviour
+        PSO =           9,  // PSO - particle-swarm optimisation
     };
 
     // constructor
@@ -598,6 +599,51 @@ protected:
     const char *name4() const override
     {
         return "BOID";
+    }
+
+private:
+    Vector3f target_pos;
+    float target_yaw;
+};
+
+class ModePSO : public Mode
+{
+
+public:
+    // inherit constructor
+    using Mode::Mode;
+
+    virtual bool init(bool ignore_checks) override;
+    virtual void run() override;
+    void handle_msg(const mavlink_message_t &msg);
+
+    bool requires_GPS() const override
+    {
+        return true;
+    }
+    bool has_manual_throttle() const override
+    {
+        return false;
+    }
+    bool allows_arming(bool from_gcs) const override
+    {
+        return true;
+    };
+    bool is_autopilot() const override
+    {
+        return false;
+        //TODO
+    }
+
+protected:
+
+    const char *name() const override
+    {
+        return "PSO";
+    }
+    const char *name4() const override
+    {
+        return "PSO";
     }
 
 private:

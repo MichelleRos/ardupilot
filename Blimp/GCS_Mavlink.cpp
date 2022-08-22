@@ -395,6 +395,7 @@ void GCS_MAVLINK_Blimp::packetReceived(const mavlink_status_t &status,
                                        const mavlink_message_t &msg)
 {
     blimp.mode_boids.handle_msg(msg);
+    blimp.mode_pso.handle_msg(msg);
     GCS_MAVLINK::packetReceived(status, msg);
 }
 
