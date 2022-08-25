@@ -560,6 +560,28 @@ private:
     float levydis(float x);
 };
 
+
+//-------------------------------------------------------------
+class Par
+{
+public:
+    //position North from Origin in metres
+    float   pn;
+    //position East from Origin in metres
+    float   pe;
+    //plume strength in 0 to 1
+    float     plu;
+    //packet also has alt and velocitiy in x,y,z directions
+
+    constexpr Par()
+        : pn(0.0)
+        , pe(0.0)
+        , plu(0.0) {}
+};
+
+//Max number of blimps to be used. Means sysids of 1 to PAR_MAX being put into array indeces 0 to 4
+#define PAR_MAX 5
+
 class ModePSO : public Mode
 {
 
@@ -570,6 +592,7 @@ public:
     virtual bool init(bool ignore_checks) override;
     virtual void run() override;
     void handle_msg(const mavlink_message_t &msg);
+    float dist(int part1, int part2);
 
     bool requires_GPS() const override
     {
@@ -603,4 +626,20 @@ protected:
 private:
     Vector3f target_pos;
     float target_yaw;
+
+    //This should always contain the strength and location of the highest received plume strength for each blimp
+    Par pbest[PAR_MAX];
+    //This contains the most recent position mavlink message for each blimp
+    mavlink_global_position_int_t curarr[PAR_MAX];
+    //index of the global best (within pbest)
+    int gbest = 1;
+    Vector2f X[PAR_MAX];
+    Vector2f V[PAR_MAX];
+
+    float cc1 = 0.05;    //personal best weighting
+    float cc2 = 0.05;   //global best weighting
+    float w = 0.9;      //current velocity weighting
+    float speed_limit = 0.2;
+    float min_d = 0.5;
+    float d = 0.05;     //separation weighting
 };
