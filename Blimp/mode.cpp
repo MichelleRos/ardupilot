@@ -52,9 +52,6 @@ Mode *Blimp::mode_from_mode_num(const Mode::Number mode)
     case Mode::Number::SRCLOC:
         ret = &mode_srcloc;
         break;
-    case Mode::Number::BOIDS:
-        ret = &mode_boids;
-        break;
     case Mode::Number::PSO:
         ret = &mode_pso;
         break;

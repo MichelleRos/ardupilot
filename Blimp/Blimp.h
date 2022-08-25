@@ -94,7 +94,6 @@ public:
     friend class ModeGuided;
     friend class ModeRTL;
     friend class ModeSrcloc;
-    friend class ModeBoids;
     friend class ModePSO;
 
     friend class Fins;
@@ -448,7 +447,6 @@ private:
     ModeGuided mode_guided;
     ModeRTL mode_rtl;
     ModeSrcloc mode_srcloc;
-    ModeBoids mode_boids;
     ModePSO mode_pso;
 
     // mode.cpp
