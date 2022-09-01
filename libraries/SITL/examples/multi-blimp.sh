@@ -7,6 +7,9 @@
 # If you can't use multicast, you can connect via UDP on vehicle 1, which will relay telemetry
 # from the other vehicles
 
+#stop script on any error (eg compile fail)
+set -e
+
 # Kill all SITL binaries when exiting
 trap "killall -9 blimp" SIGINT SIGTERM EXIT
 
@@ -70,7 +73,7 @@ BASE_DEFAULTS="$ROOTDIR/Tools/autotest/default_params/blimp.parm"
 }
 
 # Set number of extra blimps to be simulated, change this for increasing the count
-NBLIMPS="2"
+NBLIMPS="4"
 
 #keep all files in Blimp/multi-blimp subdirectory
 pushd Blimp
