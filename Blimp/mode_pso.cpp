@@ -11,46 +11,68 @@ bool ModePSO::init(bool ignore_checks)
     return true;
 }
 
+#define cc1 0.05  //personal best weighting
+#define cc2 0.05   //global best weighting
+#define w 0.9      //current velocity weighting
+#define speed_limit 0.2
+#define min_d 0.5
+#define d 0.05     //separation weighting
+
 //Runs the main loiter controller
 void ModePSO::run()
 {
     if (AP_HAL::millis() % 1000 < 15) { //Display approx. once per second only
-        GCS_SEND_TEXT(MAV_SEVERITY_NOTICE, "PBest plu: %f, %f, %f, %f, %f, Gbest: %d", pbest[0].plu, pbest[1].plu, pbest[2].plu, pbest[3].plu, pbest[4].plu, gbest);
+        GCS_SEND_TEXT(MAV_SEVERITY_NOTICE, "PBest plu: %f, %f, %f, %f, %f, Gbest: %d, self is: %d", pbest[0].plu, pbest[1].plu, pbest[2].plu, pbest[3].plu, pbest[4].plu, gbest, int(g.sysid_this_mav));
     }
 
     Vector2f A[PAR_MAX];
-    float moveX = 0.0;
-    float moveY = 0.0;
+    // float moveX = 0.0;
+    // float moveY = 0.0;
 
-    for (uint8_t i=0; i<PAR_MAX; i++){
-        for (uint8_t j=0; j<PAR_MAX; j++){
-            if (i == j) continue;
-            if (dist(i,j) < min_d){
-                moveX += (pbest[i].pn - pbest[j].pn);
-                moveY += (pbest[i].pe - pbest[j].pe);
-            }
-        }
-        A[i].x += moveX;
-        A[i].y += moveY;
-        AP::logger().WriteStreaming("PSO1", "TimeUS,moveX,moveY,i",
-                                "Qfff",
-                                AP_HAL::micros64(),
-                                moveX, moveY, (float)i);
-    }
-    float rr1 = rand()/RAND_MAX;
-    float rr2 = rand()/RAND_MAX;
+    // for (uint8_t i=0; i<PAR_MAX; i++){
+    //     for (uint8_t j=0; j<PAR_MAX; j++){
+    //         if (i == j) continue;
+    //         if (dist(i,j) < min_d){
+    //             GCS_SEND_TEXT(MAV_SEVERITY_NOTICE,"Blimp numbers %d and %d are within min_d.", i, j);
+    //             moveX += (pbest[i].pn - pbest[j].pn);
+    //             moveY += (pbest[i].pe - pbest[j].pe);
+    //         }
+    //     }
+    //     A[i].x += moveX;
+    //     A[i].y += moveY;
+    //     AP::logger().WriteStreaming("PSO1", "TimeUS,moveX,moveY,i",
+    //                             "Qfff",
+    //                             AP_HAL::micros64(),
+    //                             moveX, moveY, (float)i);
+
+    // }
+    float rr1 = (float)rand()/RAND_MAX;
+    float rr2 = (float)rand()/RAND_MAX;
     for (int i=0; i<PAR_MAX; i++){
-        V[i].x = w*V[i].x + d*A[i].x + cc1*rr1*(pbest[i].pn - X[i].x) - cc2*rr2*(pbest[gbest].pn - X[i].x);
-        V[i].y = w*V[i].y + d*A[i].y + cc1*rr1*(pbest[i].pe - X[i].y) - cc2*rr2*(pbest[gbest].pe - X[i].y);
-        if (V[i].x > speed_limit) V[i].x = speed_limit;
-        if (V[i].y > speed_limit) V[i].y = speed_limit;
-        X[i].x = X[i].x + V[i].x*blimp.scheduler.get_loop_period_s();
-        X[i].y = X[i].y + V[i].y*blimp.scheduler.get_loop_period_s();
+        V[i].x = w*V[i].x + d*A[i].x + cc1*rr1*(pbest[i].pn - X[i].x) + cc2*rr2*(pbest[gbest].pn - X[i].x);
+        V[i].y = w*V[i].y + d*A[i].y + cc1*rr1*(pbest[i].pe - X[i].y) + cc2*rr2*(pbest[gbest].pe - X[i].y);
+
+        if (V[i].x > speed_limit) {
+            V[i].x = speed_limit;
+            // GCS_SEND_TEXT(MAV_SEVERITY_NOTICE, "Blimp %d command was overspeed in x", i);
+        }
+        if (V[i].y > speed_limit) {
+            V[i].y = speed_limit;
+            // GCS_SEND_TEXT(MAV_SEVERITY_NOTICE, "Blimp %d command was overspeed in y", i);
+        }
+
+        // X[i].x = X[i].x + V[i].x*blimp.scheduler.get_loop_period_s();
+        // X[i].y = X[i].y + V[i].y*blimp.scheduler.get_loop_period_s();
+
+        AP::logger().WriteStreaming("PSO2", "TimeUS,i,Xx,Xy,Vx,Vy,Ax,Ay", "s#------", "F-------",
+                                    "QBffffff",
+                                    AP_HAL::micros64(),
+                                    i,X[i].x, X[i].y, V[i].x, V[i].y, A[i].x, A[i].y);
     }
 
-    target_pos = {X[g.sysid_this_mav].x,X[g.sysid_this_mav].y,0};
+    Vector3f target_vel = {V[g.sysid_this_mav].x,V[g.sysid_this_mav].y,0};
     target_yaw = 0;
-    blimp.loiter->run(target_pos, target_yaw, Vector4b{false,false,false,false});
+    blimp.loiter->run_vel(target_vel, target_yaw, Vector4b{false,false,false,false});
 }
 
 float ModePSO::dist(int part1, int part2){
@@ -87,6 +109,7 @@ void ModePSO::handle_msg(const mavlink_message_t &msg)
         mavlink_msg_named_value_float_decode(&msg, &packet);
         //Annoying, but this is how I had to match it...
         if (packet.name[0] == 'P' && packet.name[1] == 'L' && packet.name[2] == 'U' && packet.name[3] == 'S') {
+            //This is actually what each blimp sends out (see Blimp::handle_plume_str()), not the plume strength sent to each one from the GCS, hence not needing to look at target system
             //This is set up for blimps with sysids starting at 1, and put into array with index starting at 0.
             if (msg.sysid <= PAR_MAX && msg.sysid > 0) {
                 if (packet.value > pbest[msg.sysid-1].plu) { //Only update pbest when new strength is higher than old.

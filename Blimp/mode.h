@@ -635,11 +635,4 @@ private:
     int gbest = 1;
     Vector2f X[PAR_MAX];
     Vector2f V[PAR_MAX];
-
-    float cc1 = 0.05;    //personal best weighting
-    float cc2 = 0.05;   //global best weighting
-    float w = 0.9;      //current velocity weighting
-    float speed_limit = 0.2;
-    float min_d = 0.5;
-    float d = 0.05;     //separation weighting
 };
