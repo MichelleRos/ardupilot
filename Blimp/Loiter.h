@@ -53,6 +53,10 @@ public:
         GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Created Loiter class");
     };
 
+    //Run Loiter controller with target position and yaw in global frame. Expects to be called at loop rate.
     void run(Vector3f& target_pos, float& target_yaw, Vector4b axes_disabled);
+    //Run Loiter controller with target velocity and velocity in global frame. Expects to be called at loop rate.
+    void run_vel(Vector3f& target_vel, float& target_vel_yaw, Vector4b axes_disabled);
+    //Send scaler values to GCS
     void send_BSC(float s_xz, float s_yyaw, float s_xz_n, float s_yyaw_n);
 };

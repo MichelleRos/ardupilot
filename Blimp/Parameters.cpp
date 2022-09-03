@@ -285,7 +285,7 @@ const AP_Param::Info Blimp::var_info[] = {
 
     // @Param: DIS_MASK
     // @DisplayName: Disable output mask
-    // @Description: Mask for disabling one or more of the 4 output axis in mode Velocity or Loiter
+    // @Description: Mask for disabling (setting to zero) one or more of the 4 output axis in mode Velocity or Loiter
     // @Values: 0:All enabled,1:Right,2:Front,4:Down,8:Yaw,3:Down and Yaw only,12:Front & Right only
     // @Bitmask: 0:Right,1:Front,2:Down,3:Yaw
     // @User: Standard
