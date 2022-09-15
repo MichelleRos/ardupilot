@@ -11,10 +11,10 @@ bool ModePSO::init(bool ignore_checks)
     return true;
 }
 
-#define cc1 0.0   //personal best weighting
-#define cc2 1.0   //global best weighting
-#define w 0.0     //current velocity weighting
-#define speed_limit 0.2
+#define cc1 0.1   //personal best weighting
+#define cc2 0.1   //global best weighting
+#define w 0.8     //current velocity weighting
+#define speed_limit 0.1
 #define min_d 0.5
 #define d 0.05     //separation weighting
 #define self int(g.sysid_this_mav)
