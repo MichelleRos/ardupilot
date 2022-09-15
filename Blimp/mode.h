@@ -562,21 +562,22 @@ private:
 
 
 //-------------------------------------------------------------
+
 class Par
 {
 public:
-    //position North from Origin in metres
-    float   pn;
-    //position East from Origin in metres
-    float   pe;
-    //plume strength in 0 to 1
-    float     plu;
-    //packet also has alt and velocitiy in x,y,z directions
+    float x;
+    float y;
+    uint32_t time_boot_ms_pos;
+    float plu;
+    uint32_t time_boot_ms_plu;
 
     constexpr Par()
-        : pn(0.0)
-        , pe(0.0)
-        , plu(0.0) {}
+        : x(0.0)
+        , y(0.0)
+        , time_boot_ms_pos(0)
+        , plu(0.0)
+        , time_boot_ms_plu(0) {}
 };
 
 //Max number of blimps to be used. Means sysids of 1 to PAR_MAX being put into array indeces 0 to 4
@@ -633,6 +634,6 @@ private:
     mavlink_global_position_int_t curarr[PAR_MAX];
     //index of the global best (within pbest)
     int gbest = 1;
-    Vector2f X[PAR_MAX];
+    Par X[PAR_MAX];
     Vector2f V[PAR_MAX];
 };
