@@ -79,12 +79,12 @@ void Fins::output()
     }
 
     blimp.Write_FINI(right_out, front_out, down_out, yaw_out);
-    if (AP_HAL::millis() % 1000 < 30) {
-        gcs().send_named_float("FINIr", right_out);
-        gcs().send_named_float("FINIf", front_out);
-        gcs().send_named_float("FINId", down_out);
-        gcs().send_named_float("FINIy", yaw_out);
-    }
+    // if (AP_HAL::millis() % 1000 < 30) {
+    //     gcs().send_named_float("FINIr", right_out);
+    //     gcs().send_named_float("FINIf", front_out);
+    //     gcs().send_named_float("FINId", down_out);
+    //     gcs().send_named_float("FINIy", yaw_out);
+    // }
 
     //Constrain after logging so as to still show when sub-optimal tuning is causing massive overshoots.
     right_out = constrain_float(right_out, -1, 1);

@@ -581,7 +581,7 @@ public:
 };
 
 //Max number of blimps to be used. Means sysids of 1 to PAR_MAX being put into array indeces 0 to 4
-#define PAR_MAX 5
+#define PAR_MAX 3
 
 class ModePSO : public Mode
 {

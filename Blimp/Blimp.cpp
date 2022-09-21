@@ -197,7 +197,7 @@ void Blimp::three_hz_loop()
     failsafe_gcs_check();
     //Currently all we're doing with the real plume value is sending it to the GCS and logging it.
     float plu = rssi.read_receiver_rssi();
-    gcs().send_named_float("PLUR", plu);
+    // gcs().send_named_float("PLUR", plu);
     AP::logger().WriteStreaming("PLUR", "TimeUS,p,x,y,z,yaw",
                                 "Qfffff",
                                 AP_HAL::micros64(),

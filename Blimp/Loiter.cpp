@@ -17,11 +17,11 @@ void Loiter::run(Vector3f& target_pos, float& target_yaw, Vector4b axes_disabled
     else scaler_yyaw_n = 1;
     scaler_yyaw = scaler_yyaw*MA + scaler_yyaw_n*MO;
 
-    if (AP_HAL::millis() % 1000 < 30) {
-        // send_BSC(scaler_xz, scaler_yyaw, scaler_xz_n, scaler_yyaw_n);
-        gcs().send_named_float("TarX", target_pos.x);
-        gcs().send_named_float("TarY", target_pos.y);
-    }
+    // if (AP_HAL::millis() % 1000 < 30) {
+    //     // send_BSC(scaler_xz, scaler_yyaw, scaler_xz_n, scaler_yyaw_n);
+    //     gcs().send_named_float("TarX", target_pos.x);
+    //     gcs().send_named_float("TarY", target_pos.y);
+    // }
     AP::logger().WriteStreaming("BSC", "TimeUS,xz,yyaw,xzn,yyawn",
                                 "Qffff",
                                 AP_HAL::micros64(),
