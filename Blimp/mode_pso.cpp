@@ -22,19 +22,18 @@ bool ModePSO::init(bool ignore_checks)
 //Note that all positions are relative to the current blimp's position.
 
 
-void send_debug_vector(const char *name, Vector3f value)
+void send_debug_loc(const char *name, Location value)
 {
-    mavlink_debug_vect_t packet {};
-    packet.time_usec = AP_HAL::micros();
-    packet.x = value.x;
-    packet.y = value.y;
-    packet.z = value.z;
-    memcpy(packet.name, name, MIN(strlen(name), (uint8_t)MAVLINK_MSG_DEBUG_VECT_FIELD_NAME_LEN));
+    mavlink_debug_loc_t packet {};
+    packet.time_boot_ms = AP_HAL::millis();
+    packet.lat = value.lat;
+    packet.lon = value.lng;
+    packet.alt = value.alt;
+    memcpy(packet.name, name, MIN(strlen(name), (uint8_t)MAVLINK_MSG_DEBUG_LOC_FIELD_NAME_LEN));
 
-    gcs().send_to_active_channels(MAVLINK_MSG_ID_DEBUG_VECT,
+    gcs().send_to_active_channels(MAVLINK_MSG_ID_DEBUG_LOC,
                                   (const char *)&packet);
 }
-
 
 //Runs the main loiter controller
 void ModePSO::run()
@@ -76,10 +75,6 @@ void ModePSO::run()
                                     "QBffifi",
                                     AP_HAL::micros64(),
                                     i,X[i].x, X[i].y, X[i].time_boot_ms_pos, X[i].plu, X[i].time_boot_ms_plu);
-    }
-    if (AP_HAL::millis() % 1000 < 15) { //Display approx. once per second only
-        // GCS_SEND_TEXT(MAV_SEVERITY_NOTICE, "PBest plu: %f, %f, %f, %f, %f, Gbest: %d, self is: %d", pbest[0].plu, pbest[1].plu, pbest[2].plu, pbest[3].plu, pbest[4].plu, gbest, int(g.sysid_this_mav));
-        //GCS_SEND_TEXT(MAV_SEVERITY_NOTICE, "Curr (V), then 2: %d %f %f %f %f", self, V[self-1].x, V[self-1].y, V[2].x, V[2].y);
     }
 
     Vector3f target_vel = {V[self-1].x,V[self-1].y,0};
@@ -147,8 +142,11 @@ void ModePSO::handle_msg(const mavlink_message_t &msg)
                     pbest[msg.sysid-1].plu = packet.value;
                     pbest[msg.sysid-1].time_boot_ms_plu = packet.time_boot_ms;
                     GCS_SEND_TEXT(MAV_SEVERITY_NOTICE, "PSO: Updated pbest for %d, to %f %f", msg.sysid, pbest[msg.sysid-1].x, pbest[msg.sysid-1].y);
-                    // Location pbestLatLng{Vector3f{pbest[i].x,pbest[i].y, 0},Location::AltFrame::ABOVE_ORIGIN};
-                    send_debug_vector("PBEST", Vector3f{pbest[msg.sysid-1].x, pbest[msg.sysid-1].y, float(msg.sysid)});
+                    //For some mad reason, this x and y is in cm
+                    Location pbestLatLng{Vector3f{pbest[msg.sysid-1].x*100,pbest[msg.sysid-1].y*100, 0.0f},Location::AltFrame::ABSOLUTE};
+                    char nm[10] = "PBEST";
+                    nm[5] = 48 + msg.sysid;
+                    send_debug_loc(nm, pbestLatLng);
                     if (packet.value > pbest[gbest].plu) {
                         if(gbest != msg.sysid-1) GCS_SEND_TEXT(MAV_SEVERITY_NOTICE, "PSO: Updated gbest to %d.", msg.sysid);
                         gcs().send_named_float("GBEST", msg.sysid);
