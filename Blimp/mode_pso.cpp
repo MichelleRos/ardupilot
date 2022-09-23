@@ -11,7 +11,7 @@ bool ModePSO::init(bool ignore_checks)
     return true;
 }
 
-#define cc1 0.1   //personal best weighting
+#define cc1 0.05   //personal best weighting
 #define cc2 0.1   //global best weighting
 #define w 0.8     //current velocity weighting
 #define speed_limit 0.1
@@ -19,7 +19,7 @@ bool ModePSO::init(bool ignore_checks)
 #define d 0.5     //separation weighting
 #define self int(g.sysid_this_mav)
 //X is always synced with most recent plume strength's position, strength, and time for both messages.
-//Note that all positions are relative to the current blimp's position.
+//Note that all positions are relative to the current blimp's home.
 
 
 void send_debug_loc(const char *name, Location value)
@@ -43,20 +43,25 @@ void ModePSO::run()
     float moveY = 0.0;
 
     for (uint8_t i=0; i<PAR_MAX; i++){
+        AP::logger().WriteStreaming("PSOB", "TimeUS,i,moveX,moveY", "s#--", "F---","QBff",
+                                AP_HAL::micros64(),
+                                i, moveX, moveY);
         for (uint8_t j=0; j<PAR_MAX; j++){
             if (i == j) continue;
             if (dist(i,j) < min_d){
                 // GCS_SEND_TEXT(MAV_SEVERITY_NOTICE,"Blimp numbers %d and %d are within min_d.", i+1, j+1);
-                moveX += (pbest[i].x - pbest[j].x);
-                moveY += (pbest[i].y - pbest[j].y);
+                moveX += (X[i].x - X[j].x);
+                moveY += (X[i].y - X[j].y);
+                AP::logger().WriteStreaming("PSOD", "TimeUS,i,j,dist", "s#--", "F---","QBBf",
+                                            AP_HAL::micros64(),
+                                            i, j, dist(i,j));
             }
         }
         A[i].x += moveX;
         A[i].y += moveY;
-        AP::logger().WriteStreaming("PSOA", "TimeUS,moveX,moveY,i", "Qfff",
+        AP::logger().WriteStreaming("PSOA", "TimeUS,i,moveX,moveY", "s#--", "F---","QBff",
                                 AP_HAL::micros64(),
-                                moveX, moveY, (float)i);
-
+                                i, moveX, moveY);
     }
     float rr1 = (float)rand()/RAND_MAX;
     float rr2 = (float)rand()/RAND_MAX;
@@ -72,7 +77,7 @@ void ModePSO::run()
                                     AP_HAL::micros64(),
                                     i,X[i].x, X[i].y, V[i].x, V[i].y, A[i].x, A[i].y, pbest[i].x, pbest[i].y, pbest[gbest].x, pbest[gbest].y, rr1, rr2);
         AP::logger().WriteStreaming("PSOX", "TimeUS,i,x,y,tpos,plu,tplu", "s#-----", "F------",
-                                    "QBffifi",
+                                    "QBffIfI",
                                     AP_HAL::micros64(),
                                     i,X[i].x, X[i].y, X[i].time_boot_ms_pos, X[i].plu, X[i].time_boot_ms_plu);
     }
@@ -91,7 +96,10 @@ void ModePSO::run()
 }
 
 float ModePSO::dist(int part1, int part2){
-    return sqrtf(powf((pbest[part1].x - pbest[part2].x),2) + powf((pbest[part1].y - pbest[part2].y),2));
+    // return sqrtf(powf((pbest[part1].x - pbest[part2].x),2) + powf((pbest[part1].y - pbest[part2].y),2));
+    Vector3f p1{X[part1].x, X[part1].y, 0};
+    Vector3f p2{X[part2].x, X[part2].y, 0};
+    return sqrtf(p1.distance_squared(p2));
 }
 
 //This is called by Blimp's main GCS mavlink whenever any mavlink message comes in.
@@ -106,7 +114,7 @@ void ModePSO::handle_msg(const mavlink_message_t &msg)
 
         //This is set up for blimps with sysids starting at 1, and put into array with index starting at 0.
         if (msg.sysid <= PAR_MAX && msg.sysid > 0) {
-            curarr[msg.sysid-1] = packet;
+            // curarr[msg.sysid-1] = packet;
             Location part{packet.lat, packet.lon, packet.alt/10, Location::AltFrame::ABSOLUTE}; //divide alt by 10 because mavlink is in mm, Location is in cm
             Vector2f pos;
             if (part.get_vector_xy_from_origin_NE(pos)){
@@ -141,14 +149,14 @@ void ModePSO::handle_msg(const mavlink_message_t &msg)
                     pbest[msg.sysid-1].time_boot_ms_pos = X[msg.sysid-1].time_boot_ms_pos;
                     pbest[msg.sysid-1].plu = packet.value;
                     pbest[msg.sysid-1].time_boot_ms_plu = packet.time_boot_ms;
-                    GCS_SEND_TEXT(MAV_SEVERITY_NOTICE, "PSO: Updated pbest for %d, to %f %f", msg.sysid, pbest[msg.sysid-1].x, pbest[msg.sysid-1].y);
+                    // GCS_SEND_TEXT(MAV_SEVERITY_NOTICE, "PSO: Updated pbest for %d, to %f %f", msg.sysid, pbest[msg.sysid-1].x, pbest[msg.sysid-1].y);
                     //For some mad reason, this x and y is in cm
                     Location pbestLatLng{Vector3f{pbest[msg.sysid-1].x*100,pbest[msg.sysid-1].y*100, 0.0f},Location::AltFrame::ABSOLUTE};
                     char nm[10] = "PBEST";
                     nm[5] = 48 + msg.sysid;
                     send_debug_loc(nm, pbestLatLng);
                     if (packet.value > pbest[gbest].plu) {
-                        if(gbest != msg.sysid-1) GCS_SEND_TEXT(MAV_SEVERITY_NOTICE, "PSO: Updated gbest to %d.", msg.sysid);
+                        // if(gbest != msg.sysid-1) GCS_SEND_TEXT(MAV_SEVERITY_NOTICE, "PSO: Updated gbest to %d.", msg.sysid);
                         gcs().send_named_float("GBEST", msg.sysid);
                         gbest = msg.sysid-1;
                     }
