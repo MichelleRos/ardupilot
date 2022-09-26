@@ -323,6 +323,13 @@ const AP_Param::Info Blimp::var_info[] = {
     GSCALAR(guid_ofs_x, "GUID_OFS_X", 0),
     GSCALAR(guid_ofs_y, "GUID_OFS_Y", 0),
 
+    GSCALAR(pso_w_per_best, "PSO_W_PER_BEST", 0.1),
+    GSCALAR(pso_w_glo_best, "PSO_W_GLO_BEST", 0.1),
+    GSCALAR(pso_w_vel, "PSO_W_VEL", 0.8),
+    GSCALAR(pso_speed_limit, "PSO_SPEED_LIMIT", 0.2),
+    GSCALAR(pso_min_dist, "PSO_MIN_DIST", 1.0),
+    GSCALAR(pso_w_avoid, "PSO_W_AVOID", 0.3),
+
     // @Param: RC_SPEED
     // @DisplayName: ESC Update Speed
     // @Description: This is the speed in Hertz that your ESCs will receive updates

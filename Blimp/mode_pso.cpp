@@ -14,12 +14,6 @@ bool ModePSO::init(bool ignore_checks)
     return true;
 }
 
-#define cc1 0.05   //personal best weighting
-#define cc2 0.1   //global best weighting
-#define w 0.8     //current velocity weighting
-#define speed_limit 0.1
-#define min_d 0.5
-#define d 0.5     //separation weighting
 #define self int(g.sysid_this_mav)
 //Using this "ran" macro so that random number is regenerated for each new use
 #define ran (float)rand()/RAND_MAX
@@ -53,7 +47,7 @@ void ModePSO::run()
                                 i, moveX, moveY);
         for (uint8_t j=0; j<PAR_MAX; j++){
             if (i == j) continue;
-            if (dist(i,j) < min_d){
+            if (dist(i,j) < g.pso_min_dist){
                 // GCS_SEND_TEXT(MAV_SEVERITY_NOTICE,"Blimp numbers %d and %d are within min_d.", i+1, j+1);
                 moveX += (X[i].x - X[j].x);
                 moveY += (X[i].y - X[j].y);
@@ -69,10 +63,10 @@ void ModePSO::run()
                                 i, moveX, moveY);
     }
     for (int i=0; i<PAR_MAX; i++){
-        V[i].x = w*V[i].x + cc1*ran*(pbest[i].x - X[i].x) + cc2*ran*(pbest[gbest].x - X[i].x) + d*ran*A[i].x;
-        V[i].y = w*V[i].y + cc1*ran*(pbest[i].y - X[i].y) + cc2*ran*(pbest[gbest].y - X[i].y) + d*ran*A[i].y;
-        V[i].x = constrain_float(V[i].x,-speed_limit,speed_limit);
-        V[i].y = constrain_float(V[i].y,-speed_limit,speed_limit);
+        V[i].x = g.pso_w_vel*V[i].x + g.pso_w_per_best*ran*(pbest[i].x - X[i].x) + g.pso_w_glo_best*ran*(pbest[gbest].x - X[i].x) + g.pso_w_avoid*ran*A[i].x;
+        V[i].y = g.pso_w_vel*V[i].y + g.pso_w_per_best*ran*(pbest[i].y - X[i].y) + g.pso_w_glo_best*ran*(pbest[gbest].y - X[i].y) + g.pso_w_avoid*ran*A[i].y;
+        V[i].x = constrain_float(V[i].x,-g.pso_speed_limit,g.pso_speed_limit);
+        V[i].y = constrain_float(V[i].y,-g.pso_speed_limit,g.pso_speed_limit);
 
         AP::logger().WriteStreaming("PSOI", "TimeUS,i,Xx,Xy,Vx,Vy,Ax,Ay,px,py,gx,gy,r1,r2", "s#------------", "F-------------",
                                     "QBffffffffffff",

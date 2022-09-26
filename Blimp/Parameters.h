@@ -108,11 +108,18 @@ public:
         k_param_simple_mode,
         k_param_dis_mask,
         k_param_wpnav_radius,
-        k_param_pid_dz,
+        k_param_pid_dz, //59
 
         //
-        // 70-89: MIR Temp
+        // 60-89: MIR Temp
         //
+        k_param_pso_w_per_best = 60,
+        k_param_pso_w_glo_best,
+        k_param_pso_w_vel,
+        k_param_pso_speed_limit,
+        k_param_pso_min_dist,
+        k_param_pso_w_avoid, //65
+
         k_param_sl_source_found = 70,
         k_param_sl_vel_stop,
         k_param_sl_thst_cf,
@@ -120,7 +127,7 @@ public:
         k_param_sl_thst_sf,
         k_param_sl_thst_sr, //75
         k_param_guid_ofs_x,
-        k_param_guid_ofs_y,
+        k_param_guid_ofs_y, //77
         k_param_sl_mode = 80,
         k_param_sl_wind_deg,
         k_param_sl_mulp,
@@ -131,7 +138,6 @@ public:
         k_param_sl_plume_found,
         k_param_sl_mula, //88
         k_param_sl_drift_time,
-
 
         //
         // 90: misc2
@@ -296,6 +302,13 @@ public:
     AP_Float        sl_thst_sr;
     AP_Float        guid_ofs_x;
     AP_Float        guid_ofs_y;
+
+    AP_Float        pso_w_per_best;
+    AP_Float        pso_w_glo_best;
+    AP_Float        pso_w_vel;
+    AP_Float        pso_speed_limit;
+    AP_Float        pso_min_dist;
+    AP_Float        pso_w_avoid;
 
     AP_Int8         rtl_alt_type;
 
