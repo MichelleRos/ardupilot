@@ -7,7 +7,10 @@ bool ModePSO::init(bool ignore_checks)
 {
     target_pos = blimp.pos_ned;
     target_yaw = blimp.ahrs.get_yaw();
-
+    gbest = 1;
+    for (uint8_t i=0; i<PAR_MAX; i++) V[i].zero();
+    for (uint8_t i=0; i<PAR_MAX; i++) X[i].zero();
+    for (uint8_t i=0; i<PAR_MAX; i++) pbest[i].zero();
     return true;
 }
 

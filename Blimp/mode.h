@@ -578,6 +578,11 @@ public:
         , time_boot_ms_pos(0)
         , plu(0.0)
         , time_boot_ms_plu(0) {}
+
+    void zero(){
+        x = y = plu = 0.0;
+        time_boot_ms_plu = time_boot_ms_pos = 0;
+    }
 };
 
 //Max number of blimps to be used. Means sysids of 1 to PAR_MAX being put into array indeces 0 to 4
