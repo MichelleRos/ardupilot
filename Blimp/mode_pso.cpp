@@ -21,6 +21,8 @@ bool ModePSO::init(bool ignore_checks)
 #define min_d 0.5
 #define d 0.5     //separation weighting
 #define self int(g.sysid_this_mav)
+//Using this "ran" macro so that random number is regenerated for each new use
+#define ran (float)rand()/RAND_MAX
 //X is always synced with most recent plume strength's position, strength, and time for both messages.
 //Note that all positions are relative to the current blimp's home.
 
@@ -66,19 +68,16 @@ void ModePSO::run()
                                 AP_HAL::micros64(),
                                 i, moveX, moveY);
     }
-    float rr1 = (float)rand()/RAND_MAX;
-    float rr2 = (float)rand()/RAND_MAX;
-    float rr3 = (float)rand()/RAND_MAX;
     for (int i=0; i<PAR_MAX; i++){
-        V[i].x = w*V[i].x + cc1*rr1*(pbest[i].x - X[i].x) + cc2*rr2*(pbest[gbest].x - X[i].x) + d*rr3*A[i].x;
-        V[i].y = w*V[i].y + cc1*rr1*(pbest[i].y - X[i].y) + cc2*rr2*(pbest[gbest].y - X[i].y) + d*rr3*A[i].y;
+        V[i].x = w*V[i].x + cc1*ran*(pbest[i].x - X[i].x) + cc2*ran*(pbest[gbest].x - X[i].x) + d*ran*A[i].x;
+        V[i].y = w*V[i].y + cc1*ran*(pbest[i].y - X[i].y) + cc2*ran*(pbest[gbest].y - X[i].y) + d*ran*A[i].y;
         V[i].x = constrain_float(V[i].x,-speed_limit,speed_limit);
         V[i].y = constrain_float(V[i].y,-speed_limit,speed_limit);
 
         AP::logger().WriteStreaming("PSOI", "TimeUS,i,Xx,Xy,Vx,Vy,Ax,Ay,px,py,gx,gy,r1,r2", "s#------------", "F-------------",
                                     "QBffffffffffff",
                                     AP_HAL::micros64(),
-                                    i,X[i].x, X[i].y, V[i].x, V[i].y, A[i].x, A[i].y, pbest[i].x, pbest[i].y, pbest[gbest].x, pbest[gbest].y, rr1, rr2);
+                                    i,X[i].x, X[i].y, V[i].x, V[i].y, A[i].x, A[i].y, pbest[i].x, pbest[i].y, pbest[gbest].x, pbest[gbest].y, 0.0, 0.0);
         AP::logger().WriteStreaming("PSOX", "TimeUS,i,x,y,tpos,plu,tplu", "s#-----", "F------",
                                     "QBffIfI",
                                     AP_HAL::micros64(),
