@@ -41,11 +41,11 @@ void ModePSO::run()
     float moveX = 0.0;
     float moveY = 0.0;
 
-    for (uint8_t i=0; i<PAR_MAX; i++){
+    for (uint8_t i=0; i<max_seen; i++){
         AP::logger().WriteStreaming("PSOB", "TimeUS,i,moveX,moveY", "s#--", "F---","QBff",
                                 AP_HAL::micros64(),
                                 i, moveX, moveY);
-        for (uint8_t j=0; j<PAR_MAX; j++){
+        for (uint8_t j=0; j<max_seen; j++){
             if (i == j) continue;
             if (dist(i,j) < g.pso_min_dist){
                 // GCS_SEND_TEXT(MAV_SEVERITY_NOTICE,"Blimp numbers %d and %d are within min_d.", i+1, j+1);
@@ -62,7 +62,7 @@ void ModePSO::run()
                                 AP_HAL::micros64(),
                                 i, moveX, moveY);
     }
-    for (int i=0; i<PAR_MAX; i++){
+    for (int i=0; i<max_seen; i++){
         V[i].x = g.pso_w_vel*V[i].x + g.pso_w_per_best*ran*(pbest[i].x - X[i].x) + g.pso_w_glo_best*ran*(pbest[gbest].x - X[i].x) + g.pso_w_avoid*ran*A[i].x;
         V[i].y = g.pso_w_vel*V[i].y + g.pso_w_per_best*ran*(pbest[i].y - X[i].y) + g.pso_w_glo_best*ran*(pbest[gbest].y - X[i].y) + g.pso_w_avoid*ran*A[i].y;
         V[i].x = constrain_float(V[i].x,-g.pso_speed_limit,g.pso_speed_limit);
@@ -89,6 +89,19 @@ void ModePSO::run()
     AP::logger().WriteStreaming("PSOT", "TimeUS,tvx,tvy", "Qff",
                                     AP_HAL::micros64(),
                                     target_vel.x, target_vel.y);
+
+    uint32_t now = AP_HAL::millis();
+    if((now - bests_sent) > 1000){
+        bests_sent = now;
+        //For some mad reason, this x and y is in cm
+        for (int i=0; i<max_seen; i++){
+            Location pbestLatLng{Vector3f{pbest[i].x*100,pbest[i].y*100, 0.0f},Location::AltFrame::ABSOLUTE};
+            char nm[10];
+            hal.util->snprintf(nm, sizeof(nm), "PBEST%d", i+1);
+            send_debug_loc(nm, pbestLatLng);
+        }
+        gcs().send_named_float("GBEST", gbest+1);
+    }
 }
 
 float ModePSO::dist(int part1, int part2){
@@ -129,6 +142,7 @@ void ModePSO::handle_msg(const mavlink_message_t &msg)
         mavlink_msg_named_value_float_decode(&msg, &packet);
         //Annoying, but this is how I had to match it...
         if (packet.name[0] == 'P' && packet.name[1] == 'L' && packet.name[2] == 'U' && packet.name[3] == 'S') {
+            if (msg.sysid > max_seen) max_seen = msg.sysid;
             //This is actually what each blimp sends out (see Blimp::handle_plume_str()), not the plume strength sent to each one from the GCS, hence not needing to look at target system
             //This is set up for blimps with sysids starting at 1, and put into array with index starting at 0.
             X[msg.sysid-1].plu = packet.value;
@@ -146,14 +160,6 @@ void ModePSO::handle_msg(const mavlink_message_t &msg)
                     pbest[msg.sysid-1].plu = packet.value;
                     pbest[msg.sysid-1].time_boot_ms_plu = packet.time_boot_ms;
                     // GCS_SEND_TEXT(MAV_SEVERITY_NOTICE, "PSO: Updated pbest for %d, to %f %f", msg.sysid, pbest[msg.sysid-1].x, pbest[msg.sysid-1].y);
-                    //For some mad reason, this x and y is in cm
-                    Location pbestLatLng{Vector3f{pbest[msg.sysid-1].x*100,pbest[msg.sysid-1].y*100, 0.0f},Location::AltFrame::ABSOLUTE};
-                    char nm[10];
-                    // nm[5] = 48 + msg.sysid;
-                    hal.util->snprintf(nm, sizeof(nm), "PBEST%d", msg.sysid);
-                    send_debug_loc(nm, pbestLatLng);
-                    //Send GBEST whenever any PBEST is updated
-                    gcs().send_named_float("GBEST", gbest+1);
                     if (packet.value > pbest[gbest].plu) {
                         // if(gbest != msg.sysid-1) GCS_SEND_TEXT(MAV_SEVERITY_NOTICE, "PSO: Updated gbest to %d.", msg.sysid);
                         gbest = msg.sysid-1;

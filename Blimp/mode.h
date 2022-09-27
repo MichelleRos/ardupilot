@@ -586,7 +586,7 @@ public:
 };
 
 //Max number of blimps to be used. Means sysids of 1 to PAR_MAX being put into array indeces 0 to 4
-#define PAR_MAX 3
+#define PAR_MAX 10
 
 class ModePSO : public Mode
 {
@@ -641,4 +641,6 @@ private:
     int gbest = 1;
     Par X[PAR_MAX];
     Vector2f V[PAR_MAX];
+    uint32_t bests_sent;
+    int max_seen = 0;
 };
