@@ -148,12 +148,14 @@ void ModePSO::handle_msg(const mavlink_message_t &msg)
                     // GCS_SEND_TEXT(MAV_SEVERITY_NOTICE, "PSO: Updated pbest for %d, to %f %f", msg.sysid, pbest[msg.sysid-1].x, pbest[msg.sysid-1].y);
                     //For some mad reason, this x and y is in cm
                     Location pbestLatLng{Vector3f{pbest[msg.sysid-1].x*100,pbest[msg.sysid-1].y*100, 0.0f},Location::AltFrame::ABSOLUTE};
-                    char nm[10] = "PBEST";
-                    nm[5] = 48 + msg.sysid;
+                    char nm[10];
+                    // nm[5] = 48 + msg.sysid;
+                    hal.util->snprintf(nm, sizeof(nm), "PBEST%d", msg.sysid);
                     send_debug_loc(nm, pbestLatLng);
+                    //Send GBEST whenever any PBEST is updated
+                    gcs().send_named_float("GBEST", gbest+1);
                     if (packet.value > pbest[gbest].plu) {
                         // if(gbest != msg.sysid-1) GCS_SEND_TEXT(MAV_SEVERITY_NOTICE, "PSO: Updated gbest to %d.", msg.sysid);
-                        gcs().send_named_float("GBEST", msg.sysid);
                         gbest = msg.sysid-1;
                     }
                 }
