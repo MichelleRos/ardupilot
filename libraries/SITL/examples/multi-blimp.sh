@@ -29,7 +29,8 @@ HOMELAT=-35.280252
 HOMELONG=149.005821
 HOMEALT=597.3
 
-# REPARM=1
+# Set number of blimps to be simulated
+NBLIMPS="5"
 
 # Set GCS_IP address
 if [ -z $1 ]; then
@@ -67,57 +68,44 @@ fi
 
 BASE_DEFAULTS="$ROOTDIR/Tools/autotest/default_params/blimp.parm"
 
-[ -x "$BLIMP" ] || {
-	./waf configure --board sitl
-	./waf blimp
-}
-
-# Set number of extra blimps to be simulated, change this for increasing the count
-NBLIMPS="2"
-
 #keep all files in Blimp/multi-blimp subdirectory
 pushd Blimp
 mkdir -p multi-blimp
 pushd multi-blimp
 
-# start up main (leader) blimp in the subdir (blimp1)
-echo "Starting blimp 1"
-mkdir -p blimp1
+#delete eeprom.bin to ensure the defaults get used.
+#Comment this line out if parameters were set within MAVProxy that you would like to keep between runs.
+rm -f */eeprom.bin
 
-# if $REPARM ; then
-# create default parameter file for the leader
-cat <<EOF > blimp1/leader.parm
-SYSID_THISMAV 1
-AUTO_OPTIONS 7
-EOF
-# fi
+#delete dumpcore and dumpstack files usually created by force-exiting the SITL instances.
+rm -f */dump*.out
+#note that we do not generally want to delete the entire multi-blimp folder as that would also delete all logs.
 
-pushd blimp1
-$BLIMP --model blimp --home=$HOMELAT,$HOMELONG,$HOMEALT,0 --uartA udpclient:$GCS_IP --uartC mcast:$MCAST_IP_PORT --defaults $BASE_DEFAULTS,leader.parm &
-popd
-
-# now start other blimps to follow the first, using
-# a separate directory to keep the eeprom.bin and logs separate
-# each blimp will have an offset starting location (5*SYSID,5*SYSID)m from leader blimp
-# each blimp will follow at SYSID*5m in X dir from leader
-for i in $(seq $NBLIMPS); do
-    SYSID=$(expr $i + 1)
+# now start the blimps, using a separate directory to keep the eeprom.bin and logs separate
+for SYSID in $(seq $NBLIMPS); do
+    # SYSID=$(expr $i + 1)
 
     echo "Starting blimp $SYSID"
     mkdir -p blimp$SYSID
 
-# if $REPARM ; then
-    # create default parameter file for the follower
-    cat <<EOF > blimp$SYSID/follow.parm
+    # create default parameter file for the blimp
+    cat <<EOF > blimp$SYSID/param.parm
 SYSID_THISMAV $SYSID
-GUID_OFS_X $(echo "-1*$SYSID" | bc -l)
+PSO_MIN_DIST     1.0
+PSO_SPEED_LIMIT  0.2
+PSO_W_AVOID      0.3
+PSO_W_GLO_BEST   0.2
+PSO_W_PER_BEST   0.1
+PSO_W_VEL        0.3
 EOF
-# fi
-# GUID_OFS_Y $(echo "-1*($NBLIMPS-$i)" | bc -l)
+
+    OFFSETX=$(echo "0.00001*$(expr $SYSID % 2)" | bc -l)
+    OFFSETY=$(echo "0.00001*($SYSID - 1)" | bc -l)
     pushd blimp$SYSID
-    LAT=$(echo "$HOMELAT" | bc -l)
-    LONG=$(echo "$HOMELONG + 0.00001*$SYSID" | bc -l)
-    $BLIMP --model blimp --home=$LAT,$LONG,$HOMEALT,0 --uartA tcp:0 --uartC mcast:$MCAST_IP_PORT --instance $SYSID --defaults $BASE_DEFAULTS,follow.parm &
+    LAT=$(echo "$HOMELAT + $OFFSETX" | bc -l)
+    LONG=$(echo "$HOMELONG + $OFFSETY" | bc -l)
+    echo "Launching blimp$SYSID at $LAT $LONG"
+    $BLIMP --model blimp --home=$LAT,$LONG,$HOMEALT,0 --uartA tcp:0 --uartC mcast:$MCAST_IP_PORT --instance $SYSID --defaults $BASE_DEFAULTS,param.parm &
     popd
 done
 wait
