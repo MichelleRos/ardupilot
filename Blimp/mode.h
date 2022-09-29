@@ -630,7 +630,7 @@ protected:
     }
 
 private:
-    Vector3f target_pos;
+    Vector3f target_vel;
     float target_yaw;
 
     //This should always contain the strength and location of the highest received plume strength for each blimp

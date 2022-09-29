@@ -5,8 +5,8 @@
 
 bool ModePSO::init(bool ignore_checks)
 {
-    target_pos = blimp.pos_ned;
-    target_yaw = blimp.ahrs.get_yaw();
+    target_vel = {0,0,0};
+    target_yaw = 0;
     gbest = 1;
     for (uint8_t i=0; i<PAR_MAX; i++) V[i].zero();
     for (uint8_t i=0; i<PAR_MAX; i++) X[i].zero();
@@ -68,23 +68,17 @@ void ModePSO::run()
         V[i].x = constrain_float(V[i].x,-g.pso_speed_limit,g.pso_speed_limit);
         V[i].y = constrain_float(V[i].y,-g.pso_speed_limit,g.pso_speed_limit);
 
-        AP::logger().WriteStreaming("PSOI", "TimeUS,i,Xx,Xy,Vx,Vy,Ax,Ay,px,py,gx,gy,r1,r2", "s#------------", "F-------------",
-                                    "QBffffffffffff",
+        AP::logger().WriteStreaming("PSOI", "TimeUS,i,Xx,Xy,Vx,Vy,Ax,Ay,px,py,gx,gy", "s#----------", "F-----------",
+                                    "QBffffffffff",
                                     AP_HAL::micros64(),
-                                    i,X[i].x, X[i].y, V[i].x, V[i].y, A[i].x, A[i].y, pbest[i].x, pbest[i].y, pbest[gbest].x, pbest[gbest].y, 0.0, 0.0);
+                                    i,X[i].x, X[i].y, V[i].x, V[i].y, A[i].x, A[i].y, pbest[i].x, pbest[i].y, pbest[gbest].x, pbest[gbest].y);
         AP::logger().WriteStreaming("PSOX", "TimeUS,i,x,y,tpos,plu,tplu", "s#-----", "F------",
                                     "QBffIfI",
                                     AP_HAL::micros64(),
                                     i,X[i].x, X[i].y, X[i].time_boot_ms_pos, X[i].plu, X[i].time_boot_ms_plu);
     }
 
-    Vector3f target_vel = {V[self-1].x,V[self-1].y,0};
-    //target_pos = {blimp.pos_ned.x = V[g.sysid_this_mav].x*blimp.scheduler.get_loop_period_s(), blimp.pos_ned.y + V[g.sysid_this_mav].y*blimp.scheduler.get_loop_period_s(), 0};
-
-    //Don't let target pos get further away than 1m
-    // if(fabsf(target_pos.x-blimp.pos_ned.x) < 1.0f) target_pos.x += V[self-1].x;
-    // if(fabsf(target_pos.y-blimp.pos_ned.y) < 1.0f) target_pos.y += V[self-1].y;
-    target_yaw = 0;
+    target_vel = {V[self-1].x,V[self-1].y,0};
     blimp.loiter->run_vel(target_vel, target_yaw, Vector4b{false,false,false,false});
     AP::logger().WriteStreaming("PSOT", "TimeUS,tvx,tvy", "Qff",
                                     AP_HAL::micros64(),
@@ -99,6 +93,8 @@ void ModePSO::run()
             char nm[10];
             hal.util->snprintf(nm, sizeof(nm), "PBEST%d", i+1);
             send_debug_loc(nm, pbestLatLng);
+
+            gcs().send_named_float(nm, pbest[i].plu);
 
             //Reduce the plume strength over time
             pbest[i].plu = pbest[i].plu * (1-g.pso_reduce);
