@@ -77,7 +77,7 @@ pushd multi-blimp
 #Comment this line out if parameters were set within MAVProxy that you would like to keep between runs.
 rm -f */eeprom.bin
 
-#delete dumpcore and dumpstack files usually created by force-exiting the SITL instances.
+#delete dumpcore and dumpstack files sometimes created by force-exiting the SITL instances.
 rm -f */dump*.out
 #note that we do not generally want to delete the entire multi-blimp folder as that would also delete all logs.
 
@@ -93,10 +93,11 @@ for SYSID in $(seq $NBLIMPS); do
 SYSID_THISMAV $SYSID
 PSO_MIN_DIST     1.0
 PSO_SPEED_LIMIT  0.2
-PSO_W_AVOID      0.3
-PSO_W_GLO_BEST   0.2
+PSO_W_AVOID      0.5
+PSO_W_GLO_BEST   0.4
 PSO_W_PER_BEST   0.1
 PSO_W_VEL        0.3
+PSO_REDUCE       0.02
 EOF
 
     OFFSETX=$(echo "0.00001*$(expr $SYSID % 2)" | bc -l)
