@@ -99,6 +99,9 @@ void ModePSO::run()
             char nm[10];
             hal.util->snprintf(nm, sizeof(nm), "PBEST%d", i+1);
             send_debug_loc(nm, pbestLatLng);
+
+            //Reduce the plume strength over time
+            pbest[i].plu = pbest[i].plu * (1-g.pso_reduce);
         }
         gcs().send_named_float("GBEST", gbest+1);
     }

@@ -329,6 +329,7 @@ const AP_Param::Info Blimp::var_info[] = {
     GSCALAR(pso_speed_limit, "PSO_SPEED_LIMIT", 0.2),
     GSCALAR(pso_min_dist, "PSO_MIN_DIST", 1.0),
     GSCALAR(pso_w_avoid, "PSO_W_AVOID", 0.3),
+    GSCALAR(pso_reduce, "PSO_REDUCE", 0.4), //How much older pbests get reduced by per second
 
     // @Param: RC_SPEED
     // @DisplayName: ESC Update Speed
