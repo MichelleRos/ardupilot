@@ -17,7 +17,7 @@ bool ModePSO::init(bool ignore_checks)
 #define self int(g.sysid_this_mav)
 //Using this "ran" macro so that random number is regenerated for each new use
 #define ran (float)rand()/RAND_MAX
-//X is always synced with most recent plume strength's position, strength, and time for both messages.
+//X is always synced with most recently seen plume strength's position, strength, and time for both messages.
 //Note that all positions are relative to the current blimp's home.
 
 
@@ -104,10 +104,7 @@ void ModePSO::run()
 }
 
 float ModePSO::dist(int part1, int part2){
-    // return sqrtf(powf((pbest[part1].x - pbest[part2].x),2) + powf((pbest[part1].y - pbest[part2].y),2));
-    Vector3f p1{X[part1].x, X[part1].y, 0};
-    Vector3f p2{X[part2].x, X[part2].y, 0};
-    return sqrtf(p1.distance_squared(p2));
+    return sqrtf(powf((X[part1].x - X[part2].x),2) + powf((X[part1].y - X[part2].y),2));
 }
 
 //This is called by Blimp's main GCS mavlink whenever any mavlink message comes in.
