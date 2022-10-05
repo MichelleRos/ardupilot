@@ -34,33 +34,31 @@ void send_debug_loc(const char *name, Location value)
                                   (const char *)&packet);
 }
 
+#define ld 1.0f
 //Runs the main loiter controller
 void ModePSO::run()
 {
     Vector2f A[PAR_MAX];
-    float moveX = 0.0;
-    float moveY = 0.0;
+    Vector2f top;
+    Vector2f bot;
 
     for (uint8_t i=0; i<max_seen; i++){
-        AP::logger().WriteStreaming("PSOB", "TimeUS,i,moveX,moveY", "s#--", "F---","QBff",
-                                AP_HAL::micros64(),
-                                i, moveX, moveY);
         for (uint8_t j=0; j<max_seen; j++){
             if (i == j) continue;
-            if (dist(i,j) < g.pso_min_dist){
-                // GCS_SEND_TEXT(MAV_SEVERITY_NOTICE,"Blimp numbers %d and %d are within min_d.", i+1, j+1);
-                moveX += (X[i].x - X[j].x);
-                moveY += (X[i].y - X[j].y);
-                AP::logger().WriteStreaming("PSOD", "TimeUS,i,j,dist", "s#--", "F---","QBBf",
-                                            AP_HAL::micros64(),
-                                            i, j, dist(i,j));
+            float dist = distance(i,j);
+            if (dist < g.pso_min_dist){
+                top.x = ld*(X[i].x - X[j].x);
+                top.y = ld*(X[i].y - X[j].y);
+                bot.x = dist*fabsf(X[i].x - X[j].x);
+                bot.y = dist*fabsf(X[i].y - X[j].y);
+                // print("top,bot,dist: %f %f %f %f %f" % (top[0], top[1], bot[0], bot[1], dist))
+                AP::logger().WriteStreaming("PSOD", "TimeUS,i,j,tx,ty,bx,by,d", "s#------", "F-------",
+                                            "QBBfffff", AP_HAL::micros64(),
+                                            i,j,top.x,top.y,bot.x,bot.y,dist);
+                if(!is_zero(bot.x)) A[i].x += (top.x/bot.x);
+                if(!is_zero(bot.y)) A[i].y += (top.y/bot.y);
             }
         }
-        A[i].x += moveX;
-        A[i].y += moveY;
-        AP::logger().WriteStreaming("PSOA", "TimeUS,i,moveX,moveY", "s#--", "F---","QBff",
-                                AP_HAL::micros64(),
-                                i, moveX, moveY);
     }
     for (int i=0; i<max_seen; i++){
         V[i].x = g.pso_w_vel*V[i].x + g.pso_w_per_best*ran*(pbest[i].x - X[i].x) + g.pso_w_glo_best*ran*(pbest[gbest].x - X[i].x) + g.pso_w_avoid*ran*A[i].x;
@@ -69,12 +67,10 @@ void ModePSO::run()
         V[i].y = constrain_float(V[i].y,-g.pso_speed_limit,g.pso_speed_limit);
 
         AP::logger().WriteStreaming("PSOI", "TimeUS,i,Xx,Xy,Vx,Vy,Ax,Ay,px,py,gx,gy", "s#----------", "F-----------",
-                                    "QBffffffffff",
-                                    AP_HAL::micros64(),
+                                    "QBffffffffff", AP_HAL::micros64(),
                                     i,X[i].x, X[i].y, V[i].x, V[i].y, A[i].x, A[i].y, pbest[i].x, pbest[i].y, pbest[gbest].x, pbest[gbest].y);
         AP::logger().WriteStreaming("PSOX", "TimeUS,i,x,y,tpos,plu,tplu", "s#-----", "F------",
-                                    "QBffIfI",
-                                    AP_HAL::micros64(),
+                                    "QBffIfI", AP_HAL::micros64(),
                                     i,X[i].x, X[i].y, X[i].time_boot_ms_pos, X[i].plu, X[i].time_boot_ms_plu);
     }
 
@@ -85,7 +81,7 @@ void ModePSO::run()
                                     target_vel.x, target_vel.y);
 
     uint32_t now = AP_HAL::millis();
-    if((now - bests_sent) > 1000){
+    if((now - bests_sent) > 2000){
         bests_sent = now;
         //For some mad reason, this x and y is in cm
         for (int i=0; i<max_seen; i++){
@@ -94,7 +90,7 @@ void ModePSO::run()
             hal.util->snprintf(nm, sizeof(nm), "PBEST%d", i+1);
             send_debug_loc(nm, pbestLatLng);
 
-            gcs().send_named_float(nm, pbest[i].plu);
+            // gcs().send_named_float(nm, pbest[i].plu);
 
             //Reduce the plume strength over time
             pbest[i].plu = pbest[i].plu * (1-g.pso_reduce);
@@ -103,7 +99,7 @@ void ModePSO::run()
     }
 }
 
-float ModePSO::dist(int part1, int part2){
+float ModePSO::distance(int part1, int part2){
     return sqrtf(powf((X[part1].x - X[part2].x),2) + powf((X[part1].y - X[part2].y),2));
 }
 

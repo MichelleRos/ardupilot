@@ -598,7 +598,7 @@ public:
     virtual bool init(bool ignore_checks) override;
     virtual void run() override;
     void handle_msg(const mavlink_message_t &msg);
-    float dist(int part1, int part2);
+    float distance(int part1, int part2);
 
     bool requires_GPS() const override
     {
