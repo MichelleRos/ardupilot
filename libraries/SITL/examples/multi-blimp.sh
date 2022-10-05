@@ -92,12 +92,14 @@ for SYSID in $(seq $NBLIMPS); do
     cat <<EOF > blimp$SYSID/param.parm
 SYSID_THISMAV $SYSID
 PSO_MIN_DIST     1.0
-PSO_SPEED_LIMIT  0.2
-PSO_W_AVOID      0.5
+PSO_SPEED_LIMIT  0.4
+PSO_W_AVOID      0.3
 PSO_W_GLO_BEST   0.4
 PSO_W_PER_BEST   0.1
-PSO_W_VEL        0.3
-PSO_REDUCE       0.02
+PSO_W_VEL        0.5
+PSO_REDUCE       0.05
+EK2_ENABLE       0
+EK3_IMU_MASK     1.0
 EOF
 
     OFFSETX=$(echo "0.00001*$(expr $SYSID % 2)" | bc -l)
