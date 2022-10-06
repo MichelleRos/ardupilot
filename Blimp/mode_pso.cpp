@@ -34,6 +34,21 @@ void send_debug_loc(const char *name, Location value)
                                   (const char *)&packet);
 }
 
+float sgn(float x)
+{
+    if (x < 0) {
+        return -1.0f;
+    }
+    else if (x > 0)
+    {
+        return 1.0f;
+    }
+    else
+    {
+        return 0.0f;
+    }
+}
+
 #define ld 1.0f
 //Runs the main loiter controller
 void ModePSO::run()
@@ -61,8 +76,8 @@ void ModePSO::run()
         }
     }
     for (int i=0; i<max_seen; i++){
-        V[i].x = g.pso_w_vel*V[i].x + g.pso_w_per_best*ran*(pbest[i].x - X[i].x) + g.pso_w_glo_best*ran*(pbest[gbest].x - X[i].x) + g.pso_w_avoid*ran*A[i].x;
-        V[i].y = g.pso_w_vel*V[i].y + g.pso_w_per_best*ran*(pbest[i].y - X[i].y) + g.pso_w_glo_best*ran*(pbest[gbest].y - X[i].y) + g.pso_w_avoid*ran*A[i].y;
+        V[i].x = g.pso_w_vel*V[i].x + g.pso_w_per_best*ran*sgn(pbest[i].x - X[i].x) + g.pso_w_glo_best*ran*sgn(pbest[gbest].x - X[i].x) + g.pso_w_avoid*ran*sgn(A[i].x);
+        V[i].y = g.pso_w_vel*V[i].y + g.pso_w_per_best*ran*sgn(pbest[i].y - X[i].y) + g.pso_w_glo_best*ran*sgn(pbest[gbest].y - X[i].y) + g.pso_w_avoid*ran*sgn(A[i].y);
         V[i].x = constrain_float(V[i].x,-g.pso_speed_limit,g.pso_speed_limit);
         V[i].y = constrain_float(V[i].y,-g.pso_speed_limit,g.pso_speed_limit);
 
