@@ -75,21 +75,13 @@ void ModePSO::run()
             }
         }
     }
-    for (int i=0; i<max_seen; i++){
-        V[i].x = g.pso_w_vel*V[i].x + g.pso_w_per_best*ran*sgn(pbest[i].x - X[i].x) + g.pso_w_glo_best*ran*sgn(pbest[gbest].x - X[i].x) + g.pso_w_avoid*ran*sgn(A[i].x);
-        V[i].y = g.pso_w_vel*V[i].y + g.pso_w_per_best*ran*sgn(pbest[i].y - X[i].y) + g.pso_w_glo_best*ran*sgn(pbest[gbest].y - X[i].y) + g.pso_w_avoid*ran*sgn(A[i].y);
-        V[i].x = constrain_float(V[i].x,-g.pso_speed_limit,g.pso_speed_limit);
-        V[i].y = constrain_float(V[i].y,-g.pso_speed_limit,g.pso_speed_limit);
 
-        AP::logger().WriteStreaming("PSOI", "TimeUS,i,Xx,Xy,Vx,Vy,Ax,Ay,px,py,gx,gy", "s#----------", "F-----------",
-                                    "QBffffffffff", AP_HAL::micros64(),
-                                    i,X[i].x, X[i].y, V[i].x, V[i].y, A[i].x, A[i].y, pbest[i].x, pbest[i].y, pbest[gbest].x, pbest[gbest].y);
-        AP::logger().WriteStreaming("PSOX", "TimeUS,i,x,y,tpos,plu,tplu", "s#-----", "F------",
-                                    "QBffIfI", AP_HAL::micros64(),
-                                    i,X[i].x, X[i].y, X[i].time_boot_ms_pos, X[i].plu, X[i].time_boot_ms_plu);
-    }
+    target_vel.x = g.pso_w_vel*target_vel.x + g.pso_w_per_best*ran*sgn(pbest[self-1].x - blimp.pos_ned.x) + g.pso_w_glo_best*ran*sgn(pbest[gbest].x - blimp.pos_ned.x) + g.pso_w_avoid*ran*sgn(A[self-1].x);
+    target_vel.y = g.pso_w_vel*target_vel.y + g.pso_w_per_best*ran*sgn(pbest[self-1].y - blimp.pos_ned.y) + g.pso_w_glo_best*ran*sgn(pbest[gbest].y - blimp.pos_ned.y) + g.pso_w_avoid*ran*sgn(A[self-1].y);
 
-    target_vel = {V[self-1].x,V[self-1].y,0};
+    target_vel.x = constrain_float(target_vel.x,-g.pso_speed_limit,g.pso_speed_limit);
+    target_vel.y = constrain_float(target_vel.y,-g.pso_speed_limit,g.pso_speed_limit);
+
     blimp.loiter->run_vel(target_vel, target_yaw, Vector4b{false,false,false,false});
     AP::logger().WriteStreaming("PSOT", "TimeUS,tvx,tvy", "Qff",
                                     AP_HAL::micros64(),
