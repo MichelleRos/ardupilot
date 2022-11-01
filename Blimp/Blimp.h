@@ -228,9 +228,7 @@ private:
     NotchFilterFloat vel_z_filter;
     NotchFilterFloat vel_yaw_filter;
     float plume_str_curr;
-    float plume_strs[10];
-    int16_t plume_arr_pos;
-    float plume_update;
+    float plume_update_ms;
 
     // Inertial Navigation
     AP_InertialNav inertial_nav;
@@ -315,8 +313,7 @@ private:
     void update_altitude();
     void rotate_NE_to_BF(Vector2f &vec);
     void rotate_BF_to_NE(Vector2f &vec);
-    bool handle_plume_str(const mavlink_message_t &msg, Location &plume_loc, float &plume_cov);
-    bool handle_plume_loc(const mavlink_message_t &msg);
+    void handle_plume_str(const mavlink_message_t &msg);
 
     // commands.cpp
     void update_home_from_EKF();

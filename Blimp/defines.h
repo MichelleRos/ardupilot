@@ -144,7 +144,6 @@ enum LoggingParameters {
     LOG_PIVE_MSG,
     LOG_PIVD_MSG,
     LOG_PIVY_MSG,
-    LOG_PLU_MSG,
 
 };
 

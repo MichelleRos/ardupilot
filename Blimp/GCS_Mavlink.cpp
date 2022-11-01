@@ -539,15 +539,7 @@ void GCS_MAVLINK_Blimp::handleMessage(const mavlink_message_t &msg)
         break;
 
     case MAVLINK_MSG_ID_PLUME_STRENGTH: {
-        Location plume_loc;
-        float plume_cov;
-        if (blimp.handle_plume_str(msg, plume_loc, plume_cov)) {
-            mavlink_msg_plume_est_loc_send(chan, plume_loc.lat, plume_loc.lng, plume_loc.alt, plume_cov);
-        }
-        break;
-    }
-    case MAVLINK_MSG_ID_PLUME_EST_LOC: {
-        blimp.handle_plume_loc(msg);
+        blimp.handle_plume_str(msg);
         break;
     }
     default:

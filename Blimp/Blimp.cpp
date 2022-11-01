@@ -263,66 +263,20 @@ void Blimp::rotate_NE_to_BF(Vector2f &vec)
 
 }
 
-//bool is whether to send pos
 //This is used with simulated plume strength sent from GCS.
-bool Blimp::handle_plume_str(const mavlink_message_t &msg, Location &plume_loc, float &plume_cov)
+void Blimp::handle_plume_str(const mavlink_message_t &msg)
 {
     // float now = AP_HAL::micros() * 1.0e-6;
     mavlink_plume_strength_t packet;
     mavlink_msg_plume_strength_decode(&msg, &packet);
 
-    float curr_time = AP_HAL::micros() * 1.0e-6;
-    if (is_zero(plume_update) || (curr_time - plume_update) > 0.2f) {
-        plume_update = curr_time;
-        plume_strs[plume_arr_pos] = packet.strength;
-        if (plume_arr_pos < 9) {
-            plume_arr_pos++;
-        } else {
-            plume_arr_pos = 0; //i.e range is 0 to 9
-        }
-        //Thus, using plume_strs[plume_arr_pos] will always give the strength 2 seconds ago.
-    }
+    plume_update_ms = AP_HAL::millis() * 1.0e-3;
     plume_str_curr = packet.strength;
     AP::logger().WriteStreaming("PLUS", "TimeUS,p,x,y,z,yaw",
                                 "Qfffff",
                                 AP_HAL::micros64(),
-                                plume_str_curr, pos_ned.x, pos_ned.y, pos_ned.z, ahrs.get_yaw());
-    gcs().send_named_float("PLUS", plume_str_curr);
-
-    // if ((now - last_plume_call) > 1){
-    //     last_plume_call = now;
-
-    //     //Do onboard srcloc here...
-    //     plume_pos_est = {0,1.5,-1}; //in the meantime, set to a specific value for testing
-    //     plume_cov = 0;
-
-    //     Location plume_est_loc{{plume_pos_est.xy(), -plume_pos_est.z*100}, Location::AltFrame::ABOVE_ORIGIN};
-    //     GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Plume: %f, centre: %f, %f, %f", packet.strength, plume_pos_est.x, plume_pos_est.y, plume_pos_est.z);
-    //     // bool get_vector_from_origin_NEU(vec3f)
-    //     plume_loc = plume_est_loc;
-    //     return true;
-    // }
-    return false;
-}
-
-//This is used for srcloc with GCS-based algorithm
-bool Blimp::handle_plume_loc(const mavlink_message_t &msg)
-{
-    mavlink_plume_est_loc_t packet;
-    mavlink_msg_plume_est_loc_decode(&msg, &packet);
-    //GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Plume centre: %d, %d, %d", packet.lat, packet.lon, packet.alt);
-    Location tar{packet.lat, packet.lon, int(packet.alt/10), Location::AltFrame::ABSOLUTE};
-
-    //Send target for Blimp to fly to
-    blimp.mode_guided.set_target(tar);
-
-    //Write log message
-    Vector3f tar_vec;
-    if (tar.get_vector_from_origin_NEU(tar_vec)) {
-        blimp.Write_PLU(blimp.plume_str_curr, tar, tar_vec/100.0, packet.cov);
-    }
-
-    return true;
+                                packet.strength, pos_ned.x, pos_ned.y, pos_ned.z, ahrs.get_yaw());
+    gcs().send_named_float("PLUS", packet.strength);
 }
 
 /*

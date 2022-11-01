@@ -50,7 +50,6 @@ void ModeSrcloc::run()
     if (g.sl_mode == (int)SLMode::CASTSURGEPOS) {
         switch (cs) {
         case CS::CASTING_RUN: {
-            //if (blimp.plume_str_curr > (blimp.plume_strs[blimp.plume_arr_pos] * g.sl_plume_found)){
             if (blimp.plume_str_curr > g.sl_plume_found) {
                 cs = CS::SURGING_START;
                 GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Found plume. Surging. %f %f", blimp.plume_str_curr, float(g.sl_plume_found));
@@ -82,9 +81,9 @@ void ModeSrcloc::run()
             add_tar.rotate_xy(g.sl_wind_deg * DEG_TO_RAD);
             target_pos = blimp.pos_ned + add_tar; //should it be currpos instead?
             if (right_mv) {
-                GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Casting: Forward %0.2f, Left %0.2f, stage %d, tar %0.2f %0.2f plum %0.2f %0.2f", add_tar.x, -add_tar.y, stage, target_pos.x, target_pos.y, blimp.plume_str_curr, blimp.plume_strs[blimp.plume_arr_pos]*g.sl_plume_found);
+                GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Casting: Forward %0.2f, Left %0.2f, stage %d, tar %0.2f %0.2f plum %0.2f %0.2f", add_tar.x, -add_tar.y, stage, target_pos.x, target_pos.y, blimp.plume_str_curr, (float)g.sl_plume_found);
             } else {
-                GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Casting: Forward %0.2f, Right %0.2f, stage %d, tar %0.2f %0.2f plum %0.2f %0.2f", add_tar.x, add_tar.y, stage, target_pos.x, target_pos.y, blimp.plume_str_curr, blimp.plume_strs[blimp.plume_arr_pos]*g.sl_plume_found);
+                GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Casting: Forward %0.2f, Right %0.2f, stage %d, tar %0.2f %0.2f plum %0.2f %0.2f", add_tar.x, add_tar.y, stage, target_pos.x, target_pos.y, blimp.plume_str_curr, (float)g.sl_plume_found);
             }
         } break;
         case CS::SURGING_START: {
@@ -112,7 +111,6 @@ void ModeSrcloc::run()
         float now = AP_HAL::micros() * 1.0e-6;
         switch (cs) {
         case CS::CASTING_RUN: {
-            //if (blimp.plume_str_curr > (blimp.plume_strs[blimp.plume_arr_pos] * g.sl_plume_found)){
             if (blimp.plume_str_curr > g.sl_plume_found) {
                 cs = CS::SURGING_START;
                 GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Found plume. Surging. %f %f", blimp.plume_str_curr, float(g.sl_plume_found));
@@ -195,7 +193,7 @@ void ModeSrcloc::run()
         //
     } else if (g.sl_mode == (int)SLMode::PUSHDRIFT) {
         float now = AP_HAL::micros() * 1.0e-6;
-        if (blimp.plume_str_curr > (blimp.plume_strs[blimp.plume_arr_pos] * g.sl_plume_found)) {
+        if (blimp.plume_str_curr > g.sl_plume_found) {
             fnd_pl = true;
             GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Found plume.");
         }

@@ -59,37 +59,6 @@ void Blimp::Write_FINO(float *amp, float *off)
     logger.WriteBlock(&pkt, sizeof(pkt));
 }
 
-struct PACKED log_PLU {
-    LOG_PACKET_HEADER;
-    uint64_t time_us;
-    float Str;
-    int32_t Lat;
-    int32_t Lng;
-    float Alt;
-    float X;
-    float Y;
-    float Z;
-    float Cov;
-};
-
-//Write a plume packet
-void Blimp::Write_PLU(float plume_strength, Location loc, Vector3f vec, float cov)
-{
-    const struct log_PLU pkt {
-        LOG_PACKET_HEADER_INIT(LOG_PLU_MSG),
-        time_us       : AP_HAL::micros64(),
-        Str           : plume_strength,
-        Lat           : loc.lat,
-        Lng           : loc.lng,
-        Alt           : loc.alt/100.0f,
-        X             : vec.x,
-        Y             : vec.y,
-        Z             : vec.z,
-        Cov           : cov
-    };
-    logger.WriteBlock(&pkt, sizeof(pkt));
-}
-
 struct PACKED log_Control_Tuning {
     LOG_PACKET_HEADER;
     uint64_t time_us;
@@ -362,20 +331,6 @@ const struct LogStructure Blimp::log_structure[] = {
 
     { LOG_FINO_MSG, sizeof(log_FINO),
       "FINO",  "Qffffffff",     "TimeUS,F1A,F1O,F2A,F2O,F3A,F3O,F4A,F4O", "s--------", "F--------"  },
-
-    // @LoggerMessage: PLU
-    // @Description: Plume message
-    // @Field: TimeUS: Time since system startup
-    // @Field: Str: Plume strength
-    // @Field: Lat: Estimated plume latitude
-    // @Field: Lng: Estimated plume longitude
-    // @Field: Alt: Estimated plume altitude
-    // @Field: X: Estimated position relative to origin, North
-    // @Field: Y: Estimated position relative to origin, East
-    // @Field: Z: Estimated position relative to origin, Down
-
-    { LOG_PLU_MSG, sizeof(log_PLU),
-      "PLU",  "QfLLfffff",     "TimeUS,Str,Lat,Lng,Alt,X,Y,Z,Cov", "s-DUmmmm-", "F-GG00000"},
 
     // @LoggerMessage: PIDD,PIVN,PIVE,PIVD,PIVY
     // @Description: Proportional/Integral/Derivative gain values
