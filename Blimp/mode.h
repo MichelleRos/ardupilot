@@ -646,4 +646,6 @@ private:
     Vector2f V[PAR_MAX];
     uint32_t bests_sent;
     int max_seen = 0;
+    bool new_pos_recd = false;
+    bool new_plu_recd = false;
 };

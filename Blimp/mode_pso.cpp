@@ -14,7 +14,7 @@ bool ModePSO::init(bool ignore_checks)
     return true;
 }
 
-#define self int(g.sysid_this_mav)
+#define self int(g.sysid_this_mav)-1
 //Using this "ran" macro so that random number is regenerated for each new use
 #define ran (float)rand()/RAND_MAX
 //X is always synced with most recently seen plume strength's position, strength, and time for both messages.
@@ -57,30 +57,35 @@ void ModePSO::run()
     Vector2f top;
     Vector2f bot;
 
-    for (uint8_t i=0; i<max_seen; i++){
-        for (uint8_t j=0; j<max_seen; j++){
-            if (i == j) continue;
-            float dist = distance(i,j);
-            if (dist < g.pso_min_dist){
-                top.x = ld*(X[i].x - X[j].x);
-                top.y = ld*(X[i].y - X[j].y);
-                bot.x = dist*fabsf(X[i].x - X[j].x);
-                bot.y = dist*fabsf(X[i].y - X[j].y);
-                // print("top,bot,dist: %f %f %f %f %f" % (top[0], top[1], bot[0], bot[1], dist))
-                AP::logger().WriteStreaming("PSOD", "TimeUS,i,j,tx,ty,bx,by,d", "s#------", "F-------",
-                                            "QBBfffff", AP_HAL::micros64(),
-                                            i,j,top.x,top.y,bot.x,bot.y,dist);
-                if(!is_zero(bot.x)) A[i].x += (top.x/bot.x);
-                if(!is_zero(bot.y)) A[i].y += (top.y/bot.y);
+    if (new_pos_recd && new_plu_recd){
+        new_pos_recd = false;
+        new_plu_recd = false;
+
+        for (uint8_t i=0; i<max_seen; i++){
+            for (uint8_t j=0; j<max_seen; j++){
+                if (i == j) continue;
+                float dist = distance(i,j);
+                if (dist < g.pso_min_dist){
+                    top.x = ld*(X[i].x - X[j].x);
+                    top.y = ld*(X[i].y - X[j].y);
+                    bot.x = dist*fabsf(X[i].x - X[j].x);
+                    bot.y = dist*fabsf(X[i].y - X[j].y);
+                    // print("top,bot,dist: %f %f %f %f %f" % (top[0], top[1], bot[0], bot[1], dist))
+                    AP::logger().WriteStreaming("PSOD", "TimeUS,i,j,tx,ty,bx,by,d", "s#------", "F-------",
+                                                "QBBfffff", AP_HAL::micros64(),
+                                                i,j,top.x,top.y,bot.x,bot.y,dist);
+                    if(!is_zero(bot.x)) A[i].x += (top.x/bot.x);
+                    if(!is_zero(bot.y)) A[i].y += (top.y/bot.y);
+                }
             }
         }
+
+        target_vel.x = g.pso_w_vel*target_vel.x + g.pso_w_per_best*ran*sgn(pbest[self].x - X[self].x) + g.pso_w_glo_best*ran*sgn(pbest[gbest].x - X[self].x) + g.pso_w_avoid*ran*sgn(A[self].x);
+        target_vel.y = g.pso_w_vel*target_vel.y + g.pso_w_per_best*ran*sgn(pbest[self].y - X[self].y) + g.pso_w_glo_best*ran*sgn(pbest[gbest].y - X[self].y) + g.pso_w_avoid*ran*sgn(A[self].y);
+
+        target_vel.x = constrain_float(target_vel.x,-g.pso_speed_limit,g.pso_speed_limit);
+        target_vel.y = constrain_float(target_vel.y,-g.pso_speed_limit,g.pso_speed_limit);
     }
-
-    target_vel.x = g.pso_w_vel*target_vel.x + g.pso_w_per_best*ran*sgn(pbest[self-1].x - blimp.pos_ned.x) + g.pso_w_glo_best*ran*sgn(pbest[gbest].x - blimp.pos_ned.x) + g.pso_w_avoid*ran*sgn(A[self-1].x);
-    target_vel.y = g.pso_w_vel*target_vel.y + g.pso_w_per_best*ran*sgn(pbest[self-1].y - blimp.pos_ned.y) + g.pso_w_glo_best*ran*sgn(pbest[gbest].y - blimp.pos_ned.y) + g.pso_w_avoid*ran*sgn(A[self-1].y);
-
-    target_vel.x = constrain_float(target_vel.x,-g.pso_speed_limit,g.pso_speed_limit);
-    target_vel.y = constrain_float(target_vel.y,-g.pso_speed_limit,g.pso_speed_limit);
 
     blimp.loiter->run_vel(target_vel, target_yaw, Vector4b{false,false,false,false});
     AP::logger().WriteStreaming("PSOT", "TimeUS,tvx,tvy", "Qff",
@@ -88,7 +93,7 @@ void ModePSO::run()
                                     target_vel.x, target_vel.y);
 
     uint32_t now = AP_HAL::millis();
-    if((now - bests_sent) > 2000){
+    if((now - bests_sent) > 1000){
         bests_sent = now;
         //For some mad reason, this x and y is in cm
         for (int i=0; i<max_seen; i++){
@@ -129,8 +134,10 @@ void ModePSO::handle_msg(const mavlink_message_t &msg)
                 X[msg.sysid-1].x = pos.x/100; //The above function returns the position in cm...
                 X[msg.sysid-1].y = pos.y/100;
                 X[msg.sysid-1].time_boot_ms_pos = packet.time_boot_ms;
+                new_pos_recd = true;
                 // GCS_SEND_TEXT(MAV_SEVERITY_NOTICE, "Got pos %d %f %f %d %d", msg.sysid, pos.x/100, pos.y/100, part.lat, part.lng);
-            } else GCS_SEND_TEXT(MAV_SEVERITY_NOTICE, "PSO: Get location for X failed for %d", msg.sysid);
+            }
+            // else GCS_SEND_TEXT(MAV_SEVERITY_NOTICE, "PSO: Get location for X failed for %d", msg.sysid);
         }
         else {
             GCS_SEND_TEXT(MAV_SEVERITY_NOTICE, "PSO: Received sysid outside range: %d %d %d %f", msg.sysid, int(packet.lat), int(packet.lon), packet.hdg/100.0);
@@ -149,6 +156,7 @@ void ModePSO::handle_msg(const mavlink_message_t &msg)
             if (msg.sysid <= PAR_MAX && msg.sysid > 0) {
                 X[msg.sysid-1].time_boot_ms_plu = packet.time_boot_ms;
                 X[msg.sysid-1].plu = packet.value;
+                new_plu_recd = true;
                 if (packet.value > pbest[msg.sysid-1].plu) { //Only update pbest when new strength is higher than old.
                     //Currently just uses the most recent location for that blimp...
                     // pbest[msg.sysid-1].lat = curarr[msg.sysid-1].lat;
