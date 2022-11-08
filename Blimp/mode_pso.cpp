@@ -21,7 +21,7 @@ bool ModePSO::init(bool ignore_checks)
 //Note that all positions are relative to the current blimp's home.
 
 
-void send_debug_loc(const char *name, Location value)
+void ModePSO::send_debug_loc(const char *name, Location value)
 {
     mavlink_debug_loc_t packet {};
     packet.time_boot_ms = AP_HAL::millis();
@@ -34,7 +34,7 @@ void send_debug_loc(const char *name, Location value)
                                   (const char *)&packet);
 }
 
-float sgn(float x)
+float ModePSO::sgn(float x)
 {
     if (x < 0) {
         return -1.0f;
@@ -133,7 +133,7 @@ void ModePSO::handle_msg(const mavlink_message_t &msg)
             } else GCS_SEND_TEXT(MAV_SEVERITY_NOTICE, "PSO: Get location for X failed for %d", msg.sysid);
         }
         else {
-            GCS_SEND_TEXT(MAV_SEVERITY_NOTICE, "PSO: Received sysid outside range: %d %d %d %f", msg.sysid, packet.lat, packet.lon, packet.hdg/100.0);
+            GCS_SEND_TEXT(MAV_SEVERITY_NOTICE, "PSO: Received sysid outside range: %d %d %d %f", msg.sysid, int(packet.lat), int(packet.lon), packet.hdg/100.0);
         }
     }
     else if (msg.msgid == MAVLINK_MSG_ID_NAMED_VALUE_FLOAT) {

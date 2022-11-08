@@ -68,10 +68,10 @@ void Loiter::run(Vector3f& target_pos, float& target_yaw, Vector4b axes_disabled
 
     Vector2f actuator;
     if (!axes_disabled.x && !axes_disabled.y) actuator = blimp.pid_vel_xy.update_all(target_vel_ef_c_scaled_xy, vel_ned_filtd_scaled_xy, {(float)limit.x, (float)limit.y});
-    float act_down;
+    float act_down = 0;
     if(!axes_disabled.z) act_down = blimp.pid_vel_z.update_all(target_vel_ef_c.z * scaler_xz, blimp.vel_ned_filtd.z * scaler_xz, limit.z);
     blimp.rotate_NE_to_BF(actuator);
-    float act_yaw;
+    float act_yaw = 0;
     if(!axes_disabled.yaw) act_yaw = blimp.pid_vel_yaw.update_all(target_vel_yaw_c * scaler_yyaw, blimp.vel_yaw_filtd * scaler_yyaw, limit.yaw);
 
     if (!blimp.motors->armed()) {
@@ -135,10 +135,10 @@ void Loiter::run_vel(Vector3f& target_vel_ef, float& target_vel_yaw, Vector4b ax
 
     Vector2f actuator;
     if (!axes_disabled.x && !axes_disabled.y) actuator = blimp.pid_vel_xy.update_all(target_vel_ef_c_scaled_xy, vel_ned_filtd_scaled_xy, {(float)limit.x, (float)limit.y});
-    float act_down;
+    float act_down = 0;
     if(!axes_disabled.z) act_down = blimp.pid_vel_z.update_all(target_vel_ef_c.z * scaler_xz, blimp.vel_ned_filtd.z * scaler_xz, limit.z);
     blimp.rotate_NE_to_BF(actuator);
-    float act_yaw;
+    float act_yaw = 0;
     if(!axes_disabled.yaw) act_yaw = blimp.pid_vel_yaw.update_all(target_vel_yaw_c * scaler_yyaw, blimp.vel_yaw_filtd * scaler_yyaw, limit.yaw);
 
     if (!blimp.motors->armed()) {

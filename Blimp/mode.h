@@ -630,6 +630,9 @@ protected:
     }
 
 private:
+    void send_debug_loc(const char *name, Location value);
+    float sgn(float x);
+
     Vector3f target_vel;
     float target_yaw;
 
