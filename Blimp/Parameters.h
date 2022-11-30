@@ -122,7 +122,7 @@ public:
         k_param_pso_reduce,
 
         k_param_sl_source_found = 70,
-        k_param_sl_vel_stop,
+        k_param_sl_vel_start,
         k_param_sl_thst_cf,
         k_param_sl_thst_cr,
         k_param_sl_thst_sf,
@@ -296,7 +296,7 @@ public:
     AP_Float        sl_drift_time;
     AP_Float        sl_push_time;
     AP_Float        sl_source_found;
-    AP_Float        sl_vel_stop;
+    AP_Float        sl_vel_start;
     AP_Float        sl_thst_cf;
     AP_Float        sl_thst_cr;
     AP_Float        sl_thst_sf;

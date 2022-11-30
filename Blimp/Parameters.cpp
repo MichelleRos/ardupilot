@@ -315,7 +315,7 @@ const AP_Param::Info Blimp::var_info[] = {
     GSCALAR(sl_drift_time, "SL_LOST_TIME", 0), //Drift for push & drift mode (5 sec is good), also lost time for accel/vel C&S.
     GSCALAR(sl_push_time, "SL_CAST_TIME", 3), //Push for push & drift mode, also cast time for accel/vel C&S.
     GSCALAR(sl_source_found, "SL_SOURCE_FOUND", 0.01), //When it considers source to be found & thus stops source loc
-    GSCALAR(sl_vel_stop, "SL_VEL_STOP", 0.05), //When it considers itself to have stopped momentum & started going in the opposite direction.
+    GSCALAR(sl_vel_start, "SL_VEL_START", 0.05), //When it considers itself to have stopped momentum & started going in the opposite direction - set higher for the timer to start earlier.
     GSCALAR(sl_thst_cf, "SL_THST_CF", -0.2), //This can be set slightly negative instead to allow regaining the plume if it overhoots.
     GSCALAR(sl_thst_cr, "SL_THST_CR", 1), //Strength of cast to sides in accel/vel C&S (relative to fin thrust for accel, relative to max_vel_xy param for vel)
     GSCALAR(sl_thst_sf, "SL_THST_SF", 0.7), //Strength of surge in accel/vel C&S (relative to as above)
