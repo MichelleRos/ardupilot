@@ -104,7 +104,7 @@ void ModeSrcloc::run()
         blimp.loiter->run(target_pos, target_yaw, Vector4b{false,false,false,false});
         //
         //
-        // Cast & Surge - accel/fin flap time version
+        // Cast & Surge - accel/vel fin flap time version
         //
         //
     } else if (g.sl_mode == (int)SLMode::CASTSURGEACCEL || g.sl_mode == (int)SLMode::CASTSURGEVEL) {
@@ -112,21 +112,22 @@ void ModeSrcloc::run()
         switch (cs) {
         case CS::CASTING_RUN: {
             if (blimp.plume_str_curr > g.sl_plume_found) {
-                cs = CS::SURGING_START;
                 GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Found plume. Surging. %f %f", blimp.plume_str_curr, float(g.sl_plume_found));
+                cs = CS::SURGING_START;
             }
-            if ((!right_mv && blimp.vel_ned_filtd.y<g.sl_vel_stop) || (right_mv && blimp.vel_ned_filtd.y>g.sl_vel_stop)) { //wait for left-right velocity to neutralise before starting timer.
+            if ((!right_mv && blimp.vel_ned_filtd.y<g.sl_vel_stop) || (right_mv && blimp.vel_ned_filtd.y>g.sl_vel_stop)) {
+                //wait for left-right velocity to neutralise before starting timer.
                 //right_mv is opposite to what would be expected as it's set ready for the next move once CASTING_START has set fins
                 cast_time = now;
                 // GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Resetting timer. %d", right_mv);
             } // else GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Starting timer.");
             if ((now - cast_time) > (g.sl_push_time + stage*g.sl_mula)) {
-                cs = CS::CASTING_START;
                 GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Reached cast time - %f, %d", g.sl_push_time + stage*g.sl_mula, stage);
+                cs = CS::CASTING_START;
             }
             if ((now - cast_time) > (g.sl_push_time*0.8) && stage == 0) {
-                cs = CS::CASTING_START;
                 GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Reached cast time - %f, %d", g.sl_push_time*0.8, stage);
+                cs = CS::CASTING_START;
             }
         } break;
         case CS::SURGING_RUN: {
@@ -135,13 +136,12 @@ void ModeSrcloc::run()
                 // GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Setting lost_time to curr.");
             }
             if ((now - lost_time) > (g.sl_drift_time)) {
-                cs = CS::CASTING_START;
                 //GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Reached surging time - %f", (float)g.sl_drift_time);
                 GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Lost plume. Stopping surge: %f %f", (now - lost_time), (float)g.sl_drift_time);
+                cs = CS::CASTING_START;
             }
         } break;
         case CS::CASTING_START: {
-            cs = CS::CASTING_RUN;
             cast_time = now;
             stage++;
             out.x = g.sl_thst_cf;
@@ -154,9 +154,9 @@ void ModeSrcloc::run()
                 GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Casting: Left.");
                 right_mv = true;
             }
+            cs = CS::CASTING_RUN;
         } break;
         case CS::SURGING_START: {
-            cs = CS::SURGING_RUN;
             stage = -1;
             cast_time = now;
             lost_time = now;
@@ -167,6 +167,7 @@ void ModeSrcloc::run()
             }
             out.x = g.sl_thst_sf;
             right_mv = !right_mv;
+            cs = CS::SURGING_RUN;
         } break;
         }
         if (g.sl_mode == (int)SLMode::CASTSURGEACCEL) {
