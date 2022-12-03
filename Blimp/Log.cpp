@@ -92,7 +92,7 @@ void Blimp::Log_Write_PIDs()
 // Write an attitude packet
 void Blimp::Log_Write_Attitude()
 {
-
+    ahrs.Write_Attitude(Vector3f{0,0,0});
 }
 
 // Write an EKF and POS packet
