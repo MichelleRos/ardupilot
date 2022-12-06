@@ -6,9 +6,6 @@
 //randf to return random number between 0 and 1
 #define randf() (float)rand()/RAND_MAX
 
-#define c 1.0f
-#define mew 0.0f
-
 #define Lmin 1.5f //50 cm
 #define mu 3.0f
 
