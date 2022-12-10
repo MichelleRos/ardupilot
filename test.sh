@@ -2,7 +2,7 @@
 
 EXTRA_HWDEF="test-extra.hwdef"
 BOARD=MatekF405
-BOARD=revo-mini
+# BOARD=revo-mini
 
 cat >"$EXTRA_HWDEF" <<EOF
 define GPS_BACKEND_DEFAULT_ENABLED 0
@@ -12,12 +12,12 @@ undef HAL_PROBE_EXTERNAL_I2C_BAROS
 define HAL_PROBE_EXTERNAL_I2C_BAROS 0
 
 #undef AP_BARO_BMP085_ENABLED
-#define AP_BARO_BMP085_ENABLED 1
+#define AP_BARO_BMP085_ENABLED 0
 #undef AP_BARO_BMP280_ENABLED
 #define AP_BARO_BMP280_ENABLED 1
 
 undef AP_BARO_MS56XX_ENABLED
-define AP_BARO_MS6XX_ENABLED 1
+define AP_BARO_MS6XX_ENABLED 0
 
 undef AP_RCPROTOCOL_BACKEND_DEFAULT_ENABLED
 define AP_RCPROTOCOL_BACKEND_DEFAULT_ENABLED 0
@@ -38,11 +38,20 @@ define HAL_MAVLINK_INTERVALS_FROM_FILES_ENABLED 0
 
 define HAL_SUPPORT_RCOUT_SERIAL 0
 
+undef HAL_HOTT_TELEM_ENABLED
+define HAL_HOTT_TELEM_ENABLED 0
+
+undef HAL_SPEKTRUM_TELEM_ENABLED
+define HAL_SPEKTRUM_TELEM_ENABLED 0
+
 EOF
 
-./Tools/autotest/test_build_options.py \
-    --no-run-with-defaults \
-    --no-disable-none \
-    --no-disable-in-turn \
-    --board="$BOARD" \
-    --extra-hwdef="$EXTRA_HWDEF"
+# ./Tools/autotest/test_build_options.py \
+#     --no-run-with-defaults \
+#     --no-disable-none \
+#     --no-disable-in-turn \
+#     --board="$BOARD" \
+#     --extra-hwdef="$EXTRA_HWDEF"
+
+./waf configure --board "$BOARD" --extra-hwdef="$EXTRA_HWDEF"
+./waf copter
