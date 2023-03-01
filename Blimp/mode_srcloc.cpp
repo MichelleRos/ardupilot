@@ -51,7 +51,12 @@ void ModeSrcloc::run()
                 cs = CS::SURGING_START;
                 GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Found plume. Surging. %f %f", blimp.plume_str_curr, float(g.sl_plume_found));
             }
-        } FALLTHROUGH;
+            float distsq = blimp.pos_ned.distance_squared(target_pos);
+            if (distsq < sq(g.wpnav_radius)) {
+                cs = CS::CASTING_START;
+                GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Reached wp. Casting.");
+            }
+        } break;
         case CS::SURGING_RUN: {
             float distsq = blimp.pos_ned.distance_squared(target_pos);
             if (distsq < sq(g.wpnav_radius)) { //Should set surging distance far enough that it always loses the plume before getting to the waypoint.
