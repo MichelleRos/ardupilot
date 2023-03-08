@@ -89,6 +89,7 @@ for SYSID in $(seq $NBLIMPS); do
     mkdir -p blimp$SYSID
 
     # create default parameter file for the blimp
+    #MAX* parameters are so that the sim blimps fly at about the same speed as the real one
     cat <<EOF > blimp$SYSID/param.parm
 SYSID_THISMAV $SYSID
 PSO_MIN_DIST     1.0
@@ -98,8 +99,15 @@ PSO_W_GLO_BEST   0.4
 PSO_W_PER_BEST   0.1
 PSO_W_VEL        0.5
 PSO_REDUCE       0.05
+PSO_SOURCE_FOUND 0.01
 EK2_ENABLE       0
 EK3_IMU_MASK     1.0
+MAX_POS_XY       0.15
+MAX_POS_YAW      0.3
+MAX_POS_Z        0.12
+MAX_VEL_XY       0.2
+MAX_VEL_YAW      0.4
+MAX_VEL_Z        0.15
 EOF
 
     OFFSETX=$(echo "0.00001*$(expr $SYSID % 2)" | bc -l)
@@ -108,7 +116,7 @@ EOF
     LAT=$(echo "$HOMELAT + $OFFSETX" | bc -l)
     LONG=$(echo "$HOMELONG + $OFFSETY" | bc -l)
     echo "Launching blimp$SYSID at $LAT $LONG"
-    $BLIMP --model blimp --home=$LAT,$LONG,$HOMEALT,0 --uartA tcp:0 --uartC mcast:$MCAST_IP_PORT --instance $SYSID --defaults $BASE_DEFAULTS,param.parm &
+    $BLIMP --model blimp --home=$LAT,$LONG,$HOMEALT,0 --uartA tcp:0 --uartC mcast:$MCAST_IP_PORT --instance $SYSID  --defaults $BASE_DEFAULTS,param.parm &
     popd
 done
 wait
