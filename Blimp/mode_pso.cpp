@@ -15,7 +15,7 @@ bool ModePSO::init(bool ignore_checks)
 
 #define self int(g.sysid_this_mav)-1
 //Using this "ran" macro so that random number is regenerated for each new use
-#define ran (float)rand()/RAND_MAX
+#define randf (float)rand()/RAND_MAX
 //X is always synced with most recently seen plume strength's position, strength, and time for both messages.
 //Note that all positions are relative to the current blimp's home.
 
@@ -79,8 +79,12 @@ void ModePSO::run()
             }
         }
 
-        target_vel.x = g.pso_w_vel*target_vel.x + g.pso_w_per_best*ran*sgn(pbest[self].x - X[self].x) + g.pso_w_glo_best*ran*sgn(pbest[gbest].x - X[self].x) + g.pso_w_avoid*ran*sgn(A[self].x);
-        target_vel.y = g.pso_w_vel*target_vel.y + g.pso_w_per_best*ran*sgn(pbest[self].y - X[self].y) + g.pso_w_glo_best*ran*sgn(pbest[gbest].y - X[self].y) + g.pso_w_avoid*ran*sgn(A[self].y);
+        AP::logger().WriteStreaming("PSOW", "TimeUS,vx,vy,pbx,pby,gbx,gby,avx,avy", "Qffffffff",
+                                    AP_HAL::micros64(),
+                                    target_vel.x, target_vel.y, pbest[self].x - X[self].x, pbest[self].y - X[self].y, pbest[gbest].x - X[self].x, pbest[gbest].y - X[self].y, A[self].x, A[self].y);
+
+        target_vel.x = g.pso_w_vel*target_vel.x + g.pso_w_per_best*randf*sgn(pbest[self].x - X[self].x) + g.pso_w_glo_best*randf*sgn(pbest[gbest].x - X[self].x) + g.pso_w_avoid*randf*sgn(A[self].x);
+        target_vel.y = g.pso_w_vel*target_vel.y + g.pso_w_per_best*randf*sgn(pbest[self].y - X[self].y) + g.pso_w_glo_best*randf*sgn(pbest[gbest].y - X[self].y) + g.pso_w_avoid*randf*sgn(A[self].y);
 
         target_vel.x = constrain_float(target_vel.x,-g.pso_speed_limit,g.pso_speed_limit);
         target_vel.y = constrain_float(target_vel.y,-g.pso_speed_limit,g.pso_speed_limit);
@@ -94,8 +98,8 @@ void ModePSO::run()
     uint32_t now = AP_HAL::millis();
     if((now - bests_sent) > 1000){
         bests_sent = now;
-        //For some mad reason, this x and y is in cm
         for (int i=0; i<max_seen; i++){
+            //For some mad reason, this x and y is in cm
             Location pbestLatLng{Vector3f{pbest[i].x*100,pbest[i].y*100, 0.0f},Location::AltFrame::ABSOLUTE};
             char nm[10];
             hal.util->snprintf(nm, sizeof(nm), "PBEST%d", i+1);
@@ -109,7 +113,7 @@ void ModePSO::run()
             if (X[i].plu > g.pso_source_found) {
                 //If any of the blimps have found the source, finish source localisation.
                 set_mode(Mode::Number::LOITER, ModeReason::MISSION_END);
-                GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Found source. Finished.");
+                GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Blimp number %.0f found source. Finished.", i+1.0);
             }
             AP::logger().WriteStreaming("PSOP", "TimeUS,i,plu,x,y", "s#---", "F----",
                         "QBfff", AP_HAL::micros64(),
