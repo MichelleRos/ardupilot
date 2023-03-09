@@ -97,7 +97,7 @@ PSO_W_AVOID      0.5
 PSO_W_GLO_BEST   0.4
 PSO_W_PER_BEST   0.1
 PSO_W_VEL        0.5
-PSO_REDUCE       0.05
+PSO_REDUCE       0.1
 PSO_SOURCE_FOUND 0.01
 EK2_ENABLE       0
 EK3_IMU_MASK     1.0
@@ -120,7 +120,7 @@ EOF
 done
 
 popd
-mavproxy.py --master=mcast: --cmd='module load srcloc; set streamrate -1; set streamrate2 -1; layout load; map set showgpspos 0; map set showgps2pos 0; rc set override_hz 1; module load swarm; longb 511 33 1000000; sl sethome -35.2802572 149.0058402' --aircraft multi-blimp
+mavproxy.py --master=mcast: --cmd='module load srcloc; set streamrate -1; set streamrate2 -1; layout load; map set showgpspos 0; map set showgps2pos 0; rc set override_hz 1; module load swarm; longb 511 33 1000000; sl sethome -35.2802572 149.0058402; slp 1' --aircraft multi-blimp
 
 wait
 
