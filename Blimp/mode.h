@@ -638,12 +638,10 @@ private:
 
     //This should always contain the strength and location of the highest received plume strength for each blimp
     Par pbest[PAR_MAX];
-    //This contains the most recent position mavlink message for each blimp
-    // mavlink_global_position_int_t curarr[PAR_MAX];
     //index of the global best (within pbest)
     int gbest = 1;
+    //This should always contain the strength and location of the most recent received plume strength for each blimp
     Par X[PAR_MAX];
-    Vector2f V[PAR_MAX];
     uint32_t bests_sent;
     int max_seen = 0;
     bool new_pos_recd = false;

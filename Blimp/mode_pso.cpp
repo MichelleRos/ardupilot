@@ -8,7 +8,6 @@ bool ModePSO::init(bool ignore_checks)
     target_vel = {0,0,0};
     target_yaw = 0;
     gbest = 1;
-    for (uint8_t i=0; i<PAR_MAX; i++) V[i].zero();
     for (uint8_t i=0; i<PAR_MAX; i++) X[i].zero();
     for (uint8_t i=0; i<PAR_MAX; i++) pbest[i].zero();
     return true;
@@ -58,6 +57,7 @@ void ModePSO::run()
     Vector2f bot;
 
     if (new_pos_recd && new_plu_recd){
+        //Only calculate new target velocity when it actually has new information.
         new_pos_recd = false;
         new_plu_recd = false;
 
@@ -70,7 +70,6 @@ void ModePSO::run()
                     top.y = ld*(X[i].y - X[j].y);
                     bot.x = dist*fabsf(X[i].x - X[j].x);
                     bot.y = dist*fabsf(X[i].y - X[j].y);
-                    // print("top,bot,dist: %f %f %f %f %f" % (top[0], top[1], bot[0], bot[1], dist))
                     AP::logger().WriteStreaming("PSOD", "TimeUS,i,j,tx,ty,bx,by,d", "s#------", "F-------",
                                                 "QBBfffff", AP_HAL::micros64(),
                                                 i,j,top.x,top.y,bot.x,bot.y,dist);
@@ -106,8 +105,20 @@ void ModePSO::run()
 
             //Reduce the plume strength over time
             pbest[i].plu = pbest[i].plu * (1-g.pso_reduce);
+
+            if (X[i].plu > g.pso_source_found) {
+                //If any of the blimps have found the source, finish source localisation.
+                set_mode(Mode::Number::LOITER, ModeReason::MISSION_END);
+                GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Found source. Finished.");
+            }
+            AP::logger().WriteStreaming("PSOP", "TimeUS,i,plu,x,y", "s#---", "F----",
+                        "QBfff", AP_HAL::micros64(),
+                        i, pbest[i].plu, pbest[i].x, pbest[i].y);
         }
         gcs().send_named_float("GBEST", gbest+1);
+        AP::logger().WriteStreaming("PSOG", "TimeUS,plu,x,y", "s---", "F---",
+                    "Qfff", AP_HAL::micros64(),
+                    pbest[gbest].plu, pbest[gbest].x, pbest[gbest].y);
     }
 }
 

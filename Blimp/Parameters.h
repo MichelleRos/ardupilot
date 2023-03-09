@@ -120,6 +120,7 @@ public:
         k_param_pso_min_dist,
         k_param_pso_w_avoid, //65
         k_param_pso_reduce,
+        k_param_pso_source_found,
 
         k_param_sl_source_found = 70,
         k_param_sl_vel_start,
@@ -311,6 +312,7 @@ public:
     AP_Float        pso_min_dist;
     AP_Float        pso_w_avoid;
     AP_Float        pso_reduce;
+    AP_Float        pso_source_found;
 
     AP_Int8         rtl_alt_type;
 
