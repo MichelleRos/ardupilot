@@ -1,8 +1,7 @@
 #!/bin/bash
 
-# Usage - From ardupilot root directory, run - libraries/SITL/examples/multi-blimp.sh $GCS_IP
+# Usage - From ardupilot root directory, run - libraries/SITL/examples/multi-blimpmav.sh $GCS_IP
 # $GCS_IP is the IP address of the system running the GCs, by default is 127.0.0.1
-# Use "follow-mavproxy.sh" to run MAVProxy with all vehicles
 # Or connect your GCS using multicast UDP
 # If you can't use multicast, you can connect via UDP on vehicle 1, which will relay telemetry
 # from the other vehicles
@@ -119,5 +118,9 @@ EOF
     $BLIMP --model blimp --home=$LAT,$LONG,$HOMEALT,0 --uartA tcp:0 --uartC mcast:$MCAST_IP_PORT --instance $SYSID  --defaults $BASE_DEFAULTS,param.parm &
     popd
 done
+
+popd
+mavproxy.py --master=mcast: --cmd='module load srcloc; set streamrate -1; set streamrate2 -1; layout load; map set showgpspos 0; map set showgps2pos 0; rc set override_hz 1; module load swarm; longb 511 33 1000000; sl sethome -35.2802572 149.0058402' --aircraft multi-blimp
+
 wait
 
