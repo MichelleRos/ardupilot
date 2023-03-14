@@ -52,6 +52,14 @@ float ModePSO::sgn(float x)
 //Runs the main loiter controller
 void ModePSO::run()
 {
+    for (int i=0; i<max_seen; i++){
+        if (X[i].plu > g.pso_source_found) {
+            //If any of the blimps have found the source, finish source localisation.
+            set_mode(Mode::Number::LOITER, ModeReason::MISSION_END);
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Blimp number %.0f found source. Finished.", i+1.0);
+        }
+    }
+
     Vector2f A[PAR_MAX];
     Vector2f top;
     Vector2f bot;
@@ -79,6 +87,32 @@ void ModePSO::run()
             }
         }
 
+        uint32_t now = AP_HAL::millis();
+        if((now - bests_sent) > 1000){
+            bests_sent = now;
+            for (int i=0; i<max_seen; i++){
+                //For some mad reason, this x and y is in cm
+                Location pbestLatLng{Vector3f{pbest[i].x*100,pbest[i].y*100, 0.0f},Location::AltFrame::ABSOLUTE};
+                char nm[10];
+                hal.util->snprintf(nm, sizeof(nm), "PBEST%d", i+1);
+                send_debug_loc(nm, pbestLatLng);
+
+                // gcs().send_named_float(nm, pbest[i].plu);
+
+                //Reduce the plume strength over time
+                pbest[i].plu = pbest[i].plu * (1-g.pso_reduce);
+
+                AP::logger().WriteStreaming("PSOP", "TimeUS,i,plu,x,y", "s#---", "F----",
+                            "QBfff", AP_HAL::micros64(),
+                            i, pbest[i].plu, pbest[i].x, pbest[i].y);
+            }
+            gcs().send_named_float("GBEST", gbest+1);
+
+            AP::logger().WriteStreaming("PSOG", "TimeUS,plu,x,y", "s---", "F---",
+                    "Qfff", AP_HAL::micros64(),
+                    pbest[gbest].plu, pbest[gbest].x, pbest[gbest].y);
+        }
+
         AP::logger().WriteStreaming("PSOW", "TimeUS,vx,vy,pbx,pby,gbx,gby,avx,avy", "Qffffffff",
                                     AP_HAL::micros64(),
                                     target_vel.x, target_vel.y, pbest[self].x - X[self].x, pbest[self].y - X[self].y, pbest[gbest].x - X[self].x, pbest[gbest].y - X[self].y, A[self].x, A[self].y);
@@ -94,36 +128,6 @@ void ModePSO::run()
     AP::logger().WriteStreaming("PSOT", "TimeUS,tvx,tvy", "Qff",
                                     AP_HAL::micros64(),
                                     target_vel.x, target_vel.y);
-
-    uint32_t now = AP_HAL::millis();
-    if((now - bests_sent) > 1000){
-        bests_sent = now;
-        for (int i=0; i<max_seen; i++){
-            //For some mad reason, this x and y is in cm
-            Location pbestLatLng{Vector3f{pbest[i].x*100,pbest[i].y*100, 0.0f},Location::AltFrame::ABSOLUTE};
-            char nm[10];
-            hal.util->snprintf(nm, sizeof(nm), "PBEST%d", i+1);
-            send_debug_loc(nm, pbestLatLng);
-
-            // gcs().send_named_float(nm, pbest[i].plu);
-
-            //Reduce the plume strength over time
-            pbest[i].plu = pbest[i].plu * (1-g.pso_reduce);
-
-            if (X[i].plu > g.pso_source_found) {
-                //If any of the blimps have found the source, finish source localisation.
-                set_mode(Mode::Number::LOITER, ModeReason::MISSION_END);
-                GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Blimp number %.0f found source. Finished.", i+1.0);
-            }
-            AP::logger().WriteStreaming("PSOP", "TimeUS,i,plu,x,y", "s#---", "F----",
-                        "QBfff", AP_HAL::micros64(),
-                        i, pbest[i].plu, pbest[i].x, pbest[i].y);
-        }
-        gcs().send_named_float("GBEST", gbest+1);
-        AP::logger().WriteStreaming("PSOG", "TimeUS,plu,x,y", "s---", "F---",
-                    "Qfff", AP_HAL::micros64(),
-                    pbest[gbest].plu, pbest[gbest].x, pbest[gbest].y);
-    }
 }
 
 float ModePSO::distance(int part1, int part2){
