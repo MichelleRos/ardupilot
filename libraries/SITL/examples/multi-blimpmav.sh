@@ -69,8 +69,8 @@ BASE_DEFAULTS="$ROOTDIR/Tools/autotest/default_params/blimp.parm"
 
 #keep all files in Blimp/multi-blimp subdirectory
 pushd Blimp
-mkdir -p multi-blimp
-pushd multi-blimp
+mkdir -p multi-blimp_$NBLIMPS
+pushd multi-blimp_$NBLIMPS
 
 #delete eeprom.bin to ensure the defaults get used.
 #Comment this line out if parameters were set within MAVProxy that you would like to keep between runs.
@@ -120,7 +120,7 @@ EOF
 done
 
 popd
-mavproxy.py --master=mcast: --cmd='module load srcloc; set streamrate -1; set streamrate2 -1; layout load; map set showgpspos 0; map set showgps2pos 0; rc set override_hz 1; module load swarm; longb 511 33 1000000; sl sethome -35.2802572 149.0058402; slp 1' --aircraft multi-blimp
+mavproxy.py --master=mcast: --cmd='module load srcloc; set streamrate -1; set streamrate2 -1; layout load; map set showgpspos 0; map set showgps2pos 0; rc set override_hz 1; module load swarm; longb 511 33 1000000; sl sethome -35.2802572 149.0058402; slp 1' --aircraft multi-blimp_$NBLIMPS
 
 wait
 
