@@ -134,7 +134,8 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acc,
                               "Qfff",
                               AP_HAL::micros64(),
                               rot_T.x, rot_T.y, rot_T.z);
-#if 0
+
+#if 0 //"Wobble" attempt
   rot_T.y = fin[0].Fz * radius + fin[1].Fz * radius;
   AP::logger().WriteStreaming("SRT2", "TimeUS,rtx,rty,rtz",
                               "Qfff",
@@ -167,6 +168,7 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acc,
                               AP_HAL::micros64(),
                               mass, GRAVITY_MSS, cog.z);
 #endif
+
   rot_T.z = fin[2].Fx * radius + fin[3].Fx * radius;//in N*m (Torque = force * lever arm)
   //rot accel = torque / moment of inertia
   //Torque = moment force.
