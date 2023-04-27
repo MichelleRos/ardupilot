@@ -57,8 +57,10 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acc,
     fin[i].last_angle = fin[i].angle;
     if (input.servos[i] == 0) {
         fin[i].angle = 0;
+        fin[1].servo_angle = 0;
     } else {
         fin[i].angle = filtered_servo_angle(input, i)*radians(75.0f); //for servo range of -75 deg to +75 deg
+        fin[i].servo_angle = filtered_servo_angle(input, i);
     }
 
     if (fin[i].angle < fin[i].last_angle) fin[i].dir = 0; //thus 0 = "angle is reducing"
@@ -124,6 +126,11 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acc,
                               "Qffff",
                               AP_HAL::micros64(),
                               fin[0].angle, fin[1].angle, fin[2].angle, fin[3].angle);
+
+  AP::logger().WriteStreaming("SFAN", "TimeUS,f0,f1,f2,f3",
+                              "Qffff",
+                              AP_HAL::micros64(),
+                              fin[0].servo_angle, fin[1].servo_angle, fin[2].servo_angle, fin[3].servo_angle);
 
   AP::logger().WriteStreaming("SFV1", "TimeUS,f0,f1,f2,f3",
                               "Qffff",
