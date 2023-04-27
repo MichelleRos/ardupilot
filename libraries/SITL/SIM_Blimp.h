@@ -28,6 +28,7 @@ struct Fins
 {
   float angle;
   float last_angle;
+  float servo_angle;
   bool dir;
   float vel; // velocity, in m/s
   float T; //Tangential (thrust) force, in Neutons
