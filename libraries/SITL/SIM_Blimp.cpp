@@ -94,7 +94,7 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acc,
 
   //Left fin
   fin[3].Fy =  fin[3].T*cos(fin[3].angle);// + fin[3].N*sin(fin[3].angle); //causes right movement
-  fin[3].Fx = -fin[3].T*sin(fin[3].angle);// + fin[3].N*cos(fin[3].angle); //causes yaw & wobble in z
+  fin[3].Fx =  fin[3].T*sin(fin[3].angle);// + fin[3].N*cos(fin[3].angle); //causes yaw & wobble in z
 
   Vector3f F_BF{0,0,0};
   for (uint8_t i=0; i<4; i++) {
@@ -178,7 +178,7 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acc,
                               mass, GRAVITY_MSS, cog.z);
 #endif
 
-  rot_T.z = fin[2].Fx * radius + fin[3].Fx * radius;//in N*m (Torque = force * lever arm)
+  rot_T.z = fin[2].Fx * radius - fin[3].Fx * radius;//in N*m (Torque = force * lever arm)
   //rot accel = torque / moment of inertia
   //Torque = moment force.
   rot_accel.x = rot_T.x / moment_of_inertia.x;
