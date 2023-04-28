@@ -66,10 +66,10 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acc,
     if (fin[i].angle < fin[i].last_angle) fin[i].dir = 0; //thus 0 = "angle is reducing"
     else fin[i].dir = 1;
 
-    fin[i].vel = degrees(fin[i].angle - fin[i].last_angle)/delta_time;
+    fin[i].vel = degrees(fin[i].angle - fin[i].last_angle)/delta_time; //Could also do multi-point derivative filter - DerivativeFilter.cpp
     //deg/s (should really be rad/s, but that would require modifying k_tan, k_nor)
     //all other angles should be in radians.
-    fin[i].vel = constrain_float(fin[i].vel, -450, 450);
+    fin[i].vel = constrain_float(fin[i].vel, -450, 450); //better to first apply a lowpass filter here first. Beware phase lag. Use about 3x the filter you have in the servo angle.
     fin[i].T = sq(fin[i].vel) * k_tan;
     fin[i].N = sq(fin[i].vel) * k_nor;
     if (fin[i].dir == 0) fin[i].N = -fin[1].N; //normal force flips when fin changes direction
@@ -131,12 +131,14 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acc,
                               "Qffff",
                               AP_HAL::micros64(),
                               fin[0].servo_angle, fin[1].servo_angle, fin[2].servo_angle, fin[3].servo_angle);
-
+  AP::logger().WriteStreaming("SSAN", "TimeUS,f0,f1,f2,f3",
+                              "QHHHH",
+                              AP_HAL::micros64(),
+                              input.servos[0], input.servos[1], input.servos[2], input.servos[3]);
   AP::logger().WriteStreaming("SFV1", "TimeUS,f0,f1,f2,f3",
                               "Qffff",
                               AP_HAL::micros64(),
                               fin[0].vel, fin[1].vel, fin[2].vel, fin[3].vel);
-
   AP::logger().WriteStreaming("SRT1", "TimeUS,rtx,rty,rtz",
                               "Qfff",
                               AP_HAL::micros64(),
@@ -246,4 +248,10 @@ void Blimp::update(const struct sitl_input &input)
   update_position(); //updates the position from the Vector3f position
   time_advance();
   update_mag_field_bf();
+  rate_hz = sitl->loop_rate_hz;
+
 }
+
+
+    // // allow for changes in physics step
+    // adjust_frame_time(constrain_float(sitl->loop_rate_hz, rate_hz-1, rate_hz+1));
