@@ -229,7 +229,7 @@ void Blimp::read_AHRS(void)
     vel_ned_filtd = {vel_xy_filtd.x, vel_xy_filtd.y, vel_z_filter.apply(vel_ned.z)};
     vel_yaw_filtd = vel_yaw_filter.apply(vel_yaw);
 
-    AP::logger().WriteStreaming("VNF", "TimeUS,X,XF,Y,YF,Z,ZF,Yaw,YawF", "Qffffffff",
+    AP::logger().WriteStreaming("VNF", "TimeUS,X,XF,Y,YF,Z,ZF,Yaw,YawF,PX,PY,PZ,PYaw", "Qffffffffffff",
                                 AP_HAL::micros64(),
                                 vel_ned.x,
                                 vel_ned_filtd.x,
@@ -238,7 +238,11 @@ void Blimp::read_AHRS(void)
                                 vel_ned.z,
                                 vel_ned_filtd.z,
                                 vel_yaw,
-                                vel_yaw_filtd);
+                                vel_yaw_filtd,
+                                pos_ned.x,
+                                pos_ned.y,
+                                pos_ned.z,
+                                blimp.ahrs.get_yaw());
 }
 
 // read baro and log control tuning
