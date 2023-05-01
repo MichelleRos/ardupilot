@@ -34,10 +34,10 @@ Blimp::Blimp(const char *frame_str) :
     radius = 0.25;
     moment_of_inertia = {0.004375, 0.004375, 0.004375}; //m*r^2 for hoop...
     cog = {0, 0, 0.1}; //10 cm down from center (i.e. center of buoyancy), for now
-    k_tan = 1.7e-7; //Tangential (thrust) and normal force multipliers
+    k_tan = 0.6e-7; //Tangential (thrust) and normal force multipliers
     k_nor = 0;//3.4e-7;
     drag_constant = 0.05;
-    drag_gyr_constant = 0.08;
+    drag_gyr_constant = 0.15;
 
     lock_step_scheduled = true;
     ::printf("Starting Blimp model\n");
@@ -59,7 +59,7 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acc,
         fin[i].angle = 0;
         fin[1].servo_angle = 0;
     } else {
-        fin[i].angle = filtered_servo_angle(input, i)*radians(75.0f); //for servo range of -75 deg to +75 deg
+        fin[i].angle = filtered_servo_angle(input, i)*radians(45.0f)+radians(13.5); //for servo range of -75 deg to +75 deg
         fin[i].servo_angle = filtered_servo_angle(input, i);
     }
 
@@ -121,12 +121,10 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acc,
                               "Qfff",
                               AP_HAL::micros64(),
                               body_acc.x, body_acc.y, body_acc.z);
-
   AP::logger().WriteStreaming("SFA1", "TimeUS,f0,f1,f2,f3",
                               "Qffff",
                               AP_HAL::micros64(),
                               fin[0].angle, fin[1].angle, fin[2].angle, fin[3].angle);
-
   AP::logger().WriteStreaming("SFAN", "TimeUS,f0,f1,f2,f3",
                               "Qffff",
                               AP_HAL::micros64(),
