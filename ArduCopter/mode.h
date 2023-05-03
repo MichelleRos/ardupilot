@@ -390,7 +390,7 @@ private:
 
 };
 
-
+#if MODE_AUTO_ENABLED == ENABLED
 class ModeAuto : public Mode {
 
 public:
@@ -640,6 +640,7 @@ private:
         uint32_t start_ms;  // system time that nav attitude time command was received (used for timeout)
     } nav_attitude_time;
 };
+#endif
 
 #if AUTOTUNE_ENABLED == ENABLED
 /*
