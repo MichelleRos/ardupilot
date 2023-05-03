@@ -189,6 +189,7 @@ void Mode::auto_takeoff_run()
         const Vector3p& complete_pos = copter.pos_control->get_pos_target_cm();
         auto_takeoff_complete_pos = Vector3p{complete_pos.x, complete_pos.y, pos_z};
     }
+#endif
 }
 
 void Mode::auto_takeoff_start(float complete_alt_cm, bool terrain_alt)

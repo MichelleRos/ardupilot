@@ -9,6 +9,8 @@
 #include "AP_OADijkstra.h"
 #include "AP_OADatabase.h"
 
+#if AC_AVOID_ENABLED
+
 /*
  * This class provides path planning around fence, stay-out zones and moving obstacles
  */

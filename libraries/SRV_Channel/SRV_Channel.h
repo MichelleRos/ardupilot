@@ -193,7 +193,7 @@ public:
     bool valid_function(void) const {
         return valid_function(function);
     }
-    
+
     // used to get min/max/trim limit value based on reverse
     enum class Limit {
         TRIM,
@@ -267,7 +267,7 @@ public:
     void reversed_set_and_save_ifchanged(bool r) {
         reversed.set_and_save_ifchanged(r?1:0);
     }
-    
+
     // return true if the SERVOn_FUNCTION has been configured in
     // either storage or a defaults file. This is used for upgrade of
     // parameters in plane
@@ -327,7 +327,7 @@ private:
     typedef uint32_t servo_mask_t;
 
     // mask of channels where we have a output_pwm value. Cleared when a
-    // scaled value is written. 
+    // scaled value is written.
     static servo_mask_t have_pwm_mask;
 
     // previous radio_in during pass-thru
@@ -407,7 +407,7 @@ public:
 
     // set MIN/MAX parameters for a function
     static void set_output_min_max(SRV_Channel::Aux_servo_function_t function, uint16_t min_pwm, uint16_t max_pwm);
-    
+
     // save trims
     void save_trim(void);
 
@@ -519,7 +519,7 @@ public:
         }
         return SRV_Channel::Aux_servo_function_t((SRV_Channel::k_motor9+(channel-8)));
     }
-    
+
     static void cork();
 
     static void push();
@@ -616,7 +616,7 @@ private:
     // mask of outputs which use a digital output protocol, not
     // PWM (eg. DShot)
     static uint32_t digital_mask;
-    
+
     // mask of outputs which are digitally reversible (eg. DShot-3D)
     static uint32_t reversible_mask;
 

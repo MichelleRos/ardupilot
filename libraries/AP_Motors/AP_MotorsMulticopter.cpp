@@ -17,6 +17,7 @@
 #include <AP_HAL/AP_HAL.h>
 #include <AP_BattMonitor/AP_BattMonitor.h>
 #include <AP_Logger/AP_Logger.h>
+#include <SRV_Channel/SRV_Channel.h>
 
 extern const AP_HAL::HAL& hal;
 
@@ -156,7 +157,7 @@ const AP_Param::GroupInfo AP_MotorsMulticopter::var_info[] = {
 
     // @Param: SPOOL_TIME
     // @DisplayName: Spool up time
-    // @Description: Time in seconds to spool up the motors from zero to min throttle. 
+    // @Description: Time in seconds to spool up the motors from zero to min throttle.
     // @Range: 0 2
     // @Units: s
     // @Increment: 0.1
@@ -172,7 +173,7 @@ const AP_Param::GroupInfo AP_MotorsMulticopter::var_info[] = {
     AP_GROUPINFO("BOOST_SCALE", 37, AP_MotorsMulticopter, _boost_scale, 0),
 
     // 38 RESERVED for BAT_POW_MAX
-    
+
     // @Param: BAT_IDX
     // @DisplayName: Battery compensation index
     // @Description: Which battery monitor should be used for doing compensation

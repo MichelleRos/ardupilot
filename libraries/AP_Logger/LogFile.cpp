@@ -11,6 +11,7 @@
 #include "AP_Logger_File.h"
 #include "AP_Logger_MAVLink.h"
 #include "LoggerMessageWriter.h"
+#include <SRV_Channel/SRV_Channel.h>
 
 extern const AP_HAL::HAL& hal;
 

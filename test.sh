@@ -59,6 +59,7 @@ define MORETHANQUAD 0
 define AC_AVOID_ENABLED 0
 define AC_FENCE 0
 define AC_RALLY DISABLED
+define AP_TERRAIN_AVAILABLE 0
 define AC_TERRAIN DISABLED
 define ADSB_ENABLED DISABLED
 define AUTOTUNE_ENABLED DISABLED
@@ -85,6 +86,7 @@ define LANDING_GEAR_ENABLED  DISABLED
 define MOUNT DISABLED
 define NAV_GUIDED DISABLED
 define PARACHUTE DISABLED
+undef PRECISION_LANDING
 define PRECISION_LANDING DISABLED
 define PROXIMITY_ENABLED DISABLED
 define RANGEFINDER_ENABLED DISABLED
@@ -101,6 +103,7 @@ define BUTTON_ENABLED DISABLED
 define CAMERA DISABLED
 define LOGGING_ENABLED DISABLED
 define STATS_ENABLED DISABLED
+undef OSD_ENABLED
 define OSD_ENABLED 0
 define OSD_PARAM_ENABLED 0 #apparently won't compile OSD excluded without this one out too
 define HAL_BARO_WIND_COMP_ENABLED 0
@@ -114,7 +117,8 @@ define HAL_LOGGING_ENABLED 0
 define HAL_LOGGING_MAVLINK_ENABLED 0
 define HAL_MISSION_ENABLED 0
 define HAL_RALLY_ENABLED 0
-define HAVE_FILESYSTEM_SUPPORT 0 #seemed to .increase. build size by 8 bytes??
+# undef HAVE_FILESYSTEM_SUPPORT
+# define HAVE_FILESYSTEM_SUPPORT 0 #seemed to .increase. build size by 8 bytes??
 #define HAL_GCS_ENABLED 0
 
 define HAL_MINIMISE_FEATURES ENABLED
@@ -134,4 +138,4 @@ EOF
 #     --extra-hwdef="$EXTRA_HWDEF"
 
 ./waf configure --board "$BOARD" --extra-hwdef="$EXTRA_HWDEF"
-./waf blimp
+./waf copter

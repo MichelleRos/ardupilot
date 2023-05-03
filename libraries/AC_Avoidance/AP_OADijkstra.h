@@ -5,6 +5,8 @@
 #include <AP_Math/AP_Math.h>
 #include "AP_OAVisGraph.h"
 
+#if AC_AVOID_ENABLED
+
 /*
  * Dijkstra's algorithm for path planning around polygon fence
  */

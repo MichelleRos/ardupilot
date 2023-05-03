@@ -25,6 +25,7 @@
 #include <AP_GPS/AP_GPS.h>
 #include <AP_OpticalFlow/AP_OpticalFlow.h>
 #include <AP_Mount/AP_Mount.h>
+#include <SRV_Channel/SRV_Channel.h>
 
 #include "ap_message.h"
 

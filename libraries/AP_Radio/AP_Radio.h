@@ -21,6 +21,8 @@
 #include <AP_Param/AP_Param.h>
 #include <GCS_MAVLink/GCS_MAVLink.h>
 
+#define HAL_GCS_ENABLED 0
+
 class AP_Radio_backend;
 
 class AP_Radio

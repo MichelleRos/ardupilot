@@ -122,7 +122,7 @@ void AC_AutoTune::send_step_string()
     }
     switch (step) {
     case WAITING_FOR_LEVEL:
-        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AutoTune: Leveling (%s %4.1f > %4.1f)", level_issue_string(), (double)(level_problem.current*0.01f),
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AutoTune: Leveling (%s %4.1f > %4.1f)", "blank", 0.0f, 0.0f);
         return;
     case UPDATE_GAINS:
         GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AutoTune: Updating Gains");
