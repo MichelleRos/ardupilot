@@ -22,10 +22,10 @@ void ModeLoiter::run()
     Vector3f pilot;
     float pilot_yaw;
     get_pilot_input(pilot, pilot_yaw);
-    pilot.x *= g.max_pos_xy * blimp.scheduler.get_loop_period_s();
-    pilot.y *= g.max_pos_xy * blimp.scheduler.get_loop_period_s();
-    pilot.z *= g.max_pos_z * blimp.scheduler.get_loop_period_s();
-    pilot_yaw *= g.max_pos_yaw * blimp.scheduler.get_loop_period_s();
+    pilot.x *= g.max_pos_xy * dt;
+    pilot.y *= g.max_pos_xy * dt;
+    pilot.z *= g.max_pos_z * dt;
+    pilot_yaw *= g.max_pos_yaw * dt;
 
     if (g.simple_mode == 0) {
         //If simple mode is disabled, input is in body-frame, thus needs to be rotated.

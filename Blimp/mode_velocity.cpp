@@ -8,8 +8,6 @@
 // Runs the main velocity controller
 void ModeVelocity::run()
 {
-    const float dt = blimp.scheduler.get_last_loop_time_s();
-
     Vector3f target_vel;
     float target_vel_yaw;
     get_pilot_input(target_vel, target_vel_yaw);
