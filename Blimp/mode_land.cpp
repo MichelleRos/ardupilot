@@ -18,7 +18,6 @@ void ModeLand::run()
 void Blimp::set_mode_hold_failsafe(ModeReason reason)
 {
     set_mode(Mode::Number::HOLD, reason);
-    //TODO: Add pause
 
     // alert pilot to mode change
     AP_Notify::events.failsafe_mode_change = 1;
