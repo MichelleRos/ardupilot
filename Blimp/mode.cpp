@@ -19,7 +19,7 @@ Mode::Mode(void) :
     loiter(blimp.loiter),
     channel_right(blimp.channel_right),
     channel_front(blimp.channel_front),
-    channel_down(blimp.channel_down),
+    channel_up(blimp.channel_up),
     channel_yaw(blimp.channel_yaw),
     G_Dt(blimp.G_Dt)
 { };
@@ -166,7 +166,7 @@ void Mode::update_navigation()
 void Mode::get_pilot_input(Vector3f &pilot, float &yaw)
 {
     // throttle failsafe check
-    if (blimp.failsafe.radio || !blimp.ap.rc_receiver_present || channel_down->get_control_in() == 1000) {
+    if (blimp.failsafe.radio || !blimp.ap.rc_receiver_present) {
         pilot.y = 0;
         pilot.x = 0;
         pilot.z = 0;
@@ -176,8 +176,7 @@ void Mode::get_pilot_input(Vector3f &pilot, float &yaw)
     // fetch pilot inputs
     pilot.y = channel_right->get_control_in() / float(RC_SCALE);
     pilot.x = channel_front->get_control_in() / float(RC_SCALE);
-    //TODO: need to make this channel_up instead, and then have it .negative. before being sent to pilot.z -> this is "throttle" channel, so higher = up.
-    pilot.z = channel_down->get_control_in() / float(RC_SCALE);
+    pilot.z = - channel_up->get_control_in() / float(RC_SCALE);
     yaw = channel_yaw->get_control_in() / float(RC_SCALE);
 }
 
