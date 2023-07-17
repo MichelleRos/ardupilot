@@ -131,12 +131,7 @@ bool Blimp::should_disarm_on_failsafe()
         return true;
     }
 
-    switch (control_mode) {
-    case Mode::Number::MANUAL:
-    default:
-        // if landed disarm
-        return ap.land_complete;
-    }
+    return ap.land_complete;
 }
 
 

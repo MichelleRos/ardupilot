@@ -83,23 +83,10 @@ public:
         return 0.0f;
     }
 
-    void update_navigation();
-
     // pilot input processing
     void get_pilot_input(Vector3f &pilot, float &yaw);
 
 protected:
-
-    // navigation support functions
-    virtual void run_autopilot() {}
-
-    // helper functions
-    bool is_disarmed_or_landed() const;
-
-    // functions to control landing
-    // in modes that support landing
-    void land_run_horizontal_control();
-    void land_run_vertical_control(bool pause_descent = false);
 
     // convenience references to avoid code churn in conversion:
     Parameters &g;
@@ -310,7 +297,7 @@ private:
     float target_yaw;
 };
 
-class ModeLand : public Mode
+class ModeHold : public Mode
 {
 
 public:
@@ -325,7 +312,7 @@ public:
     }
     bool has_manual_throttle() const override
     {
-        return true;
+        return false;
     }
     bool allows_arming(bool from_gcs) const override
     {
@@ -340,11 +327,11 @@ protected:
 
     const char *name() const override
     {
-        return "LAND";
+        return "HOLD";
     }
     const char *name4() const override
     {
-        return "LAND";
+        return "HOLD";
     }
 
 private:

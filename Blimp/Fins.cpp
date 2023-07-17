@@ -72,7 +72,7 @@ void Fins::add_fin(int8_t fin_num, float right_amp_fac, float front_amp_fac, flo
 //B,F,R,L = 0,1,2,3
 void Fins::output()
 {
-    if (!_armed) {
+    if (!_armed) { //TODO: Is this really needed? Should probably be handled elsewhere.
         // set everything to zero so fins stop moving
         right_out = 0;
         front_out = 0;

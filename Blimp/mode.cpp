@@ -31,7 +31,7 @@ Mode *Blimp::mode_from_mode_num(const Mode::Number mode)
 
     switch (mode) {
     case Mode::Number::HOLD:
-        ret = &mode_land;
+        ret = &mode_hold;
         break;
     case Mode::Number::MANUAL:
         ret = &mode_manual;
@@ -156,12 +156,6 @@ void Blimp::notify_flight_mode()
     notify.set_flight_mode_str(flightmode->name4());
 }
 
-void Mode::update_navigation()
-{
-    // run autopilot to make high level decisions about control modes
-    run_autopilot();
-}
-
 // returns desired thrust/acceleration
 void Mode::get_pilot_input(Vector3f &pilot, float &yaw)
 {
@@ -178,14 +172,6 @@ void Mode::get_pilot_input(Vector3f &pilot, float &yaw)
     pilot.x = channel_front->get_control_in() / float(RC_SCALE);
     pilot.z = - channel_up->get_control_in() / float(RC_SCALE);
     yaw = channel_yaw->get_control_in() / float(RC_SCALE);
-}
-
-bool Mode::is_disarmed_or_landed() const
-{
-    if (!motors->armed() || !blimp.ap.auto_armed || blimp.ap.land_complete) {
-        return true;
-    }
-    return false;
 }
 
 bool Mode::set_mode(Mode::Number mode, ModeReason reason)

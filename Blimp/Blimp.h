@@ -89,7 +89,7 @@ public:
 
     friend class Mode;
     friend class ModeManual;
-    friend class ModeLand;
+    friend class ModeHold;
     friend class ModeVelocity;
     friend class ModeLoiter;
     friend class ModeAuto;
@@ -434,7 +434,7 @@ private:
 
     Mode *flightmode;
     ModeManual mode_manual;
-    ModeLand mode_land;
+    ModeHold mode_hold;
     ModeVelocity mode_velocity;
     ModeLoiter mode_loiter;
     ModeAuto mode_auto;
