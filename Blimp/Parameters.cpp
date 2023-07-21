@@ -186,7 +186,7 @@ const AP_Param::Info Blimp::var_info[] = {
     // @Param: FS_EKF_ACTION
     // @DisplayName: EKF Failsafe Action
     // @Description: Controls the action that will be taken when an EKF failsafe is invoked
-    // @Values: 1:Hold, 2:Hold even in manual
+    // @Values: 1:Hold, 2:Hold even in Manual
     // @User: Advanced
     GSCALAR(fs_ekf_action, "FS_EKF_ACTION",    FS_EKF_ACTION_DEFAULT),
 
@@ -260,13 +260,6 @@ const AP_Param::Info Blimp::var_info[] = {
     // @Bitmask: 0:Right,1:Front,2:Down,3:Yaw
     // @User: Standard
     GSCALAR(dis_mask, "DIS_MASK", 0),
-
-    // @Param: WPNAV_RADIUS
-    // @DisplayName: Waypoint acceptance distance
-    // @Description: Distance from waypoint when Blimp is considered to have reached it.
-    // @Values: 0.01 2
-    // @User: Standard
-    GSCALAR(wpnav_radius, "WPNAV_RADIUS", 0.5),
 
     // @Param: PID_DZ
     // @DisplayName: Deadzone for the position PIDs

@@ -92,6 +92,7 @@ void Blimp::Log_Write_PIDs()
 // Write an attitude packet
 void Blimp::Log_Write_Attitude()
 {
+    //No attitude targets so they're just zero, but the rest of this log message's info is still logged.
     ahrs.Write_Attitude(Vector3f{0,0,0});
 }
 
