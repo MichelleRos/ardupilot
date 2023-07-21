@@ -253,7 +253,8 @@ public:
     }
     bool has_manual_throttle() const override
     {
-        return false;
+        //This is about whether it needs EKF alt or not.
+        return true;
     }
     bool allows_arming(bool from_gcs) const override
     {

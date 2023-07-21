@@ -263,7 +263,7 @@ const AP_Param::Info Blimp::var_info[] = {
 
     // @Param: PID_DZ
     // @DisplayName: Deadzone for the position PIDs
-    // @Description: Output 0 thrust signal when blimp is within this distance (in meters) of the target position.
+    // @Description: Output 0 thrust signal when blimp is within this distance (in meters) of the target position. Warning: if PID_DZ param is greater than the MAX_POS_* params then the blimp won't move at all in position control modes.
     // @Values: 0.1 1
     // @User: Standard
     GSCALAR(pid_dz, "PID_DZ", 0),

@@ -79,7 +79,6 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acc,
     fin[i].Fz = 0;
   }
 
-  //TODO: Double-check that the directions are correct/correspond to the actual joystick directions.
   //Back fin
   fin[0].Fx =  fin[0].T*cos(fin[0].angle);// + fin[0].N*sin(fin[0].angle); //causes forward movement
   fin[0].Fz =  fin[0].T*sin(fin[0].angle);// - fin[0].N*cos(fin[0].angle); //causes height & wobble in y

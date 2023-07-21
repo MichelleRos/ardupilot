@@ -31,7 +31,7 @@ void ModeLoiter::run()
         //If simple mode is disabled, input is in body-frame, thus needs to be rotated.
         blimp.rotate_BF_to_NE(pilot.xy());
     }
-    //MIR Warning: this means that if PID_DZ param is greater than eg MAX_POS_XY param * POS_LAG then the blimp won't move at all.
+
     if(fabsf(target_pos.x-blimp.pos_ned.x) < (g.max_pos_xy*POS_LAG)) target_pos.x += pilot.x;
     if(fabsf(target_pos.y-blimp.pos_ned.y) < (g.max_pos_xy*POS_LAG)) target_pos.y += pilot.y;
     if(fabsf(target_pos.z-blimp.pos_ned.z) < (g.max_pos_z*POS_LAG)) target_pos.z += pilot.z;
