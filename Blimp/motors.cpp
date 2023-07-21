@@ -18,7 +18,7 @@ void Blimp::arm_motors_check()
     }
 
     // ensure throttle is down
-    if (channel_down->get_control_in() > 0) { //MIR what dow we do with this?
+    if (channel_up->get_control_in() > 0) { //MIR what do we do with this?
         arming_counter = 0;
         return;
     }
@@ -75,6 +75,11 @@ void Blimp::arm_motors_check()
 // motors_output - send output to motors library which will adjust and send to ESCs and servos
 void Blimp::motors_output()
 {
+    // Update arming delay state
+    if (ap.in_arming_delay && (!motors->armed() || millis()-arm_time_ms > ARMING_DELAY_SEC*1.0e3f)) {
+        ap.in_arming_delay = false;
+    }
+
     // output any servo channels
     SRV_Channels::calc_pwm();
 

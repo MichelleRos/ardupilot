@@ -86,8 +86,8 @@ public:
         k_param_throttle_deadzone,
         k_param_log_bitmask,
         k_param_throttle_filt,
-        k_param_throttle_behavior,
-        k_param_pilot_takeoff_alt,
+        k_param_throttle_behavior, //UNUSED
+        k_param_pilot_takeoff_alt, //UNUSED
 
         // AP_ADSB Library
         k_param_adsb,
@@ -110,9 +110,14 @@ public:
         k_param_max_pos_yaw,
         k_param_simple_mode,
         k_param_dis_mask,
+        k_param_pid_dz = 59,
 
         //
-        // 90: misc2
+        // 70-89: Misc1
+        //
+
+        //
+        // 90: Misc2
         //
         k_param_motors = 90,
         k_param_disarm_delay,
@@ -212,8 +217,6 @@ public:
     AP_Int8         telem_delay;
 
     AP_Float        throttle_filt;
-    AP_Int16        throttle_behavior;
-    AP_Float        pilot_takeoff_alt;
 
     AP_Int8         failsafe_gcs;               // ground station failsafe behavior
     AP_Int16        gps_hdop_good;              // GPS Hdop value at or below this value represent a good position
@@ -254,6 +257,7 @@ public:
 
     AP_Int8         simple_mode;
     AP_Int16        dis_mask;
+    AP_Float        pid_dz;
 
     AP_Int8         rtl_alt_type;
 

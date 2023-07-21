@@ -59,6 +59,7 @@
 #include "config.h"
 
 #include "Fins.h"
+#include "Loiter.h"
 
 #include "RC_Channel.h"         // RC Channel Library
 
@@ -88,11 +89,13 @@ public:
 
     friend class Mode;
     friend class ModeManual;
-    friend class ModeLand;
+    friend class ModeHold;
     friend class ModeVelocity;
     friend class ModeLoiter;
+    friend class ModeRTL;
 
     friend class Fins;
+    friend class Loiter;
 
     Blimp(void);
 
@@ -108,7 +111,7 @@ private:
     // primary input control channels
     RC_Channel *channel_right;
     RC_Channel *channel_front;
-    RC_Channel *channel_down;
+    RC_Channel *channel_up;
     RC_Channel *channel_yaw;
 
     AP_Logger logger;
@@ -191,6 +194,7 @@ private:
 
     // Motor Output
     Fins *motors;
+    Loiter *loiter;
 
     int32_t _home_bearing;
     uint32_t _home_distance;
@@ -305,6 +309,7 @@ private:
     void update_altitude();
     void rotate_NE_to_BF(Vector2f &vec);
     void rotate_BF_to_NE(Vector2f &vec);
+    void zero_integrators();
 
     // commands.cpp
     void update_home_from_EKF();
@@ -378,7 +383,7 @@ private:
     void notify_flight_mode();
 
     // mode_land.cpp
-    void set_mode_land_with_pause(ModeReason reason);
+    void set_mode_hold_failsafe(ModeReason reason);
     bool landing_with_GPS();
 
     // // motors.cpp
@@ -427,9 +432,10 @@ private:
 
     Mode *flightmode;
     ModeManual mode_manual;
-    ModeLand mode_land;
+    ModeHold mode_hold;
     ModeVelocity mode_velocity;
     ModeLoiter mode_loiter;
+    ModeRTL mode_rtl;
 
     // mode.cpp
     Mode *mode_from_mode_num(const Mode::Number mode);

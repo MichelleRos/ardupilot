@@ -72,7 +72,7 @@ void Fins::add_fin(int8_t fin_num, float right_amp_fac, float front_amp_fac, flo
 //B,F,R,L = 0,1,2,3
 void Fins::output()
 {
-    if (!_armed) {
+    if (!_armed) { //TODO: Is this really needed? Should probably be handled elsewhere.
         // set everything to zero so fins stop moving
         right_out = 0;
         front_out = 0;
@@ -81,6 +81,12 @@ void Fins::output()
     }
 
     blimp.Write_FINI(right_out, front_out, down_out, yaw_out);
+    if (AP_HAL::millis() % 1000 < 30) {
+        gcs().send_named_float("FINIr", right_out);
+        gcs().send_named_float("FINIf", front_out);
+        gcs().send_named_float("FINId", down_out);
+        gcs().send_named_float("FINIy", yaw_out);
+    }
 
     //Constrain after logging so as to still show when sub-optimal tuning is causing massive overshoots.
     right_out = constrain_float(right_out, -1, 1);

@@ -16,9 +16,10 @@ Mode::Mode(void) :
     inertial_nav(blimp.inertial_nav),
     ahrs(blimp.ahrs),
     motors(blimp.motors),
+    loiter(blimp.loiter),
     channel_right(blimp.channel_right),
     channel_front(blimp.channel_front),
-    channel_down(blimp.channel_down),
+    channel_up(blimp.channel_up),
     channel_yaw(blimp.channel_yaw),
     G_Dt(blimp.G_Dt)
 { };
@@ -29,8 +30,8 @@ Mode *Blimp::mode_from_mode_num(const Mode::Number mode)
     Mode *ret = nullptr;
 
     switch (mode) {
-    case Mode::Number::LAND:
-        ret = &mode_land;
+    case Mode::Number::HOLD:
+        ret = &mode_hold;
         break;
     case Mode::Number::MANUAL:
         ret = &mode_manual;
@@ -40,6 +41,9 @@ Mode *Blimp::mode_from_mode_num(const Mode::Number mode)
         break;
     case Mode::Number::LOITER:
         ret = &mode_loiter;
+        break;
+    case Mode::Number::RTL:
+        ret = &mode_rtl;
         break;
     default:
         break;
@@ -136,7 +140,7 @@ void Blimp::update_flight_mode()
 
 // exit_mode - high level call to organise cleanup as a flight mode is exited
 void Blimp::exit_mode(Mode *&old_flightmode,
-                      Mode *&new_flightmode){}
+                      Mode *&new_flightmode) {}
 
 // notify_flight_mode - sets notify object based on current flight mode.  Only used for OreoLED notify device
 void Blimp::notify_flight_mode()
@@ -146,32 +150,22 @@ void Blimp::notify_flight_mode()
     notify.set_flight_mode_str(flightmode->name4());
 }
 
-void Mode::update_navigation()
-{
-    // run autopilot to make high level decisions about control modes
-    run_autopilot();
-}
-
-// returns desired angle in centi-degrees
-void Mode::get_pilot_desired_accelerations(float &right_out, float &front_out) const
+// returns desired thrust/acceleration
+void Mode::get_pilot_input(Vector3f &pilot, float &yaw)
 {
     // throttle failsafe check
     if (blimp.failsafe.radio || !blimp.ap.rc_receiver_present) {
-        right_out = 0;
-        front_out = 0;
+        pilot.y = 0;
+        pilot.x = 0;
+        pilot.z = 0;
+        yaw = 0;
         return;
     }
-    // fetch roll and pitch inputs
-    right_out = channel_right->get_control_in();
-    front_out = channel_front->get_control_in();
-}
-
-bool Mode::is_disarmed_or_landed() const
-{
-    if (!motors->armed() || !blimp.ap.auto_armed || blimp.ap.land_complete) {
-        return true;
-    }
-    return false;
+    // fetch pilot inputs
+    pilot.y = channel_right->get_control_in() / float(RC_SCALE);
+    pilot.x = channel_front->get_control_in() / float(RC_SCALE);
+    pilot.z = - channel_up->get_control_in() / float(RC_SCALE);
+    yaw = channel_yaw->get_control_in() / float(RC_SCALE);
 }
 
 bool Mode::set_mode(Mode::Number mode, ModeReason reason)
