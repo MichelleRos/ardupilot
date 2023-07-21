@@ -92,8 +92,6 @@ public:
     friend class ModeHold;
     friend class ModeVelocity;
     friend class ModeLoiter;
-    friend class ModeAuto;
-    friend class ModeGuided;
     friend class ModeRTL;
 
     friend class Fins;
@@ -437,8 +435,6 @@ private:
     ModeHold mode_hold;
     ModeVelocity mode_velocity;
     ModeLoiter mode_loiter;
-    ModeAuto mode_auto;
-    ModeGuided mode_guided;
     ModeRTL mode_rtl;
 
     // mode.cpp
