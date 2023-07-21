@@ -53,23 +53,6 @@ const AP_Param::Info Blimp::var_info[] = {
     // @Increment: .5
     GSCALAR(throttle_filt,  "PILOT_THR_FILT",     0),
 
-    // @Param: PILOT_TKOFF_ALT
-    // @DisplayName: Pilot takeoff altitude
-    // @Description: Altitude that altitude control modes will climb to when a takeoff is triggered with the throttle stick.
-    // @User: Standard
-    // @Units: cm
-    // @Range: 0.0 1000.0
-    // @Increment: 10
-    GSCALAR(pilot_takeoff_alt,  "PILOT_TKOFF_ALT",  PILOT_TKOFF_ALT_DEFAULT),
-
-    // @Param: PILOT_THR_BHV
-    // @DisplayName: Throttle stick behavior
-    // @Description: Bitmask containing various throttle stick options. TX with sprung throttle can set PILOT_THR_BHV to "1" so motor feedback when landed starts from mid-stick instead of bottom of stick.
-    // @User: Standard
-    // @Values: 0:None,1:Feedback from mid stick,2:High throttle cancels landing,4:Disarm on land detection
-    // @Bitmask: 0:Feedback from mid stick,1:High throttle cancels landing,2:Disarm on land detection
-    GSCALAR(throttle_behavior, "PILOT_THR_BHV", 0),
-
     // @Group: SERIAL
     // @Path: ../libraries/AP_SerialManager/AP_SerialManager.cpp
     GOBJECT(serial_manager, "SERIAL",   AP_SerialManager),
@@ -203,7 +186,7 @@ const AP_Param::Info Blimp::var_info[] = {
     // @Param: FS_EKF_ACTION
     // @DisplayName: EKF Failsafe Action
     // @Description: Controls the action that will be taken when an EKF failsafe is invoked
-    // @Values: 1:Land, 3:Land even in MANUAL
+    // @Values: 1:Hold, 2:Hold even in manual
     // @User: Advanced
     GSCALAR(fs_ekf_action, "FS_EKF_ACTION",    FS_EKF_ACTION_DEFAULT),
 

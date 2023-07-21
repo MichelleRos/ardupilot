@@ -148,14 +148,14 @@ void Blimp::failsafe_ekf_event()
     AP::logger().Write_Error(LogErrorSubsystem::FAILSAFE_EKFINAV, LogErrorCode::FAILSAFE_OCCURRED);
 
     // does this mode require position?
-    if (!blimp.flightmode->requires_GPS() && (g.fs_ekf_action != FS_EKF_ACTION_LAND_EVEN_STABILIZE)) {
+    if (!blimp.flightmode->requires_GPS() && (g.fs_ekf_action != FS_EKF_ACTION_HOLD_EVEN_MANUAL)) {
         return;
     }
 
     // take action based on fs_ekf_action parameter
     switch (g.fs_ekf_action) {
-    case FS_EKF_ACTION_LAND:
-    case FS_EKF_ACTION_LAND_EVEN_STABILIZE:
+    case FS_EKF_ACTION_HOLD:
+    case FS_EKF_ACTION_HOLD_EVEN_MANUAL:
     default:
         set_mode_hold_failsafe(ModeReason::EKF_FAILSAFE);
         break;

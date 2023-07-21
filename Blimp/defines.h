@@ -10,18 +10,6 @@
 #define ENABLE ENABLED
 #define DISABLE DISABLED
 
-// Autopilot Yaw Mode enumeration
-enum autopilot_yaw_mode {
-    AUTO_YAW_HOLD =             0,  // pilot controls the heading
-    AUTO_YAW_LOOK_AT_NEXT_WP =  1,  // point towards next waypoint (no pilot input accepted)
-    AUTO_YAW_ROI =              2,  // point towards a location held in roi (no pilot input accepted)
-    AUTO_YAW_FIXED =            3,  // point towards a particular angle (no pilot input accepted)
-    AUTO_YAW_LOOK_AHEAD =       4,  // point in the direction the blimp is moving
-    AUTO_YAW_RESETTOARMEDYAW =  5,  // point towards heading at time motors were armed
-    AUTO_YAW_RATE =             6,  // turn at a specified rate (held in auto_yaw_rate)
-    AUTO_YAW_CIRCLE =           7,  // use AC_Circle's provided yaw (used during Loiter-Turns commands)
-};
-
 // Frame types
 #define UNDEFINED_FRAME 0
 #define MULTICOPTER_FRAME 1
@@ -71,48 +59,6 @@ enum tuning_func {
     TUNING_RATE_YAW_FILT =              56, // yaw rate input filter
     UNUSED =                            57, // was winch control
     TUNING_SYSTEM_ID_MAGNITUDE =        58  // magnitude of the system ID signal
-};
-
-// Yaw behaviours during missions - possible values for WP_YAW_BEHAVIOR parameter
-#define WP_YAW_BEHAVIOR_NONE                          0   // auto pilot will never control yaw during missions or rtl (except for DO_CONDITIONAL_YAW command received)
-#define WP_YAW_BEHAVIOR_LOOK_AT_NEXT_WP               1   // auto pilot will face next waypoint or home during rtl
-#define WP_YAW_BEHAVIOR_LOOK_AT_NEXT_WP_EXCEPT_RTL    2   // auto pilot will face next waypoint except when doing RTL at which time it will stay in it's last
-#define WP_YAW_BEHAVIOR_LOOK_AHEAD                    3   // auto pilot will look ahead during missions and rtl (primarily meant for traditional helicopters)
-
-// Auto modes
-enum AutoMode {
-    Auto_TakeOff,
-    Auto_WP,
-    Auto_Land,
-    Auto_RTL,
-    Auto_CircleMoveToEdge,
-    Auto_Circle,
-    Auto_Spline,
-    Auto_NavGuided,
-    Auto_Loiter,
-    Auto_LoiterToAlt,
-    Auto_NavPayloadPlace,
-};
-
-// Guided modes
-enum GuidedMode {
-    Guided_TakeOff,
-    Guided_WP,
-    Guided_Velocity,
-    Guided_PosVel,
-    Guided_Angle,
-};
-
-enum PayloadPlaceStateType {
-    PayloadPlaceStateType_FlyToLocation,
-    PayloadPlaceStateType_Descent_Start,
-    PayloadPlaceStateType_Descent,
-    PayloadPlaceStateType_Release,
-    PayloadPlaceStateType_Releasing,
-    PayloadPlaceStateType_Delay,
-    PayloadPlaceStateType_Ascent_Start,
-    PayloadPlaceStateType_Ascent,
-    PayloadPlaceStateType_Done,
 };
 
 // bit options for DEV_OPTIONS parameter
@@ -183,9 +129,8 @@ enum LoggingParameters {
 #define FS_GCS_ENABLED_ALWAYS_LAND             5
 
 // EKF failsafe definitions (FS_EKF_ACTION parameter)
-#define FS_EKF_ACTION_LAND                  1       // switch to LAND mode on EKF failsafe
-#define FS_EKF_ACTION_ALTHOLD               2       // switch to ALTHOLD mode on EKF failsafe
-#define FS_EKF_ACTION_LAND_EVEN_STABILIZE   3       // switch to Land mode on EKF failsafe even if in a manual flight mode like stabilize
+#define FS_EKF_ACTION_HOLD                  1       // switch to LAND mode on EKF failsafe
+#define FS_EKF_ACTION_HOLD_EVEN_MANUAL      2       // switch to Land mode on EKF failsafe even if in a manual flight mode.
 
 // for PILOT_THR_BHV parameter
 #define THR_BEHAVE_FEEDBACK_FROM_MID_STICK (1<<0)
