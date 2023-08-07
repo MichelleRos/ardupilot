@@ -127,11 +127,15 @@ class AutoTestBlimp(AutoTest):
         self.wait_ready_to_arm()
         self.arm_vehicle()
 
+        siz = 5
+        acc = 1
+        tim = 60
+
         # make sure we don't drift:
         bl = self.mav.location()
-        tl = self.offset_location_ne(location=bl, metres_north=2, metres_east=0)
-        tr = self.offset_location_ne(location=bl, metres_north=2, metres_east=2)
-        br = self.offset_location_ne(location=bl, metres_north=0, metres_east=2)
+        tl = self.offset_location_ne(location=bl, metres_north=siz, metres_east=0)
+        tr = self.offset_location_ne(location=bl, metres_north=siz, metres_east=siz)
+        br = self.offset_location_ne(location=bl, metres_north=0, metres_east=siz)
 
         print("Locations are:")
         print("bottom left  ", bl.lat, bl.lng)
@@ -145,25 +149,22 @@ class AutoTestBlimp(AutoTest):
             self.mavproxy.send(f"map icon {tr.lat} {tr.lng} barrell\n")
             self.mavproxy.send(f"map icon {br.lat} {br.lng} barrell\n")
 
-        acc = 0.1
-        tim = 30
-
         #Temp bit to ensure it really is pointing North.
-        self.set_rc(4, 1600)
-        self.wait_heading(0, accuracy=2, timeout=40)
-        self.set_rc(4, 1500)
+        # self.set_rc(4, 1600)
+        # self.wait_heading(0, accuracy=2, timeout=40)
+        # self.set_rc(4, 1500)
 
         self.set_rc(2, 2000)
-        self.wait_distance_to_location(tl, 0, acc, timeout=tim)
+        self.wait_distance_to_location(tl, 0, 0.5, timeout=tim)
         self.set_rc(2, 1500)
         self.set_rc(1, 2000)
-        self.wait_distance_to_location(tr, 0, acc, timeout=tim)
+        self.wait_distance_to_location(tr, 0, 0.7, timeout=tim)
         self.set_rc(1, 1500)
         self.set_rc(2, 1000)
-        self.wait_distance_to_location(br, 0, acc, timeout=tim)
+        self.wait_distance_to_location(br, 0, 0.7, timeout=tim)
         self.set_rc(2, 1500)
         self.set_rc(1, 1000)
-        self.wait_distance_to_location(bl, 0, acc, timeout=tim)
+        self.wait_distance_to_location(bl, 0, 0.5, timeout=tim)
 
         #self.wait_heading(170)
         #self.delay_sim_time(10)
