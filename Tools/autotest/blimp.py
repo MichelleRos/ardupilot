@@ -128,7 +128,6 @@ class AutoTestBlimp(AutoTest):
         self.arm_vehicle()
 
         siz = 5
-        acc = 1
         tim = 60
 
         # make sure we don't drift:
@@ -149,19 +148,16 @@ class AutoTestBlimp(AutoTest):
             self.mavproxy.send(f"map icon {tr.lat} {tr.lng} barrell\n")
             self.mavproxy.send(f"map icon {br.lat} {br.lng} barrell\n")
 
-        #Temp bit to ensure it really is pointing North.
-        # self.set_rc(4, 1600)
-        # self.wait_heading(0, accuracy=2, timeout=40)
-        # self.set_rc(4, 1500)
+        self.set_parameter("SIMPLE_MODE", 1)
 
         self.set_rc(2, 2000)
-        self.wait_distance_to_location(tl, 0, 0.5, timeout=tim)
+        self.wait_distance_to_location(tl, 0, 0.2, timeout=tim)
         self.set_rc(2, 1500)
         self.set_rc(1, 2000)
-        self.wait_distance_to_location(tr, 0, 0.7, timeout=tim)
+        self.wait_distance_to_location(tr, 0, 0.5, timeout=tim)
         self.set_rc(1, 1500)
         self.set_rc(2, 1000)
-        self.wait_distance_to_location(br, 0, 0.7, timeout=tim)
+        self.wait_distance_to_location(br, 0, 0.5, timeout=tim)
         self.set_rc(2, 1500)
         self.set_rc(1, 1000)
         self.wait_distance_to_location(bl, 0, 0.5, timeout=tim)
