@@ -13,9 +13,12 @@ from pymavlink import mavextra
 
 from common import AutoTest
 
+#Autotest command: python3 Tools/autotest/autotest.py test.Blimp
+#with map: python3 Tools/autotest/autotest.py test.Blimp --map --speedup=2
+
 # get location of scripts
 testdir = os.path.dirname(os.path.realpath(__file__))
-SITL_START_LOCATION = mavutil.location(-35.362938, 149.165085, 584, 270)
+SITL_START_LOCATION = mavutil.location(-35.362938, 149.165085, 584, 0)
 
 # Flight mode switch positions are set-up in blimp.parm to be
 #   switch 1 = Land
@@ -119,10 +122,6 @@ class AutoTestBlimp(AutoTest):
 
     def FlyLoiter(self):
         '''test loiter mode''' #10 sec
-        #top left -35.36324808 149.16523587
-        #top right -35.36324737 149.16525623
-        #bottom right -35.36326165 149.16525667
-        #home (bottom left) -35.36326237 149.16523718
 
         self.change_mode('LOITER')
         self.wait_ready_to_arm()
@@ -130,19 +129,9 @@ class AutoTestBlimp(AutoTest):
 
         # make sure we don't drift:
         bl = self.mav.location()
-        # bl = mavutil.location(-35.36326237, 149.16523718, 584, 0)
-        # tl = mavutil.location(bl.lat+0.00001429, bl.lng-0.00000131, 584, 0)
-        # tr = mavutil.location(bl.lat+0.00001500, bl.lng+0.00001905, 584, 0)
-        # br = mavutil.location(bl.lat+0.00000072, bl.lng+0.00001949, 584, 0)
-
-        (tl_lat,tl_lng) = mavextra.gps_offset(bl.lat, bl.lng, 2, 0)
-        tl = mavutil.location(tl_lat, tl_lng, bl.alt, 0)
-
-        (tr_lat,tr_lng) = mavextra.gps_offset(bl.lat, bl.lng, 2, 2)
-        tr = mavutil.location(tr_lat, tr_lng, bl.alt, 0)
-
-        (br_lat,br_lng) = mavextra.gps_offset(bl.lat, bl.lng, 0, 2)
-        br = mavutil.location(br_lat, br_lng, bl.alt, 0)
+        tl = self.offset_location_ne(location=bl, metres_north=2, metres_east=0)
+        tr = self.offset_location_ne(location=bl, metres_north=2, metres_east=2)
+        br = self.offset_location_ne(location=bl, metres_north=0, metres_east=2)
 
         print("Locations are:")
         print("bottom left  ", bl.lat, bl.lng)
@@ -150,10 +139,16 @@ class AutoTestBlimp(AutoTest):
         print("top right    ", tr.lat, tr.lng)
         print("bottom right ", br.lat, br.lng)
 
-        acc = 1
+        if self.mavproxy is not None:
+            self.mavproxy.send(f"map icon {bl.lat} {bl.lng} barrell\n")
+            self.mavproxy.send(f"map icon {tl.lat} {tl.lng} barrell\n")
+            self.mavproxy.send(f"map icon {tr.lat} {tr.lng} barrell\n")
+            self.mavproxy.send(f"map icon {br.lat} {br.lng} barrell\n")
+
+        acc = 0.1
         tim = 30
 
-        #Temp workaround since it twitches to the left in autotest for some reason.
+        #Temp bit to ensure it really is pointing North.
         self.set_rc(4, 1600)
         self.wait_heading(0, accuracy=2, timeout=40)
         self.set_rc(4, 1500)
