@@ -6661,7 +6661,7 @@ class AutoTest(ABC):
                 if achieving_duration_start is None:
                     achieving_duration_start = self.get_sim_time_cached()
                 if self.get_sim_time_cached() - achieving_duration_start >= minimum_duration:
-                    self.progress("Attained %s=%s" % (value_name, average))
+                    self.progress("Attained %s=%s in %f" % (value_name, average, achieving_duration_start-tstart))
                     return True
             else:
                 achieving_duration_start = None
