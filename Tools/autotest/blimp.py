@@ -211,9 +211,13 @@ class AutoTestBlimp(AutoTest):
         self.wait_distance_to_location(bl, 0, 0.5, timeout=tim)
         self.set_rc(1, 1500)
 
+        fin = self.mav.location()
+
         self.set_rc(4, 1700)
         self.wait_heading(135, accuracy=2, timeout=tim)
         self.set_rc(4, 1500)
+
+        self.wait_distance_to_location(fin, 0, 0.15, timeout=5) #make sure we haven't moved from the spot
 
         self.set_rc(3, 2000)
         self.wait_altitude(5, 5.5, relative=True, timeout=60)
@@ -221,9 +225,13 @@ class AutoTestBlimp(AutoTest):
         self.wait_altitude(0, 0.5, relative=True, timeout=60)
         self.set_rc(3, 1500)
 
+        self.wait_distance_to_location(fin, 0, 0.15, timeout=5) #make sure we haven't moved from the spot
+
         self.set_rc(4, 1300)
         self.wait_heading(0, accuracy=2, timeout=tim)
         self.set_rc(4, 1500)
+
+        self.wait_distance_to_location(fin, 0, 0.15, timeout=5) #make sure we haven't moved from the spot
 
         self.delay_sim_time(10) #so I have time to see the end on the map
 
