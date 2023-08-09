@@ -13,8 +13,8 @@ from pymavlink import mavextra
 
 from common import AutoTest
 
-#Autotest command: python3 Tools/autotest/autotest.py test.Blimp
-#with map: python3 Tools/autotest/autotest.py test.Blimp --map --speedup=2
+#Autotest command: python3 Tools/autotest/autotest.py test.Blimp.FlyLoiter
+#with map: python3 Tools/autotest/autotest.py test.Blimp.FlyLoiter --map --speedup=2
 
 # get location of scripts
 testdir = os.path.dirname(os.path.realpath(__file__))
@@ -109,15 +109,54 @@ class AutoTestBlimp(AutoTest):
     def set_autodisarm_delay(self, delay):
         self.set_parameter("DISARM_DELAY", delay)
 
+    # def wait_yawrate(self, rate, acc, timeout):
+
+
     def FlyManual(self):
         '''test manual mode'''
+        self.change_mode('LOITER')
+        self.wait_ready_to_arm()
+        self.arm_vehicle()
+        self.set_rc(4, 1550)
+        self.wait_heading(0, accuracy=1, timeout=60)
+        self.set_rc(4, 1500)
+        self.delay_sim_time(10) #give it time to stabilise
+        self.disarm_vehicle()
+
         self.change_mode('MANUAL')
         self.wait_ready_to_arm()
         self.arm_vehicle()
+
+        tim = 60
+        acc = 1
+
         # make sure we don't drift:
-        start = self.mav.location()
+        bl = self.mav.location()
+        tl = self.offset_location_ne(location=bl, metres_north=2, metres_east=0)
+        ttl = self.offset_location_ne(location=bl, metres_north=4, metres_east=0)
+        tr = self.offset_location_ne(location=bl, metres_north=3, metres_east=2)
+        ttr = self.offset_location_ne(location=bl, metres_north=3.5, metres_east=4)
+
         self.set_rc(2, 2000)
-        self.wait_distance_to_location(start, 2, 10, timeout=40)
+        self.wait_distance_to_location(tl, 0, acc, timeout=tim)
+        self.set_rc(2, 1500)
+        self.wait_distance_to_location(ttl, 0, acc, timeout=tim)
+        self.set_rc(1, 2000)
+        self.wait_distance_to_location(tr, 0, acc, timeout=tim)
+        self.set_rc(1, 1500)
+        self.wait_distance_to_location(ttr, 0, acc, timeout=tim)
+        self.change_mode('RTL')
+        self.wait_distance_to_location(bl, 0, acc, timeout=tim)
+        self.change_mode('MANUAL')
+
+        self.set_rc(3, 2000)
+        self.wait_altitude(5, 5.5, relative=True, timeout=60)
+        self.set_rc(3, 1500)
+
+        self.set_rc(4, 2000)
+        self.wait_heading(135, accuracy=2, timeout=10) #short timeout to check yawrate
+        self.set_rc(4, 1500)
+
         self.disarm_vehicle()
 
     def FlyLoiter(self):
@@ -189,7 +228,7 @@ class AutoTestBlimp(AutoTest):
         # ret = super(AutoTestBlimp, self).tests()
         ret = []
         ret.extend([
-            # self.FlyManual,
+            self.FlyManual,
             self.FlyLoiter,
         ])
         return ret
