@@ -136,6 +136,13 @@ class AutoTestBlimp(AutoTest):
         tr = self.offset_location_ne(location=bl, metres_north=3, metres_east=2)
         ttr = self.offset_location_ne(location=bl, metres_north=3.5, metres_east=4)
 
+        if self.mavproxy is not None:
+            self.mavproxy.send(f"map icon {bl.lat} {bl.lng} flag\n")
+            self.mavproxy.send(f"map icon {tl.lat} {tl.lng} flag\n")
+            self.mavproxy.send(f"map icon {ttl.lat} {ttl.lng} flag\n")
+            self.mavproxy.send(f"map icon {tr.lat} {tr.lng} flag\n")
+            self.mavproxy.send(f"map icon {ttr.lat} {ttr.lng} flag\n")
+
         self.set_rc(2, 2000)
         self.wait_distance_to_location(tl, 0, acc, timeout=10)
         self.set_rc(2, 1500)
@@ -181,10 +188,10 @@ class AutoTestBlimp(AutoTest):
         print("bottom right ", br.lat, br.lng)
 
         if self.mavproxy is not None:
-            self.mavproxy.send(f"map icon {bl.lat} {bl.lng} barrell\n")
-            self.mavproxy.send(f"map icon {tl.lat} {tl.lng} barrell\n")
-            self.mavproxy.send(f"map icon {tr.lat} {tr.lng} barrell\n")
-            self.mavproxy.send(f"map icon {br.lat} {br.lng} barrell\n")
+            self.mavproxy.send(f"map icon {bl.lat} {bl.lng} flag\n")
+            self.mavproxy.send(f"map icon {tl.lat} {tl.lng} flag\n")
+            self.mavproxy.send(f"map icon {tr.lat} {tr.lng} flag\n")
+            self.mavproxy.send(f"map icon {br.lat} {br.lng} flag\n")
 
         self.set_parameter("SIMPLE_MODE", 1)
 
