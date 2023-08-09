@@ -127,7 +127,6 @@ class AutoTestBlimp(AutoTest):
         self.wait_ready_to_arm()
         self.arm_vehicle()
 
-        tim = 60
         acc = 1
 
         # make sure we don't drift:
@@ -138,23 +137,23 @@ class AutoTestBlimp(AutoTest):
         ttr = self.offset_location_ne(location=bl, metres_north=3.5, metres_east=4)
 
         self.set_rc(2, 2000)
-        self.wait_distance_to_location(tl, 0, acc, timeout=tim)
+        self.wait_distance_to_location(tl, 0, acc, timeout=10)
         self.set_rc(2, 1500)
-        self.wait_distance_to_location(ttl, 0, acc, timeout=tim)
+        self.wait_distance_to_location(ttl, 0, acc, timeout=15)
         self.set_rc(1, 2000)
-        self.wait_distance_to_location(tr, 0, acc, timeout=tim)
+        self.wait_distance_to_location(tr, 0, acc, timeout=10)
         self.set_rc(1, 1500)
-        self.wait_distance_to_location(ttr, 0, acc, timeout=tim)
+        self.wait_distance_to_location(ttr, 0, acc, timeout=15)
         self.change_mode('RTL')
-        self.wait_distance_to_location(bl, 0, acc, timeout=tim)
+        self.wait_distance_to_location(bl, 0, 0.5, timeout=30, minimum_duration=5) #make sure it can hold position
         self.change_mode('MANUAL')
 
         self.set_rc(3, 2000)
-        self.wait_altitude(5, 5.5, relative=True, timeout=60)
+        self.wait_altitude(5, 5.5, relative=True, timeout=15)
         self.set_rc(3, 1500)
 
         self.set_rc(4, 2000)
-        self.wait_heading(135, accuracy=2, timeout=10) #short timeout to check yawrate
+        self.wait_heading(135, accuracy=5, timeout=5) #short timeout to check yawrate
         self.set_rc(4, 1500)
 
         self.disarm_vehicle()
