@@ -9,12 +9,12 @@ import os
 import shutil
 
 from pymavlink import mavutil
-from pymavlink import mavextra
+# from pymavlink import mavextra
 
 from common import AutoTest
 
-#Autotest command: python3 Tools/autotest/autotest.py test.Blimp.FlyLoiter
-#with map: python3 Tools/autotest/autotest.py test.Blimp.FlyLoiter --map --speedup=2
+# Autotest command: python3 Tools/autotest/autotest.py test.Blimp.FlyLoiter
+# with map: python3 Tools/autotest/autotest.py test.Blimp.FlyLoiter --map --speedup=2
 
 # get location of scripts
 testdir = os.path.dirname(os.path.realpath(__file__))
@@ -111,7 +111,6 @@ class AutoTestBlimp(AutoTest):
 
     # def wait_yawrate(self, rate, acc, timeout):
 
-
     def FlyManual(self):
         '''test manual mode'''
         self.change_mode('LOITER')
@@ -120,7 +119,7 @@ class AutoTestBlimp(AutoTest):
         self.set_rc(4, 1550)
         self.wait_heading(0, accuracy=1, timeout=60)
         self.set_rc(4, 1500)
-        self.delay_sim_time(10) #give it time to stabilise
+        self.delay_sim_time(10) # give it time to stabilise
         self.disarm_vehicle()
 
         self.change_mode('MANUAL')
@@ -152,7 +151,7 @@ class AutoTestBlimp(AutoTest):
         self.set_rc(1, 1500)
         self.wait_distance_to_location(ttr, 0, acc, timeout=15)
         self.change_mode('RTL')
-        self.wait_distance_to_location(bl, 0, 0.5, timeout=30, minimum_duration=5) #make sure it can hold position
+        self.wait_distance_to_location(bl, 0, 0.5, timeout=30, minimum_duration=5) # make sure it can hold position
         self.change_mode('MANUAL')
 
         self.set_rc(3, 2000)
@@ -160,7 +159,7 @@ class AutoTestBlimp(AutoTest):
         self.set_rc(3, 1500)
 
         self.set_rc(4, 2000)
-        self.wait_heading(135, accuracy=5, timeout=5) #short timeout to check yawrate
+        self.wait_heading(135, accuracy=5, timeout=5) # short timeout to check yawrate
         self.set_rc(4, 1500)
 
         self.disarm_vehicle()
@@ -217,7 +216,7 @@ class AutoTestBlimp(AutoTest):
         self.wait_heading(135, accuracy=2, timeout=tim)
         self.set_rc(4, 1500)
 
-        self.wait_distance_to_location(fin, 0, 0.15, timeout=5) #make sure we haven't moved from the spot
+        self.wait_distance_to_location(fin, 0, 0.15, timeout=5) # make sure we haven't moved from the spot
 
         self.set_rc(3, 2000)
         self.wait_altitude(5, 5.5, relative=True, timeout=60)
@@ -225,15 +224,15 @@ class AutoTestBlimp(AutoTest):
         self.wait_altitude(0, 0.5, relative=True, timeout=60)
         self.set_rc(3, 1500)
 
-        self.wait_distance_to_location(fin, 0, 0.15, timeout=5) #make sure we haven't moved from the spot
+        self.wait_distance_to_location(fin, 0, 0.15, timeout=5) # make sure we haven't moved from the spot
 
         self.set_rc(4, 1300)
         self.wait_heading(0, accuracy=2, timeout=tim)
         self.set_rc(4, 1500)
 
-        self.wait_distance_to_location(fin, 0, 0.15, timeout=5) #make sure we haven't moved from the spot
+        self.wait_distance_to_location(fin, 0, 0.15, timeout=5) # make sure we haven't moved from the spot
 
-        self.delay_sim_time(10) #so I have time to see the end on the map
+        self.delay_sim_time(10) # so I have time to see the end on the map
 
         self.disarm_vehicle()
 
