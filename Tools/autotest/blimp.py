@@ -18,7 +18,7 @@ from common import AutoTest
 
 # get location of scripts
 testdir = os.path.dirname(os.path.realpath(__file__))
-SITL_START_LOCATION = mavutil.location(-35.362938, 149.165085, 584, 315)
+SITL_START_LOCATION = mavutil.location(-35.362938, 149.165085, 584, 0)
 
 # Flight mode switch positions are set-up in blimp.parm to be
 #   switch 1 = Land
@@ -113,27 +113,18 @@ class AutoTestBlimp(AutoTest):
 
     def FlyManual(self):
         '''test manual mode'''
-        self.change_mode('LOITER')
-        self.wait_ready_to_arm()
-        self.arm_vehicle()
-        self.set_rc(4, 1550)
-        self.wait_heading(0, accuracy=1, timeout=60)
-        self.set_rc(4, 1500)
-        self.delay_sim_time(10) # give it time to stabilise
-        self.disarm_vehicle()
-
         self.change_mode('MANUAL')
         self.wait_ready_to_arm()
         self.arm_vehicle()
 
-        acc = 1
+        acc = 0.5
 
         # make sure we don't drift:
-        bl = self.mav.location()
-        tl = self.offset_location_ne(location=bl, metres_north=2, metres_east=0)
+        bl  = self.mav.location()
+        tl  = self.offset_location_ne(location=bl, metres_north=2, metres_east=0)
         ttl = self.offset_location_ne(location=bl, metres_north=4, metres_east=0)
-        tr = self.offset_location_ne(location=bl, metres_north=3, metres_east=2)
-        ttr = self.offset_location_ne(location=bl, metres_north=3.5, metres_east=4)
+        tr  = self.offset_location_ne(location=bl, metres_north=4, metres_east=2)
+        ttr = self.offset_location_ne(location=bl, metres_north=4, metres_east=4)
 
         if self.mavproxy is not None:
             self.mavproxy.send(f"map icon {bl.lat} {bl.lng} flag\n")
@@ -154,13 +145,31 @@ class AutoTestBlimp(AutoTest):
         self.wait_distance_to_location(bl, 0, 0.5, timeout=30, minimum_duration=5) # make sure it can hold position
         self.change_mode('MANUAL')
 
+        self.wait_distance_to_location(bl, 0, acc, timeout=5) # make sure we haven't moved from the spot
+
         self.set_rc(3, 2000)
         self.wait_altitude(5, 5.5, relative=True, timeout=15)
         self.set_rc(3, 1500)
 
-        self.set_rc(4, 2000)
-        self.wait_heading(135, accuracy=5, timeout=5) # short timeout to check yawrate
+        self.wait_distance_to_location(bl, 0, acc, timeout=5) # make sure we haven't moved from the spot
+
+        self.set_rc(4, 1000)
+        self.wait_heading(340, accuracy=5, timeout=5) # short timeout to check yawrate
         self.set_rc(4, 1500)
+
+        self.wait_distance_to_location(bl, 0, acc, timeout=5) # make sure we haven't moved from the spot
+
+        self.set_rc(3, 1000)
+        self.wait_altitude(0, 0.5, relative=True, timeout=20)
+        self.set_rc(3, 1500)
+
+        self.wait_distance_to_location(bl, 0, acc, timeout=5) # make sure we haven't moved from the spot
+
+        self.set_rc(4, 2000)
+        self.wait_heading(135, accuracy=5, timeout=10) # short timeout to check yawrate
+        self.set_rc(4, 1500)
+
+        self.wait_distance_to_location(bl, 0, acc, timeout=5) # make sure we haven't moved from the spot
 
         self.disarm_vehicle()
 
