@@ -9,12 +9,8 @@ import os
 import shutil
 
 from pymavlink import mavutil
-# from pymavlink import mavextra
 
 from common import AutoTest
-
-# Autotest command: python3 Tools/autotest/autotest.py test.Blimp.FlyLoiter
-# with map: python3 Tools/autotest/autotest.py test.Blimp.FlyLoiter --map --speedup=2
 
 # get location of scripts
 testdir = os.path.dirname(os.path.realpath(__file__))
@@ -108,8 +104,6 @@ class AutoTestBlimp(AutoTest):
 
     def set_autodisarm_delay(self, delay):
         self.set_parameter("DISARM_DELAY", delay)
-
-    # def wait_yawrate(self, rate, acc, timeout):
 
     def FlyManual(self):
         '''test manual mode'''
@@ -240,8 +234,6 @@ class AutoTestBlimp(AutoTest):
         self.set_rc(4, 1500)
 
         self.wait_distance_to_location(fin, 0, 0.15, timeout=5) # make sure we haven't moved from the spot
-
-        self.delay_sim_time(10) # so I have time to see the end on the map
 
         self.disarm_vehicle()
 
