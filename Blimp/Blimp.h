@@ -51,6 +51,7 @@
 #include <AC_PID/AC_PID_Basic.h>
 #include <AC_PID/AC_PID.h>
 #include <AP_Vehicle/AP_MultiCopter.h>
+#include <AP_Motors/AP_Motors.h>            // AP Motors library
 
 #include <Filter/NotchFilter.h>
 
@@ -193,7 +194,7 @@ private:
     }
 
     // Motor Output
-    Fins *motors;
+    AP_MotorsBlimp *motors;
     Loiter *loiter;
 
     int32_t _home_bearing;

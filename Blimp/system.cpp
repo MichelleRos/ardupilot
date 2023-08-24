@@ -254,7 +254,10 @@ const char* Blimp::get_frame_string()
  */
 void Blimp::allocate_motors(void)
 {
-    switch ((Fins::motor_frame_class)g2.frame_class.get()) {
+    switch ((AP_Motors::motor_frame_class)g2.frame_class.get()) {
+    case AP_MotorsBlimp::MOTOR_FRAME_BLIMP:
+        motors = new AP_MotorsBlimp();
+        break;
     case Fins::MOTOR_FRAME_FISHBLIMP:
     default:
         motors = new Fins(blimp.scheduler.get_loop_rate_hz());
