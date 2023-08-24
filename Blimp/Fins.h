@@ -14,10 +14,10 @@ public:
 
     enum motor_frame_class {
         MOTOR_FRAME_UNDEFINED = 0,
-        MOTOR_FRAME_AIRFISH = 1,
+        MOTOR_FRAME_FISHBLIMP = 1,
     };
     enum motor_frame_type {
-        MOTOR_FRAME_TYPE_AIRFISH = 1,
+        MOTOR_FRAME_TYPE_FISHBLIMP = 1,
     };
 
     //constructor
