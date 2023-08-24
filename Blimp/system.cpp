@@ -229,7 +229,7 @@ MAV_TYPE Blimp::get_frame_mav_type()
 // return string corresponding to frame_class
 const char* Blimp::get_frame_string()
 {
-    return "AIRFISH";  //TODO: Change to be able to change with different frame_classes
+    return "FISHBLIMP";  //TODO: Change to be able to change with different frame_classes
 }
 
 /*
@@ -238,7 +238,7 @@ const char* Blimp::get_frame_string()
 void Blimp::allocate_motors(void)
 {
     switch ((Fins::motor_frame_class)g2.frame_class.get()) {
-    case Fins::MOTOR_FRAME_AIRFISH:
+    case Fins::MOTOR_FRAME_FISHBLIMP:
     default:
         motors = NEW_NOTHROW Fins(blimp.scheduler.get_loop_rate_hz());
         break;
