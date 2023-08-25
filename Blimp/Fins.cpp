@@ -2,9 +2,6 @@
 
 #include <SRV_Channel/SRV_Channel.h>
 
-// This is the scale used for RC inputs so that they can be scaled to the float point values used in the sine wave code.
-#define FIN_SCALE_MAX 1000
-
 /*
   2nd group of parameters
  */
@@ -28,30 +25,61 @@ const AP_Param::GroupInfo Fins::var_info[] = {
 };
 
 //constructor
-Fins::Fins(uint16_t loop_rate) :
-    _loop_rate(loop_rate)
+Fins::Fins(uint16_t loop_rate, motor_frame_class frame) :
+    _loop_rate(loop_rate),
+    _frame(frame)
 {
     AP_Param::setup_object_defaults(this, var_info);
 }
 
+void Fins::setup_finsmotors()
+{
+    switch ((Fins::motor_frame_class)_frame) {
+        case Fins::MOTOR_FRAME_FISHBLIMP:
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Setting up FishBlimp.");
+            setup_fins();
+            break;
+        case Fins::MOTOR_FRAME_FOUR_MOTOR:
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Setting up FourMotor.");
+            setup_motors();
+            break;
+        default:
+            GCS_SEND_TEXT(MAV_SEVERITY_ERROR, "ERROR: Wrong frame class.");
+            break;
+    }
+}
+
 void Fins::setup_fins()
 {
-    //fin   #   r   f   d     y,    r   f     d     y               right, front, down, yaw for amplitude then for offset
+    //fin   #   r   f   d     y,    r   f     d     y
+    //right, front, down, yaw for amplitude then for offset
     add_fin(0,  0,  1, 0.5,   0,    0,  0,  0.5,    0); //Back
     add_fin(1,  0, -1, 0.5,   0,    0,  0,  0.5,    0); //Front
     add_fin(2, -1,  0,   0, 0.5,    0,  0,    0,  0.5); //Right
     add_fin(3,  1,  0,   0, 0.5,    0,  0,    0, -0.5); //Left
 
-    SRV_Channels::set_angle(SRV_Channel::k_motor1, FIN_SCALE_MAX);
-    SRV_Channels::set_angle(SRV_Channel::k_motor2, FIN_SCALE_MAX);
-    SRV_Channels::set_angle(SRV_Channel::k_motor3, FIN_SCALE_MAX);
-    SRV_Channels::set_angle(SRV_Channel::k_motor4, FIN_SCALE_MAX);
+    SRV_Channels::set_angle(SRV_Channel::k_motor1, RC_SCALE);
+    SRV_Channels::set_angle(SRV_Channel::k_motor2, RC_SCALE);
+    SRV_Channels::set_angle(SRV_Channel::k_motor3, RC_SCALE);
+    SRV_Channels::set_angle(SRV_Channel::k_motor4, RC_SCALE);
+}
+
+void Fins::setup_motors()
+{   //   motor#   r   f   d    y
+    add_motor(0,  0,  1,  0,   1); //FrontLeft
+    add_motor(1,  0,  1,  0,  -1); //FrontRight
+    add_motor(2,  0,  0, -1,   0); //Up
+    add_motor(3,  1,  0,   0,  0); //Right
+
+    SRV_Channels::set_angle(SRV_Channel::k_motor1, RC_SCALE);
+    SRV_Channels::set_angle(SRV_Channel::k_motor2, RC_SCALE);
+    SRV_Channels::set_angle(SRV_Channel::k_motor3, RC_SCALE);
+    SRV_Channels::set_angle(SRV_Channel::k_motor4, RC_SCALE);
 }
 
 void Fins::add_fin(int8_t fin_num, float right_amp_fac, float front_amp_fac, float down_amp_fac, float yaw_amp_fac,
                    float right_off_fac, float front_off_fac, float down_off_fac, float yaw_off_fac)
 {
-
     // ensure valid fin number is provided
     if (fin_num >= 0 && fin_num < NUM_FINS) {
 
@@ -66,6 +94,17 @@ void Fins::add_fin(int8_t fin_num, float right_amp_fac, float front_amp_fac, flo
         _front_off_factor[fin_num] = front_off_fac;
         _down_off_factor[fin_num] = down_off_fac;
         _yaw_off_factor[fin_num] = yaw_off_fac;
+    }
+}
+
+void Fins::add_motor(int8_t fin_num, float right_amp_fac, float front_amp_fac, float down_amp_fac, float yaw_amp_fac)
+{
+    // ensure valid fin number is provided
+    if (fin_num >= 0 && fin_num < NUM_FINS) {
+        _right_amp_factor[fin_num] = right_amp_fac;
+        _front_amp_factor[fin_num] = front_amp_fac;
+        _down_amp_factor[fin_num] = down_amp_fac;
+        _yaw_amp_factor[fin_num] = yaw_amp_fac;
     }
 }
 
@@ -90,6 +129,21 @@ void Fins::output()
     down_out = constrain_float(down_out, -1, 1);
     yaw_out = constrain_float(yaw_out, -1, 1);
 
+    switch ((Fins::motor_frame_class)_frame) {
+        case Fins::MOTOR_FRAME_FISHBLIMP:
+            output_fins();
+            break;
+        case Fins::MOTOR_FRAME_FOUR_MOTOR:
+            output_motors();
+            break;
+        default:
+            GCS_SEND_TEXT(MAV_SEVERITY_ERROR, "ERROR: Wrong frame class.");
+            break;
+    }
+}
+
+void Fins::output_fins()
+{
     _time = AP_HAL::micros() * 1.0e-6;
 
     for (int8_t i=0; i<NUM_FINS; i++) {
@@ -128,13 +182,25 @@ void Fins::output()
             }
         }
         // finding and outputting current position for each servo from sine wave
-        _pos[i]= _amp[i]*cosf(freq_hz * _freq[i] * _time * 2 * M_PI) + _off[i];
-        SRV_Channels::set_output_scaled(SRV_Channels::get_motor_function(i), _pos[i] * FIN_SCALE_MAX);
+        _thrpos[i]= _amp[i]*cosf(freq_hz * _freq[i] * _time * 2 * M_PI) + _off[i];
+        SRV_Channels::set_output_scaled(SRV_Channels::get_motor_function(i), _thrpos[i] * RC_SCALE);
     }
 
 #if HAL_LOGGING_ENABLED
     blimp.Write_FINO(_amp, _off);
 #endif
+}
+
+void Fins::output_motors()
+{
+    for (int8_t i=0; i<NUM_FINS; i++) {
+        //Calculate throttle for each motor
+        _thrpos[i] = _right_amp_factor[i]*right_out + _front_amp_factor[i]*front_out + _down_amp_factor[i]*down_out + _yaw_amp_factor[i]*yaw_out;
+
+        //Set output
+        SRV_Channels::set_output_scaled(SRV_Channels::get_motor_function(i), _thrpos[i] * RC_SCALE);
+    }
+
 }
 
 void Fins::output_min()
@@ -144,4 +210,22 @@ void Fins::output_min()
     down_out  = 0;
     yaw_out   = 0;
     Fins::output();
+}
+
+const char* Fins::get_frame_string()
+{
+    switch ((Fins::motor_frame_class)_frame) {
+        case Fins::MOTOR_FRAME_FISHBLIMP:
+            return "FISHBLIMP";
+            break;
+        case Fins::MOTOR_FRAME_FOUR_MOTOR:
+            return "FOURMOTOR";
+            break;
+        default:
+            return "NOFRAME";
+            break;
+    }
+
+
+
 }

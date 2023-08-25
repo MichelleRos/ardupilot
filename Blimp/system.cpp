@@ -78,7 +78,7 @@ void Blimp::init_ardupilot()
     ins.set_log_raw_bit(MASK_LOG_IMU_RAW);
 
     // setup fin output
-    motors->setup_fins();
+    motors->setup_finsmotors();
 
     // enable output to motors
     if (arming.rc_calibration_checks(true)) {
@@ -229,7 +229,7 @@ MAV_TYPE Blimp::get_frame_mav_type()
 // return string corresponding to frame_class
 const char* Blimp::get_frame_string()
 {
-    return "FISHBLIMP";  //TODO: Change to be able to change with different frame_classes
+    return motors->get_frame_string();
 }
 
 /*
@@ -238,9 +238,12 @@ const char* Blimp::get_frame_string()
 void Blimp::allocate_motors(void)
 {
     switch ((Fins::motor_frame_class)g2.frame_class.get()) {
+    case Fins::MOTOR_FRAME_FOUR_MOTOR:
+        motors = new Fins(blimp.scheduler.get_loop_rate_hz(), Fins::MOTOR_FRAME_FOUR_MOTOR);
+        break;
     case Fins::MOTOR_FRAME_FISHBLIMP:
     default:
-        motors = NEW_NOTHROW Fins(blimp.scheduler.get_loop_rate_hz());
+        motors = NEW_NOTHROW Fins(blimp.scheduler.get_loop_rate_hz(), Fins::MOTOR_FRAME_FISHBLIMP);
         break;
     }
     if (motors == nullptr) {
