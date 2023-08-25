@@ -246,6 +246,10 @@ class VehicleInfo(object):
                 "waf_target": "bin/blimp",
                 "default_params_filename": "default_params/blimp.parm",
             },
+            "Blimp-motor": {
+                "waf_target": "bin/blimp",
+                "default_params_filename": ["default_params/blimp.parm", "default_params/blimp-motor.parm"],
+            },
         },
     },
     "ArduPlane": {
