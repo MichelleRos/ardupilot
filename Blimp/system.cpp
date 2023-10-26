@@ -237,15 +237,7 @@ const char* Blimp::get_frame_string()
  */
 void Blimp::allocate_motors(void)
 {
-    switch ((Fins::motor_frame_class)g2.frame_class.get()) {
-    case Fins::MOTOR_FRAME_FOUR_MOTOR:
-        motors = new Fins(blimp.scheduler.get_loop_rate_hz(), Fins::MOTOR_FRAME_FOUR_MOTOR);
-        break;
-    case Fins::MOTOR_FRAME_FISHBLIMP:
-    default:
-        motors = NEW_NOTHROW Fins(blimp.scheduler.get_loop_rate_hz(), Fins::MOTOR_FRAME_FISHBLIMP);
-        break;
-    }
+    motors = new Fins(blimp.scheduler.get_loop_rate_hz(), (Fins::motor_frame_class)g2.frame_class.get());
     if (motors == nullptr) {
         AP_BoardConfig::allocation_error("FRAME_CLASS=%u", (unsigned)g2.frame_class.get());
     }
