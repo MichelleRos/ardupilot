@@ -81,6 +81,7 @@ public:
 
     AP_Float            freq_hz;
     AP_Int8             turbo_mode;
+    AP_Float            thr_max;
 
     void output_min();
 

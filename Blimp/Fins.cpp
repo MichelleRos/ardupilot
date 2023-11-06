@@ -21,6 +21,13 @@ const AP_Param::GroupInfo Fins::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("TURBO_MODE", 2, Fins, turbo_mode, 0),
 
+    // @Param: THR_MAX
+    // @DisplayName: Maximum throttle
+    // @Description: Maximum throttle allowed
+    // @Range: 0 1
+    // @User: Standard
+    AP_GROUPINFO("THR_MAX", 3, Fins, thr_max, 1),
+
     AP_GROUPEND
 };
 
@@ -124,10 +131,10 @@ void Fins::output()
 #endif
 
     //Constrain after logging so as to still show when sub-optimal tuning is causing massive overshoots.
-    right_out = constrain_float(right_out, -1, 1);
-    front_out = constrain_float(front_out, -1, 1);
-    down_out = constrain_float(down_out, -1, 1);
-    yaw_out = constrain_float(yaw_out, -1, 1);
+    right_out = constrain_float(right_out, -1, 1)*thr_max;
+    front_out = constrain_float(front_out, -1, 1)*thr_max;
+    down_out = constrain_float(down_out, -1, 1)*thr_max;
+    yaw_out = constrain_float(yaw_out, -1, 1)*thr_max;
 
     switch ((Fins::motor_frame_class)_frame) {
         case Fins::MOTOR_FRAME_FISHBLIMP:
@@ -171,8 +178,8 @@ void Fins::output_fins()
             _off[i] = _off[i]/_num_added; //average the offsets
         }
 
-        if ((_amp[i]+fabsf(_off[i])) > 1) {
-            _amp[i] = 1 - fabsf(_off[i]);
+        if ((_amp[i]+fabsf(_off[i])) > thr_max) {
+            _amp[i] = thr_max - fabsf(_off[i]);
         }
 
         if (turbo_mode) {
@@ -195,7 +202,7 @@ void Fins::output_motors()
 {
     for (int8_t i=0; i<NUM_FINS; i++) {
         //Calculate throttle for each motor
-        _thrpos[i] = _right_amp_factor[i]*right_out + _front_amp_factor[i]*front_out + _down_amp_factor[i]*down_out + _yaw_amp_factor[i]*yaw_out;
+        _thrpos[i] = constrain_float(_right_amp_factor[i]*right_out + _front_amp_factor[i]*front_out + _down_amp_factor[i]*down_out + _yaw_amp_factor[i]*yaw_out, -thr_max, thr_max);
 
         //Set output
         SRV_Channels::set_output_scaled(SRV_Channels::get_motor_function(i), _thrpos[i] * RC_SCALE);
@@ -229,3 +236,38 @@ const char* Fins::get_frame_string()
 
 
 }
+
+// float constrain_float_ratio(const float amt, const float low, const float high, float &rat)//, uint32_t line)
+// {
+//     // the check for NaN as a float prevents propagation of floating point
+//     // errors through any function that uses constrain_value(). The normal
+//     // float semantics already handle -Inf and +Inf
+// //     if (isnan(amt)) {
+// // #if AP_INTERNALERROR_ENABLED
+// //         AP::internalerror().error(AP_InternalError::error_t::constraining_nan, line);
+// // #endif
+// //         return (low + high) / 2;
+// //     }
+//
+//     if (amt < low) {
+//         if (low != 0.0f) {
+//             rat = amt/low;
+//             return low;
+//         } else {
+//             rat = 1.0f;
+//             return low;
+//         }
+//     }
+//
+//     if (amt > high ) {
+//         if (high != 0.0f) {
+//             rat = amt/high;
+//             return high;
+//         } else {
+//             rat = 1.0f;
+//             return high;
+//         }
+//     }
+//
+//     return amt;
+// }
