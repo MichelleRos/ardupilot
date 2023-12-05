@@ -1,6 +1,7 @@
 //This class converts horizontal acceleration commands to fin flapping commands.
 #pragma once
 #include <AP_Notify/AP_Notify.h>
+#include <AP_AHRS/AP_AHRS.h>
 
 extern const AP_HAL::HAL& hal;
 
@@ -82,6 +83,8 @@ public:
     AP_Float            freq_hz;
     AP_Int8             turbo_mode;
     AP_Float            thr_max;
+    AP_Float            rp_damp_lim;
+    AP_Float            rp_damp_amt;
 
     void output_min();
 

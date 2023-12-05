@@ -28,6 +28,20 @@ const AP_Param::GroupInfo Fins::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("THR_MAX", 3, Fins, thr_max, 1),
 
+    // @Param: RP_DAMP_LIM
+    // @DisplayName: Roll/Pitch limit before damping outputs, in degrees. Zero means disabled.
+    // @Description: RP D
+    // @Range: 0 180
+    // @User: Standard
+    AP_GROUPINFO("RP_DAMP_LIM", 4, Fins, rp_damp_lim, 0),
+
+    // @Param: RP_DAMP_AMT
+    // @DisplayName:Roll/Pitch output damping amount. Zero disables.
+    // @Description: RP D
+    // @Range: 0 1
+    // @User: Standard
+    AP_GROUPINFO("RP_DAMP_AMT", 5, Fins, rp_damp_amt, 0),
+
     AP_GROUPEND
 };
 
@@ -131,10 +145,40 @@ void Fins::output()
 #endif
 
     //Constrain after logging so as to still show when sub-optimal tuning is causing massive overshoots.
+
     right_out = constrain_float(right_out, -thr_max, thr_max);
     front_out = constrain_float(front_out, -thr_max, thr_max);
     down_out = constrain_float(down_out, -thr_max, thr_max);
     yaw_out = constrain_float(yaw_out, -thr_max, thr_max);
+
+    blimp.Write_FINM(right_out, front_out, down_out, yaw_out);
+    float aroll = fabsf(blimp.ahrs.get_roll());
+    float apitch = fabsf(blimp.ahrs.get_pitch());
+
+
+    if (rp_damp_lim > 0 && (aroll > radians(rp_damp_lim) || apitch > radians(rp_damp_lim))) 
+    {
+        float excessr = 0;
+        float excessp = 0;
+        if (aroll > radians(rp_damp_lim)) excessr = (1-(aroll/radians(rp_damp_lim)));
+        if (apitch > radians(rp_damp_lim)) excessp = (1-(apitch/radians(rp_damp_lim)));
+
+        float rp_scale = rp_damp_amt*(excessr+excessp);
+
+        AP::logger().WriteStreaming("FIND", "TimeUS,er,ep,rps", "Qfff",
+                                AP_HAL::micros64(),
+                                excessr,
+                                excessp,
+                                rp_scale);
+
+        right_out = right_out * rp_scale;
+        front_out = front_out * rp_scale;
+        down_out = down_out * rp_scale;
+        yaw_out = yaw_out * rp_scale;
+
+    }
+
+    blimp.Write_FINN(right_out, front_out, down_out, yaw_out);
 
     switch ((Fins::motor_frame_class)_frame) {
         case Fins::MOTOR_FRAME_FISHBLIMP:

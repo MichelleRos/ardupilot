@@ -14,6 +14,24 @@ struct PACKED log_FINI {
     float Yaw;
 };
 
+struct PACKED log_FINM {
+    LOG_PACKET_HEADER;
+    uint64_t time_us;
+    float Right;
+    float Front;
+    float Down;
+    float Yaw;
+};
+
+struct PACKED log_FINN {
+    LOG_PACKET_HEADER;
+    uint64_t time_us;
+    float Right;
+    float Front;
+    float Down;
+    float Yaw;
+};
+
 struct PACKED log_FINO {
     LOG_PACKET_HEADER;
     uint64_t time_us;
@@ -32,6 +50,32 @@ void Blimp::Write_FINI(float right, float front, float down, float yaw)
 {
     const struct log_FINI pkt {
         LOG_PACKET_HEADER_INIT(LOG_FINI_MSG),
+        time_us       : AP_HAL::micros64(),
+        Right         : right,
+        Front         : front,
+        Down          : down,
+        Yaw           : yaw
+    };
+    logger.WriteBlock(&pkt, sizeof(pkt));
+}
+
+void Blimp::Write_FINM(float right, float front, float down, float yaw)
+{
+    const struct log_FINM pkt {
+        LOG_PACKET_HEADER_INIT(LOG_FINM_MSG),
+        time_us       : AP_HAL::micros64(),
+        Right         : right,
+        Front         : front,
+        Down          : down,
+        Yaw           : yaw
+    };
+    logger.WriteBlock(&pkt, sizeof(pkt));
+}
+
+void Blimp::Write_FINN(float right, float front, float down, float yaw)
+{
+    const struct log_FINN pkt {
+        LOG_PACKET_HEADER_INIT(LOG_FINN_MSG),
         time_us       : AP_HAL::micros64(),
         Right         : right,
         Front         : front,
@@ -252,6 +296,33 @@ const struct LogStructure Blimp::log_structure[] = {
         LOG_FINI_MSG, sizeof(log_FINI),
         "FINI",  "Qffff",     "TimeUS,R,F,D,Y", "s----", "F----"
     },
+
+    // @LoggerMessage: FINM
+    // @Description: Fin input after constrain but before scaling
+    // @Field: TimeUS: Time since system startup
+    // @Field: R: Right
+    // @Field: F: Front
+    // @Field: D: Down
+    // @Field: Y: Yaw
+
+    {
+        LOG_FINM_MSG, sizeof(log_FINM),
+        "FINM",  "Qffff",     "TimeUS,R,F,D,Y", "s----", "F----"
+    },
+
+    // @LoggerMessage: FINN
+    // @Description: Fin input after constrain and scaling (i.e right before going through motor mixer).
+    // @Field: TimeUS: Time since system startup
+    // @Field: R: Right
+    // @Field: F: Front
+    // @Field: D: Down
+    // @Field: Y: Yaw
+
+    {
+        LOG_FINN_MSG, sizeof(log_FINN),
+        "FINN",  "Qffff",     "TimeUS,R,F,D,Y", "s----", "F----"
+    },
+
 
     // @LoggerMessage: FINO
     // @Description: Fin output
