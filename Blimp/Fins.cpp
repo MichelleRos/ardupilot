@@ -23,7 +23,7 @@ const AP_Param::GroupInfo Fins::var_info[] = {
 
     // @Param: THR_MAX
     // @DisplayName: Maximum throttle
-    // @Description: Maximum throttle allowed
+    // @Description: Maximum throttle allowed. Constrains any throttle input to this value (negative and positive).
     // @Range: 0 1
     // @User: Standard
     AP_GROUPINFO("THR_MAX", 3, Fins, thr_max, 1),
@@ -131,10 +131,10 @@ void Fins::output()
 #endif
 
     //Constrain after logging so as to still show when sub-optimal tuning is causing massive overshoots.
-    right_out = constrain_float(right_out, -1, 1)*thr_max;
-    front_out = constrain_float(front_out, -1, 1)*thr_max;
-    down_out = constrain_float(down_out, -1, 1)*thr_max;
-    yaw_out = constrain_float(yaw_out, -1, 1)*thr_max;
+    right_out = constrain_float(right_out, -thr_max, thr_max);
+    front_out = constrain_float(front_out, -thr_max, thr_max);
+    down_out = constrain_float(down_out, -thr_max, thr_max);
+    yaw_out = constrain_float(yaw_out, -thr_max, thr_max);
 
     switch ((Fins::motor_frame_class)_frame) {
         case Fins::MOTOR_FRAME_FISHBLIMP:
