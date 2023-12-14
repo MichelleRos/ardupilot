@@ -175,8 +175,8 @@ void Fins::output()
     {
         float excessr = 0;
         float excessp = 0;
-        if (aroll > radians(rp_damp_lim)) excessr = (1-(aroll/radians(rp_damp_lim)));
-        if (apitch > radians(rp_damp_lim)) excessp = (1-(apitch/radians(rp_damp_lim)));
+        if (fabsf(aroll) > radians(rp_damp_lim)) excessr = fabsf(aroll)/radians(rp_damp_lim);
+        if (fabsf(apitch) > radians(rp_damp_lim)) excessp = fabsf(apitch)/radians(rp_damp_lim);
 
         float rp_scale = rp_damp_amt*(excessr+excessp);
 
@@ -185,6 +185,9 @@ void Fins::output()
                                 excessr,
                                 excessp,
                                 rp_scale);
+        gcs().send_named_float("EECR", excessr);
+        gcs().send_named_float("EECP", excessp);
+        gcs().send_named_float("EECS", rp_scale);
 
         right_out = right_out * rp_scale;
         front_out = front_out * rp_scale;
