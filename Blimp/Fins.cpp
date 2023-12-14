@@ -23,7 +23,7 @@ const AP_Param::GroupInfo Fins::var_info[] = {
 
     // @Param: THR_MAX
     // @DisplayName: Maximum throttle
-    // @Description: Maximum throttle allowed. Constrains any throttle input to this value (negative and positive).
+    // @Description: Maximum throttle allowed. Constrains any throttle input to this value (negative and positive) Set it to 1 to disable (i.e. allow max throttle).
     // @Range: 0 1
     // @User: Standard
     AP_GROUPINFO("THR_MAX", 3, Fins, thr_max, 1),
@@ -36,11 +36,25 @@ const AP_Param::GroupInfo Fins::var_info[] = {
     AP_GROUPINFO("RP_DAMP_LIM", 4, Fins, rp_damp_lim, 0),
 
     // @Param: RP_DAMP_AMT
-    // @DisplayName:Roll/Pitch output damping amount. Zero disables.
+    // @DisplayName:Roll/Pitch output damping amount, scaled 0 to 1, where. One disables. Set lower for greater damping.
     // @Description: RP D
     // @Range: 0 1
     // @User: Standard
-    AP_GROUPINFO("RP_DAMP_AMT", 5, Fins, rp_damp_amt, 0),
+    AP_GROUPINFO("RP_DAMP_AMT", 5, Fins, rp_damp_amt, 1),
+
+    // @Param: RP_DAMP_LIM2
+    // @DisplayName: Roll/Pitch limit before damping outputs, in degrees. Zero means disabled.
+    // @Description: RP D
+    // @Range: 0 180
+    // @User: Standard
+    AP_GROUPINFO("RP_DAMP_LI2", 6, Fins, rp_damp_lim2, 0),
+
+    // @Param: RP_DAMP_AMT2
+    // @DisplayName:Roll/Pitch output damping amount, scaled 0 to 1, where. One disables. Set lower for greater damping.
+    // @Description: RP D
+    // @Range: 0 1
+    // @User: Standard
+    AP_GROUPINFO("RP_DAMP_AM2", 7, Fins, rp_damp_amt2, 1),
 
     AP_GROUPEND
 };
@@ -152,9 +166,10 @@ void Fins::output()
     yaw_out = constrain_float(yaw_out, -thr_max, thr_max);
 
     blimp.Write_FINM(right_out, front_out, down_out, yaw_out);
+
     float aroll = fabsf(blimp.ahrs.get_roll());
     float apitch = fabsf(blimp.ahrs.get_pitch());
-
+    Vector3f agyro = blimp.ahrs.get_gyro();
 
     if (rp_damp_lim > 0 && (aroll > radians(rp_damp_lim) || apitch > radians(rp_damp_lim))) 
     {
@@ -175,6 +190,28 @@ void Fins::output()
         front_out = front_out * rp_scale;
         down_out = down_out * rp_scale;
         yaw_out = yaw_out * rp_scale;
+
+    }
+
+    if (rp_damp_lim2 > 0 && (agyro.x > radians(rp_damp_lim2) || agyro.y > radians(rp_damp_lim2))) 
+    {
+        float excessr2 = 0;
+        float excessp2 = 0;
+        if (agyro.x > radians(rp_damp_lim2)) excessr2 = (1-(agyro.x/radians(rp_damp_lim)));
+        if (agyro.y > radians(rp_damp_lim2)) excessp2 = (1-(agyro.y/radians(rp_damp_lim)));
+
+        float rp_scale2 = rp_damp_amt*(excessr2+excessp2);
+
+        AP::logger().WriteStreaming("FIN2", "TimeUS,er,ep,rps", "Qfff",
+                                AP_HAL::micros64(),
+                                excessr2,
+                                excessp2,
+                                rp_scale2);
+
+        right_out = right_out * rp_scale2;
+        front_out = front_out * rp_scale2;
+        down_out = down_out * rp_scale2;
+        yaw_out = yaw_out * rp_scale2;
 
     }
 

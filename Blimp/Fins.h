@@ -85,6 +85,8 @@ public:
     AP_Float            thr_max;
     AP_Float            rp_damp_lim;
     AP_Float            rp_damp_amt;
+    AP_Float            rp_damp_lim2;
+    AP_Float            rp_damp_amt2;
 
     void output_min();
 
