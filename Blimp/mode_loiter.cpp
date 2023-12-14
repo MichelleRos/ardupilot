@@ -32,6 +32,8 @@ void ModeLoiter::run()
         blimp.rotate_BF_to_NE(pilot.xy());
     }
 
+    // This keeps the target position from getting too far away from the blimp's actual position.
+    // TODO Needs to allow position to get closer but not further.
     if (fabsf(target_pos.x-blimp.pos_ned.x) < (g.max_pos_xy*POS_LAG)) {
         target_pos.x += pilot.x;
     }

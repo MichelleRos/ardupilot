@@ -224,9 +224,9 @@ void Blimp::read_AHRS(void)
     IGNORE_RETURN(ahrs.get_relative_position_NED_origin(pos_ned));
 
     vel_yaw = ahrs.get_yaw_rate_earth();
-    Vector2f vel_xy_filtd = vel_xy_filter.apply({vel_ned.x, vel_ned.y});
-    vel_ned_filtd = {vel_xy_filtd.x, vel_xy_filtd.y, vel_z_filter.apply(vel_ned.z)};
-    vel_yaw_filtd = vel_yaw_filter.apply(vel_yaw);
+    // Vector2f vel_xy_filtd = vel_xy_filter.apply({vel_ned.x, vel_ned.y});
+    vel_ned_filtd = vel_ned; //{vel_xy_filtd.x, vel_xy_filtd.y, vel_z_filter.apply(vel_ned.z)};
+    vel_yaw_filtd = vel_yaw; //vel_yaw_filter.apply(vel_yaw);
 
 #if HAL_LOGGING_ENABLED
     AP::logger().WriteStreaming("VNF", "TimeUS,X,XF,Y,YF,Z,ZF,Yaw,YawF,PX,PY,PZ,PYaw", "Qffffffffffff",

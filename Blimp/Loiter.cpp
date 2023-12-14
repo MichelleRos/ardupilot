@@ -9,23 +9,23 @@ void Loiter::run(Vector3f& target_pos, float& target_yaw, Vector4b axes_disabled
 {
     const float dt = blimp.scheduler.get_last_loop_time_s();
 
-    float scaler_xz_n;
-    float xz_out = fabsf(blimp.motors->front_out) + fabsf(blimp.motors->down_out);
-    if (xz_out > 1) {
-        scaler_xz_n = 1 / xz_out;
-    } else {
-        scaler_xz_n = 1;
-    }
-    scaler_xz = scaler_xz*MA + scaler_xz_n*MO;
+    float scaler_xz_n = 1;
+    // float xz_out = fabsf(blimp.motors->front_out) + fabsf(blimp.motors->down_out);
+    // if (xz_out > 1) {
+    //     scaler_xz_n = 1 / xz_out;
+    // } else {
+    //     scaler_xz_n = 1;
+    // }
+    // scaler_xz = scaler_xz*MA + scaler_xz_n*MO;
 
-    float scaler_yyaw_n;
-    float yyaw_out = fabsf(blimp.motors->right_out) + fabsf(blimp.motors->yaw_out);
-    if (yyaw_out > 1) {
-        scaler_yyaw_n = 1 / yyaw_out;
-    } else {
-        scaler_yyaw_n = 1;
-    }
-    scaler_yyaw = scaler_yyaw*MA + scaler_yyaw_n*MO;
+    float scaler_yyaw_n = 1;
+    // float yyaw_out = fabsf(blimp.motors->right_out) + fabsf(blimp.motors->yaw_out);
+    // if (yyaw_out > 1) {
+    //     scaler_yyaw_n = 1 / yyaw_out;
+    // } else {
+    //     scaler_yyaw_n = 1;
+    // }
+    // scaler_yyaw = scaler_yyaw*MA + scaler_yyaw_n*MO;
 
 #if HAL_LOGGING_ENABLED
     AP::logger().WriteStreaming("BSC", "TimeUS,xz,yyaw,xzn,yyawn",
