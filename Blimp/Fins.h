@@ -84,9 +84,12 @@ public:
     AP_Int8             turbo_mode;
     AP_Float            thr_max;
     AP_Float            rp_damp_lim;
+    AP_Float            rp_damp_off;
     AP_Float            rp_damp_amt;
     AP_Float            rp_damp_lim2;
     AP_Float            rp_damp_amt2;
+    AP_Float            rp_damp_off2;
+    AP_Int16            rp_damp_msk;
 
     void output_min();
 

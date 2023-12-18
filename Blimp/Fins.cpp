@@ -35,26 +35,48 @@ const AP_Param::GroupInfo Fins::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("RP_DAMP_LIM", 4, Fins, rp_damp_lim, 0),
 
+    // @Param: RP_DAMP_OFF
+    // @DisplayName: Roll/Pitch limit where outputs are fully cut off when _AMT is 1.
+    // @Description: RP D
+    // @Range: 0 180
+    // @User: Standard
+    AP_GROUPINFO("RP_DAMP_OFF", 5, Fins, rp_damp_off, 0),
+
     // @Param: RP_DAMP_AMT
-    // @DisplayName:Roll/Pitch output damping amount, scaled 0 to 1, where. One disables. Set lower for greater damping.
+    // @DisplayName: Roll/Pitch output damping amount. Higher number means more damping.
     // @Description: RP D
     // @Range: 0 1
     // @User: Standard
-    AP_GROUPINFO("RP_DAMP_AMT", 5, Fins, rp_damp_amt, 1),
+    AP_GROUPINFO("RP_DAMP_AMT", 9, Fins, rp_damp_amt, 1),
 
-    // @Param: RP_DAMP_LIM2
-    // @DisplayName: Roll/Pitch limit before damping outputs, in degrees. Zero means disabled.
+    // @Param: RP_DAMP_LI2
+    // @DisplayName: Roll/Pitch rate limit before damping outputs, in degrees. Zero means disabled.
     // @Description: RP D
     // @Range: 0 180
     // @User: Standard
     AP_GROUPINFO("RP_DAMP_LI2", 6, Fins, rp_damp_lim2, 0),
 
-    // @Param: RP_DAMP_AMT2
-    // @DisplayName:Roll/Pitch output damping amount, scaled 0 to 1, where. One disables. Set lower for greater damping.
+    // @Param: RP_DAMP_OF2
+    // @DisplayName: Roll/Pitch rate limit where outputs are fully cut off when _AMT is 1.
     // @Description: RP D
     // @Range: 0 1
     // @User: Standard
-    AP_GROUPINFO("RP_DAMP_AM2", 7, Fins, rp_damp_amt2, 1),
+    AP_GROUPINFO("RP_DAMP_OF2", 7, Fins, rp_damp_off2, 0),
+
+    // @Param: RP_DAMP_AM2
+    // @DisplayName: Roll/Pitch output damping amount. Higher number means more damping.
+    // @Description: RP D
+    // @Range: 0 1
+    // @User: Standard
+    AP_GROUPINFO("RP_DAMP_AM2", 10, Fins, rp_damp_amt2, 1),
+
+    // @Param: RP_DAMP_MSK
+    // @DisplayName: Roll/Pitch output damping mask for which outputs to affect
+    // @Description: RP D
+    // @Values: 15:All enabled, 3:Right & Front only
+    // @Bitmask: 0:Right,1:Front,2:Down,3:Yaw
+    // @User: Standard
+    AP_GROUPINFO("RP_DAMP_MSK", 8, Fins, rp_damp_msk, 15),
 
     AP_GROUPEND
 };
@@ -171,39 +193,52 @@ void Fins::output()
     float apitch = fabsf(blimp.ahrs.get_pitch());
     Vector3f agyro = blimp.ahrs.get_gyro();
 
-    if (rp_damp_lim > 0 && (aroll > radians(rp_damp_lim) || apitch > radians(rp_damp_lim))) 
+    //Damping by roll & pitch angle
+    if (rp_damp_off > 0 && (rp_damp_off > rp_damp_lim)) //Disable when unused, and also protect against divide by zero
     {
         float excessr = 0;
         float excessp = 0;
-        if (fabsf(aroll) > radians(rp_damp_lim)) excessr = fabsf(aroll)/radians(rp_damp_lim);
-        if (fabsf(apitch) > radians(rp_damp_lim)) excessp = fabsf(apitch)/radians(rp_damp_lim);
-
-        float rp_scale = rp_damp_amt*(excessr+excessp);
+        if (fabsf(aroll) > radians(rp_damp_lim)) excessr = (fabsf(aroll)-radians(rp_damp_lim))/(radians(rp_damp_off)-radians(rp_damp_lim));
+        if (fabsf(apitch) > radians(rp_damp_lim)) excessp = (fabsf(apitch)-radians(rp_damp_lim))/(radians(rp_damp_off)-radians(rp_damp_lim));
+/*
+        actual, lim, off
+        (a-lim)/(off-lim)
+        eg
+        21-20 / 30-20 = 1/10 = 0.1
+        25-20 / 30-20 = 5/10 = 0.5
+        30-20 / 30-20 = 10/10 = 1
+        Thus need 1-ans.
+*/
+        float rp_scale = 0;
+        //Cut off if it's past rp_damp_off
+        if ((rp_damp_amt*(excessr+excessp)) >= 1) rp_scale = 0;
+        else rp_scale = 1 - rp_damp_amt*(excessr+excessp);
 
         AP::logger().WriteStreaming("FIND", "TimeUS,er,ep,rps", "Qfff",
                                 AP_HAL::micros64(),
                                 excessr,
                                 excessp,
                                 rp_scale);
-        gcs().send_named_float("EECR", excessr);
-        gcs().send_named_float("EECP", excessp);
-        gcs().send_named_float("EECS", rp_scale);
+        // gcs().send_named_float("EECS", rp_scale);
 
-        right_out = right_out * rp_scale;
-        front_out = front_out * rp_scale;
-        down_out = down_out * rp_scale;
-        yaw_out = yaw_out * rp_scale;
-
+        if (rp_damp_msk & (1<<(1-1))) right_out = right_out * rp_scale;
+        if (rp_damp_msk & (1<<(2-1))) front_out = front_out * rp_scale;
+        if (rp_damp_msk & (1<<(3-1))) down_out = down_out * rp_scale;
+        if (rp_damp_msk & (1<<(4-1))) yaw_out = yaw_out * rp_scale;
     }
 
-    if (rp_damp_lim2 > 0 && (agyro.x > radians(rp_damp_lim2) || agyro.y > radians(rp_damp_lim2))) 
+    //Damping by roll & pitch rate
+    if (rp_damp_off2 > 0 && (rp_damp_off2 > rp_damp_lim2)) //Disable when unused, and also protect against divide by zero
     {
         float excessr2 = 0;
         float excessp2 = 0;
-        if (agyro.x > radians(rp_damp_lim2)) excessr2 = (1-(agyro.x/radians(rp_damp_lim)));
-        if (agyro.y > radians(rp_damp_lim2)) excessp2 = (1-(agyro.y/radians(rp_damp_lim)));
+        if (fabsf(agyro.x) > radians(rp_damp_lim2)) excessr2 = (fabsf(agyro.x)-radians(rp_damp_lim2))/(radians(rp_damp_off2)-radians(rp_damp_lim2));
+        if (fabsf(agyro.y) > radians(rp_damp_lim2)) excessp2 = (fabsf(agyro.y)-radians(rp_damp_lim2))/(radians(rp_damp_off2)-radians(rp_damp_lim2));
 
-        float rp_scale2 = rp_damp_amt*(excessr2+excessp2);
+        float rp_scale2 = 0;
+        //Cut off if it's past rp_damp_off
+        if ((rp_damp_amt*(excessr2+excessp2)) >= 1) rp_scale2 = 0;
+        else rp_scale2 = 1 - rp_damp_amt*(excessr2+excessp2);
 
         AP::logger().WriteStreaming("FIN2", "TimeUS,er,ep,rps", "Qfff",
                                 AP_HAL::micros64(),
@@ -211,11 +246,10 @@ void Fins::output()
                                 excessp2,
                                 rp_scale2);
 
-        right_out = right_out * rp_scale2;
-        front_out = front_out * rp_scale2;
-        down_out = down_out * rp_scale2;
-        yaw_out = yaw_out * rp_scale2;
-
+        if (rp_damp_msk & (1<<(1-1))) right_out = right_out * rp_scale2;
+        if (rp_damp_msk & (1<<(2-1))) front_out = front_out * rp_scale2;
+        if (rp_damp_msk & (1<<(3-1))) down_out = down_out * rp_scale2;
+        if (rp_damp_msk & (1<<(4-1))) yaw_out = yaw_out * rp_scale2;
     }
 
     blimp.Write_FINN(right_out, front_out, down_out, yaw_out);
