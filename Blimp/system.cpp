@@ -111,6 +111,7 @@ void Blimp::startup_INS_ground()
 {
     // initialise ahrs (may push imu calibration into the mpu6000 if using that device).
     ahrs.init();
+    // No Blimp option, but AHRS requirements are nearly identical to Copter's, so that is what we use.
     ahrs.set_vehicle_class(AP_AHRS::VehicleClass::COPTER);
 
     // Warm up and calibrate gyro offsets

@@ -2,9 +2,6 @@
 
 #include <AC_AttitudeControl/AC_PosControl.h>
 
-#define MA 0.99
-#define MO (1-MA)
-
 const AP_Param::GroupInfo Loiter::var_info[] = {
 
     // @Param: RP_DAMP_LIM
@@ -57,8 +54,14 @@ const AP_Param::GroupInfo Loiter::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("RP_DAMP_MSK", 8, Loiter, rp_damp_msk, 15),
 
+    //Higher number means slower change. Zero means immediate change (no filter).
+    AP_GROUPINFO("SCALER_SPD", 11, Loiter, scaler_spd, 0.99),
+
     AP_GROUPEND
 };
+
+#define MA scaler_spd
+#define MO (1-MA)
 
 void Loiter::run(Vector3f& target_pos, float& target_yaw, Vector4b axes_disabled)
 {
@@ -68,27 +71,30 @@ void Loiter::run(Vector3f& target_pos, float& target_yaw, Vector4b axes_disabled
     float scaler_y_n = 1;
     float scaler_z_n = 1;
     float scaler_yaw_n = 1;
-    //IF FINNED BLIMP:
-    // float xz_out = fabsf(blimp.motors->front_out) + fabsf(blimp.motors->down_out);
-    // if (xz_out > 1) {
-    //     scaler_x_n = 1 / xz_out;
-    //     scaler_z_n = 1 / xz_out;
-    // }
-    // scaler_x = scaler_x*MA + scaler_x_n*MO;
-    // scaler_z = scaler_z*MA + scaler_z_n*MO;
-    // float yyaw_out = fabsf(blimp.motors->right_out) + fabsf(blimp.motors->yaw_out);
-    // if (yyaw_out > 1) {
-    //     scaler_y_n = 1 / yyaw_out;
-    //     scaler_yaw_n = 1 / yyaw_out;
-    // }
-    // scaler_y = scaler_y*MA + scaler_y_n*MO;
-    // scaler_yaw = scaler_yaw*MA + scaler_yaw_n*MO;
 
-    //IF PROP BLIMP:
-    float xyaw_out = fabsf(blimp.motors->front_out) + fabsf(blimp.motors->yaw_out);
-    if (xyaw_out > 1) {
-        scaler_x_n = 1 / xyaw_out;
-        scaler_yaw_n = 1 / xyaw_out;
+
+    if ((Fins::motor_frame_class)blimp.g2.frame_class.get() == Fins::MOTOR_FRAME_FISHBLIMP) {
+        float xz_out = fabsf(blimp.motors->front_out) + fabsf(blimp.motors->down_out);
+        if (xz_out > 1) {
+            scaler_x_n = 1 / xz_out;
+            scaler_z_n = 1 / xz_out;
+        }
+        scaler_x = scaler_x*MA + scaler_x_n*MO;
+        scaler_z = scaler_z*MA + scaler_z_n*MO;
+        float yyaw_out = fabsf(blimp.motors->right_out) + fabsf(blimp.motors->yaw_out);
+        if (yyaw_out > 1) {
+            scaler_y_n = 1 / yyaw_out;
+            scaler_yaw_n = 1 / yyaw_out;
+        }
+        scaler_y = scaler_y*MA + scaler_y_n*MO;
+        scaler_yaw = scaler_yaw*MA + scaler_yaw_n*MO;
+        }
+    else if ((Fins::motor_frame_class)blimp.g2.frame_class.get() == Fins::MOTOR_FRAME_FOUR_MOTOR) {
+        float xyaw_out = fabsf(blimp.motors->front_out) + fabsf(blimp.motors->yaw_out);
+        if (xyaw_out > 1) {
+            scaler_x_n = 1 / xyaw_out;
+            scaler_yaw_n = 1 / xyaw_out;
+        }
     }
 
     float aroll = fabsf(blimp.ahrs.get_roll());
