@@ -208,12 +208,13 @@ const AP_Param::Info Blimp::var_info[] = {
     // @User: Advanced
     GSCALAR(fs_crash_check, "FS_CRASH_CHECK",    1),
 
-    // @Param: MAX_VEL_XY
+    // @Param: MAX_VEL_X Y
     // @DisplayName: Max XY Velocity
     // @Description: Sets the maximum XY velocity, in m/s
     // @Range: 0.2 5
     // @User: Standard
-    GSCALAR(max_vel_xy, "MAX_VEL_XY", 0.5),
+    GSCALAR(max_vel_x, "MAX_VEL_X", 0.5),
+    GSCALAR(max_vel_y, "MAX_VEL_Y", 0.5),
 
     // @Param: MAX_VEL_Z
     // @DisplayName: Max Z Velocity
@@ -229,12 +230,13 @@ const AP_Param::Info Blimp::var_info[] = {
     // @User: Standard
     GSCALAR(max_vel_yaw, "MAX_VEL_YAW", 0.5),
 
-    // @Param: MAX_POS_XY
+    // @Param: MAX_POS_X Y
     // @DisplayName: Max XY Position change
     // @Description: Sets the maximum XY position change, in m/s
     // @Range: 0.1 5
     // @User: Standard
-    GSCALAR(max_pos_xy, "MAX_POS_XY", 0.2),
+    GSCALAR(max_pos_x, "MAX_POS_X", 0.2),
+    GSCALAR(max_pos_y, "MAX_POS_Y", 0.2),
 
     // @Param: MAX_POS_Z
     // @DisplayName: Max Z Position change
@@ -266,7 +268,7 @@ const AP_Param::Info Blimp::var_info[] = {
 
     // @Param: PID_DZ
     // @DisplayName: Deadzone for the position PIDs
-    // @Description: Output 0 thrust signal when blimp is within this distance (in meters) of the target position. Warning: If this param is greater than MAX_POS_XY param then the blimp won't move at all in the XY plane in Loiter mode as it does not allow more than a second's lag. Same for the other axes.
+    // @Description: Output 0 thrust signal when blimp is within this distance (in meters) of the target position. Warning: If this param is greater than MAX_POS_X Y param then the blimp won't move at all in the XY plane in Loiter mode as it does not allow more than a second's lag. Same for the other axes.
     // @Units: m
     // @Range: 0.1 1
     // @User: Standard
@@ -447,7 +449,8 @@ const AP_Param::Info Blimp::var_info[] = {
     // @Range: 0 6
     // @Increment: 0.01
     // @User: Advanced
-    GOBJECT(pid_vel_xy, "VELXY_", AC_PID_2D),
+    GOBJECT(pid_vel_x, "VELX_", AC_PID),
+    GOBJECT(pid_vel_y, "VELY_", AC_PID),
 
     // @Param: VELZ_P
     // @DisplayName: Velocity (vertical) P gain
@@ -542,7 +545,7 @@ const AP_Param::Info Blimp::var_info[] = {
     // @Range: 0 6
     // @Increment: 0.01
     // @User: Advanced
-    GOBJECT(pid_vel_yaw, "VELYAW_", AC_PID_Basic),
+    GOBJECT(pid_vel_yaw, "VELYAW_", AC_PID),
 
     // @Param: POSXY_P
     // @DisplayName: Position (horizontal) P gain
@@ -593,7 +596,8 @@ const AP_Param::Info Blimp::var_info[] = {
     // @Range: 0 6
     // @Increment: 0.01
     // @User: Advanced
-    GOBJECT(pid_pos_xy, "POSXY_", AC_PID_2D),
+    GOBJECT(pid_pos_x, "POSX_", AC_PID),
+    GOBJECT(pid_pos_y, "POSY_", AC_PID),
 
     // @Param: POSZ_P
     // @DisplayName: Position (vertical) P gain
@@ -644,7 +648,7 @@ const AP_Param::Info Blimp::var_info[] = {
     // @Range: 0 6
     // @Increment: 0.01
     // @User: Advanced
-    GOBJECT(pid_pos_z, "POSZ_", AC_PID_Basic),
+    GOBJECT(pid_pos_z, "POSZ_", AC_PID),
 
     // @Param: POSYAW_P
     // @DisplayName: Position (yaw) axis controller P gain

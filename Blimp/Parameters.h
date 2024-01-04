@@ -94,23 +94,27 @@ public:
         k_param_notify,
 
         //PID Controllers
-        k_param_pid_vel_xy = 32,
+        k_param_pid_vel_x = 32,
         k_param_pid_vel_z,
         k_param_pid_vel_yaw,
-        k_param_pid_pos_xy,
+        k_param_pid_pos_x,
         k_param_pid_pos_z,
         k_param_pid_pos_yaw,
+        k_param_pid_vel_y,
+        k_param_pid_pos_y,
 
         //Position & Velocity controller params
-        k_param_max_vel_xy = 50,
+        k_param_max_vel_x = 50,
         k_param_max_vel_z,
         k_param_max_vel_yaw,
-        k_param_max_pos_xy,
+        k_param_max_pos_x,
         k_param_max_pos_z,
         k_param_max_pos_yaw,
         k_param_simple_mode,
         k_param_dis_mask,
         k_param_pid_dz,
+        k_param_max_vel_y,
+        k_param_max_pos_y,
 
         //
         // 90: misc2
@@ -245,10 +249,12 @@ public:
     AP_Float        fs_ekf_thresh;
     AP_Int16        gcs_pid_mask;
 
-    AP_Float        max_vel_xy;
+    AP_Float        max_vel_x;
+    AP_Float        max_vel_y;
     AP_Float        max_vel_z;
     AP_Float        max_vel_yaw;
-    AP_Float        max_pos_xy;
+    AP_Float        max_pos_x;
+    AP_Float        max_pos_y;
     AP_Float        max_pos_z;
     AP_Float        max_pos_yaw;
 

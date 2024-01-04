@@ -22,8 +22,8 @@ void ModeLoiter::run()
     Vector3f pilot;
     float pilot_yaw;
     get_pilot_input(pilot, pilot_yaw);
-    pilot.x *= g.max_pos_xy * dt;
-    pilot.y *= g.max_pos_xy * dt;
+    pilot.x *= g.max_pos_x * dt;
+    pilot.y *= g.max_pos_y * dt;
     pilot.z *= g.max_pos_z * dt;
     pilot_yaw *= g.max_pos_yaw * dt;
 
@@ -34,10 +34,10 @@ void ModeLoiter::run()
 
     // This keeps the target position from getting too far away from the blimp's actual position.
     // TODO Needs to allow position to get closer but not further.
-    if (fabsf(target_pos.x-blimp.pos_ned.x) < (g.max_pos_xy*POS_LAG)) {
+    if (fabsf(target_pos.x-blimp.pos_ned.x) < (g.max_pos_x*POS_LAG)) {
         target_pos.x += pilot.x;
     }
-    if (fabsf(target_pos.y-blimp.pos_ned.y) < (g.max_pos_xy*POS_LAG)) {
+    if (fabsf(target_pos.y-blimp.pos_ned.y) < (g.max_pos_y*POS_LAG)) {
         target_pos.y += pilot.y;
     }
     if (fabsf(target_pos.z-blimp.pos_ned.z) < (g.max_pos_z*POS_LAG)) {
