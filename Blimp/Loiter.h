@@ -56,6 +56,17 @@ public:
         scaler_yaw = 1;
     };
 
+    // var_info for holding Parameter information
+    static const struct AP_Param::GroupInfo        var_info[];
+
+    AP_Float            rp_damp_lim;
+    AP_Float            rp_damp_off;
+    AP_Float            rp_damp_amt;
+    AP_Float            rp_damp_lim2;
+    AP_Float            rp_damp_amt2;
+    AP_Float            rp_damp_off2;
+    AP_Int16            rp_damp_msk;
+
     //Run Loiter controller with target position and yaw in global frame. Expects to be called at loop rate.
     void run(Vector3f& target_pos, float& target_yaw, Vector4b axes_disabled);
     //Run Loiter controller with target velocity and velocity in global frame. Expects to be called at loop rate.

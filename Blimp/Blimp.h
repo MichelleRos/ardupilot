@@ -372,8 +372,6 @@ private:
 
     void Log_Write_Vehicle_Startup_Messages();
     void Write_FINI(float right, float front, float down, float yaw);
-    void Write_FINM(float right, float front, float down, float yaw);
-    void Write_FINN(float right, float front, float down, float yaw);
     void Write_FINO(float *amp, float *off);
 #endif
 

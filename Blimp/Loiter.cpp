@@ -5,6 +5,61 @@
 #define MA 0.99
 #define MO (1-MA)
 
+const AP_Param::GroupInfo Loiter::var_info[] = {
+
+    // @Param: RP_DAMP_LIM
+    // @DisplayName: Roll/Pitch limit before damping outputs, in degrees. Zero means disabled.
+    // @Description: RP D
+    // @Range: 0 180
+    // @User: Standard
+    AP_GROUPINFO("RP_DAMP_LIM", 4, Loiter, rp_damp_lim, 0),
+
+    // @Param: RP_DAMP_OFF
+    // @DisplayName: Roll/Pitch limit where outputs are fully cut off when _AMT is 1.
+    // @Description: RP D
+    // @Range: 0 180
+    // @User: Standard
+    AP_GROUPINFO("RP_DAMP_OFF", 5, Loiter, rp_damp_off, 0),
+
+    // @Param: RP_DAMP_AMT
+    // @DisplayName: Roll/Pitch output damping amount. Higher number means more damping.
+    // @Description: RP D
+    // @Range: 0 1
+    // @User: Standard
+    AP_GROUPINFO("RP_DAMP_AMT", 9, Loiter, rp_damp_amt, 1),
+
+    // @Param: RP_DAMP_LI2
+    // @DisplayName: Roll/Pitch rate limit before damping outputs, in degrees. Zero means disabled.
+    // @Description: RP D
+    // @Range: 0 180
+    // @User: Standard
+    AP_GROUPINFO("RP_DAMP_LI2", 6, Loiter, rp_damp_lim2, 0),
+
+    // @Param: RP_DAMP_OF2
+    // @DisplayName: Roll/Pitch rate limit where outputs are fully cut off when _AMT is 1.
+    // @Description: RP D
+    // @Range: 0 1
+    // @User: Standard
+    AP_GROUPINFO("RP_DAMP_OF2", 7, Loiter, rp_damp_off2, 0),
+
+    // @Param: RP_DAMP_AM2
+    // @DisplayName: Roll/Pitch output damping amount. Higher number means more damping.
+    // @Description: RP D
+    // @Range: 0 1
+    // @User: Standard
+    AP_GROUPINFO("RP_DAMP_AM2", 10, Loiter, rp_damp_amt2, 1),
+
+    // @Param: RP_DAMP_MSK
+    // @DisplayName: Roll/Pitch output damping mask for which outputs to affect
+    // @Description: RP D
+    // @Values: 15:All enabled, 3:Right & Front only
+    // @Bitmask: 0:Right,1:Front,2:Down,3:Yaw
+    // @User: Standard
+    AP_GROUPINFO("RP_DAMP_MSK", 8, Loiter, rp_damp_msk, 15),
+
+    AP_GROUPEND
+};
+
 void Loiter::run(Vector3f& target_pos, float& target_yaw, Vector4b axes_disabled)
 {
     const float dt = blimp.scheduler.get_last_loop_time_s();
@@ -35,7 +90,73 @@ void Loiter::run(Vector3f& target_pos, float& target_yaw, Vector4b axes_disabled
         scaler_x_n = 1 / xyaw_out;
         scaler_yaw_n = 1 / xyaw_out;
     }
+
+    float aroll = fabsf(blimp.ahrs.get_roll());
+    float apitch = fabsf(blimp.ahrs.get_pitch());
+    Vector3f agyro = blimp.ahrs.get_gyro();
+
+    //Damping by roll & pitch angle
+    if (rp_damp_off > 0 && (rp_damp_off > rp_damp_lim)) //Disable when unused, and also protect against divide by zero
+    {
+        float excessr = 0;
+        float excessp = 0;
+        if (fabsf(aroll) > radians(rp_damp_lim)) excessr = (fabsf(aroll)-radians(rp_damp_lim))/(radians(rp_damp_off)-radians(rp_damp_lim));
+        if (fabsf(apitch) > radians(rp_damp_lim)) excessp = (fabsf(apitch)-radians(rp_damp_lim))/(radians(rp_damp_off)-radians(rp_damp_lim));
+/*
+        actual, lim, off
+        (a-lim)/(off-lim)
+        eg
+        21-20 / 30-20 = 1/10 = 0.1
+        25-20 / 30-20 = 5/10 = 0.5
+        30-20 / 30-20 = 10/10 = 1
+        Thus need 1-ans.
+*/
+        float rp_scale = 0;
+        //Cut off if it's past rp_damp_off
+        if ((rp_damp_amt*(excessr+excessp)) >= 1) rp_scale = 0;
+        else rp_scale = 1 - rp_damp_amt*(excessr+excessp);
+
+        AP::logger().WriteStreaming("FIND", "TimeUS,er,ep,rps", "Qfff",
+                                AP_HAL::micros64(),
+                                excessr,
+                                excessp,
+                                rp_scale);
+        // gcs().send_named_float("EECS", rp_scale);
+
+        if (rp_damp_msk & (1<<(2-1))) scaler_x = scaler_x * rp_scale;
+        if (rp_damp_msk & (1<<(1-1))) scaler_y = scaler_y * rp_scale;
+        if (rp_damp_msk & (1<<(3-1))) scaler_z = scaler_z * rp_scale;
+        if (rp_damp_msk & (1<<(4-1))) scaler_yaw = scaler_yaw * rp_scale;
+    }
+
+    //Damping by roll & pitch rate
+    if (rp_damp_off2 > 0 && (rp_damp_off2 > rp_damp_lim2)) //Disable when unused, and also protect against divide by zero
+    {
+        float excessr2 = 0;
+        float excessp2 = 0;
+        if (fabsf(agyro.x) > radians(rp_damp_lim2)) excessr2 = (fabsf(agyro.x)-radians(rp_damp_lim2))/(radians(rp_damp_off2)-radians(rp_damp_lim2));
+        if (fabsf(agyro.y) > radians(rp_damp_lim2)) excessp2 = (fabsf(agyro.y)-radians(rp_damp_lim2))/(radians(rp_damp_off2)-radians(rp_damp_lim2));
+
+        float rp_scale2 = 0;
+        //Cut off if it's past rp_damp_off
+        if ((rp_damp_amt*(excessr2+excessp2)) >= 1) rp_scale2 = 0;
+        else rp_scale2 = 1 - rp_damp_amt*(excessr2+excessp2);
+
+        AP::logger().WriteStreaming("FIN2", "TimeUS,er,ep,rps", "Qfff",
+                                AP_HAL::micros64(),
+                                excessr2,
+                                excessp2,
+                                rp_scale2);
+
+        if (rp_damp_msk & (1<<(2-1))) scaler_x = scaler_x * rp_scale2;
+        if (rp_damp_msk & (1<<(1-1))) scaler_y = scaler_y * rp_scale2;
+        if (rp_damp_msk & (1<<(3-1))) scaler_z = scaler_z * rp_scale2;
+        if (rp_damp_msk & (1<<(4-1))) scaler_yaw = scaler_yaw * rp_scale2;
+    }
+
     scaler_x = scaler_x*MA + scaler_x_n*MO;
+    scaler_y = scaler_y*MA + scaler_y_n*MO;
+    scaler_z = scaler_z*MA + scaler_z_n*MO;
     scaler_yaw = scaler_yaw*MA + scaler_yaw_n*MO;
 
 #if HAL_LOGGING_ENABLED

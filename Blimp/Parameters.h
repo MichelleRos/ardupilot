@@ -102,6 +102,8 @@ public:
         k_param_pid_pos_yaw,
         k_param_pid_vel_y,
         k_param_pid_pos_y,
+        k_param_loiter = 40,
+        k_param_max_man_thr,
 
         //Position & Velocity controller params
         k_param_max_vel_x = 50,
@@ -257,6 +259,7 @@ public:
     AP_Float        max_pos_y;
     AP_Float        max_pos_z;
     AP_Float        max_pos_yaw;
+    AP_Float        max_man_thr;
 
     AP_Int8         simple_mode;
     AP_Int16        dis_mask;

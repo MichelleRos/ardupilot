@@ -213,44 +213,51 @@ const AP_Param::Info Blimp::var_info[] = {
     // @Description: Sets the maximum XY velocity, in m/s
     // @Range: 0.2 5
     // @User: Standard
-    GSCALAR(max_vel_x, "MAX_VEL_X", 0.5),
-    GSCALAR(max_vel_y, "MAX_VEL_Y", 0.5),
+    GSCALAR(max_vel_x, "LOIT_MAX_VEL_X", 0.5),
+    GSCALAR(max_vel_y, "LOIT_MAX_VEL_Y", 0.5),
 
     // @Param: MAX_VEL_Z
     // @DisplayName: Max Z Velocity
     // @Description: Sets the maximum Z velocity, in m/s
     // @Range: 0.2 5
     // @User: Standard
-    GSCALAR(max_vel_z, "MAX_VEL_Z", 0.4),
+    GSCALAR(max_vel_z, "LOIT_MAX_VEL_Z", 0.4),
 
     // @Param: MAX_VEL_YAW
     // @DisplayName: Max yaw Velocity
     // @Description: Sets the maximum yaw velocity, in rad/s
     // @Range: 0.2 5
     // @User: Standard
-    GSCALAR(max_vel_yaw, "MAX_VEL_YAW", 0.5),
+    GSCALAR(max_vel_yaw, "LOIT_MAX_VEL_YAW", 0.5),
 
     // @Param: MAX_POS_X Y
     // @DisplayName: Max XY Position change
     // @Description: Sets the maximum XY position change, in m/s
     // @Range: 0.1 5
     // @User: Standard
-    GSCALAR(max_pos_x, "MAX_POS_X", 0.2),
-    GSCALAR(max_pos_y, "MAX_POS_Y", 0.2),
+    GSCALAR(max_pos_x, "LOIT_MAX_POS_X", 0.2),
+    GSCALAR(max_pos_y, "LOIT_MAX_POS_Y", 0.2),
 
     // @Param: MAX_POS_Z
     // @DisplayName: Max Z Position change
     // @Description: Sets the maximum Z position change, in m/s
     // @Range: 0.1 5
     // @User: Standard
-    GSCALAR(max_pos_z, "MAX_POS_Z", 0.15),
+    GSCALAR(max_pos_z, "LOIT_MAX_POS_Z", 0.15),
 
     // @Param: MAX_POS_YAW
     // @DisplayName: Max Yaw Position change
     // @Description: Sets the maximum Yaw position change, in rad/s
     // @Range: 0.1 5
     // @User: Standard
-    GSCALAR(max_pos_yaw, "MAX_POS_YAW", 0.3),
+    GSCALAR(max_pos_yaw, "LOIT_MAX_POS_YAW", 0.3),
+
+    // @Param: MAX_MAN_THR
+    // @DisplayName: Max Throttle in Manual Mode
+    // @Description: Sets the maximum throttle output from manual mode. Note that this will be on top of FINS_THR_MAX.
+    // @Range: 0.1 1
+    // @User: Standard
+    GSCALAR(max_man_thr, "LOIT_MAX_POS_YAW", 1),
 
     // @Param: SIMPLE_MODE
     // @DisplayName: Simple mode
@@ -400,6 +407,10 @@ const AP_Param::Info Blimp::var_info[] = {
     // @Path: Fins.cpp
     GOBJECTPTR(motors, "FINS_", Fins),
 
+    // @Group: LOIT_
+    // @Path: Loiter.cpp
+    GOBJECTPTR(loiter, "LOIT_", Loiter),
+
     // @Param: VELXY_P
     // @DisplayName: Velocity (horizontal) P gain
     // @Description: Velocity (horizontal) P gain.  Converts the difference between desired and actual velocity to a target acceleration
@@ -449,8 +460,8 @@ const AP_Param::Info Blimp::var_info[] = {
     // @Range: 0 6
     // @Increment: 0.01
     // @User: Advanced
-    GOBJECT(pid_vel_x, "VELX_", AC_PID),
-    GOBJECT(pid_vel_y, "VELY_", AC_PID),
+    GOBJECT(pid_vel_x, "LOIT_VELX_", AC_PID),
+    GOBJECT(pid_vel_y, "LOIT_VELY_", AC_PID),
 
     // @Param: VELZ_P
     // @DisplayName: Velocity (vertical) P gain
@@ -501,7 +512,7 @@ const AP_Param::Info Blimp::var_info[] = {
     // @Range: 0 6
     // @Increment: 0.01
     // @User: Advanced
-    GOBJECT(pid_vel_z, "VELZ_", AC_PID_Basic),
+    GOBJECT(pid_vel_z, "LOIT_VELZ_", AC_PID_Basic),
 
     // @Param: VELYAW_P
     // @DisplayName: Velocity (yaw) P gain
@@ -545,7 +556,7 @@ const AP_Param::Info Blimp::var_info[] = {
     // @Range: 0 6
     // @Increment: 0.01
     // @User: Advanced
-    GOBJECT(pid_vel_yaw, "VELYAW_", AC_PID),
+    GOBJECT(pid_vel_yaw, "LOIT_VELYAW_", AC_PID),
 
     // @Param: POSXY_P
     // @DisplayName: Position (horizontal) P gain
@@ -596,8 +607,8 @@ const AP_Param::Info Blimp::var_info[] = {
     // @Range: 0 6
     // @Increment: 0.01
     // @User: Advanced
-    GOBJECT(pid_pos_x, "POSX_", AC_PID),
-    GOBJECT(pid_pos_y, "POSY_", AC_PID),
+    GOBJECT(pid_pos_x, "LOIT_POSX_", AC_PID),
+    GOBJECT(pid_pos_y, "LOIT_POSY_", AC_PID),
 
     // @Param: POSZ_P
     // @DisplayName: Position (vertical) P gain
@@ -648,7 +659,7 @@ const AP_Param::Info Blimp::var_info[] = {
     // @Range: 0 6
     // @Increment: 0.01
     // @User: Advanced
-    GOBJECT(pid_pos_z, "POSZ_", AC_PID),
+    GOBJECT(pid_pos_z, "LOIT_POSZ_", AC_PID),
 
     // @Param: POSYAW_P
     // @DisplayName: Position (yaw) axis controller P gain
@@ -743,8 +754,7 @@ const AP_Param::Info Blimp::var_info[] = {
     // @Description: Position (yaw) Error notch filter index
     // @Range: 1 8
     // @User: Advanced
-
-    GOBJECT(pid_pos_yaw, "POSYAW_", AC_PID),
+    GOBJECT(pid_pos_yaw, "LOIT_POSYAW_", AC_PID),
 
     // @Group:
     // @Path: ../libraries/AP_Vehicle/AP_Vehicle.cpp
