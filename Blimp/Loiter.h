@@ -69,6 +69,8 @@ public:
     AP_Int16            rp_damp_msk;
     AP_Float            scaler_spd;
     AP_Float            pos_lag;
+    AP_Float            bat_mult;
+    AP_Float            bat_off;
 
     //Run Loiter controller with target position and yaw in global frame. Expects to be called at loop rate.
     void run(Vector3f& target_pos, float& target_yaw, Vector4b axes_disabled);

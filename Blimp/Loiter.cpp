@@ -60,6 +60,9 @@ const AP_Param::GroupInfo Loiter::var_info[] = {
     //Number of seconds' worth of travel that the actual position can be behind the target position.
     AP_GROUPINFO("LAG", 12, Loiter, pos_lag, 1),
 
+    AP_GROUPINFO("BAT_MULT", 13, Loiter, bat_mult, 1),
+    AP_GROUPINFO("BAT_OFF", 14, Loiter, bat_off, 0),
+
     AP_GROUPEND
 };
 
@@ -134,6 +137,7 @@ void Loiter::run_vel(Vector3f& target_vel_ef, float& target_vel_yaw, Vector4b ax
 {
     const float dt = blimp.scheduler.get_last_loop_time_s();
 
+    //New value for scaler
     float scaler_x_n = 1;
     float scaler_y_n = 1;
     float scaler_z_n = 1;
@@ -145,16 +149,12 @@ void Loiter::run_vel(Vector3f& target_vel_ef, float& target_vel_yaw, Vector4b ax
             scaler_x_n = 1 / xz_out;
             scaler_z_n = 1 / xz_out;
         }
-        scaler_x = scaler_x*MA + scaler_x_n*MO;
-        scaler_z = scaler_z*MA + scaler_z_n*MO;
         float yyaw_out = fabsf(blimp.motors->right_out) + fabsf(blimp.motors->yaw_out);
         if (yyaw_out > 1) {
             scaler_y_n = 1 / yyaw_out;
             scaler_yaw_n = 1 / yyaw_out;
         }
-        scaler_y = scaler_y*MA + scaler_y_n*MO;
-        scaler_yaw = scaler_yaw*MA + scaler_yaw_n*MO;
-        }
+    }
     else if ((Fins::motor_frame_class)blimp.g2.frame_class.get() == Fins::MOTOR_FRAME_FOUR_MOTOR) {
         float xyaw_out = fabsf(blimp.motors->front_out) + fabsf(blimp.motors->yaw_out);
         if (xyaw_out > 1) {
@@ -195,10 +195,10 @@ void Loiter::run_vel(Vector3f& target_vel_ef, float& target_vel_yaw, Vector4b ax
                                 rp_scale);
         // gcs().send_named_float("EECS", rp_scale);
 
-        if (rp_damp_msk & (1<<(2-1))) scaler_x = scaler_x * rp_scale;
-        if (rp_damp_msk & (1<<(1-1))) scaler_y = scaler_y * rp_scale;
-        if (rp_damp_msk & (1<<(3-1))) scaler_z = scaler_z * rp_scale;
-        if (rp_damp_msk & (1<<(4-1))) scaler_yaw = scaler_yaw * rp_scale;
+        if (rp_damp_msk & (1<<(2-1))) scaler_x_n = scaler_x_n * rp_scale;
+        if (rp_damp_msk & (1<<(1-1))) scaler_y_n = scaler_y_n * rp_scale;
+        if (rp_damp_msk & (1<<(3-1))) scaler_z_n = scaler_z_n * rp_scale;
+        if (rp_damp_msk & (1<<(4-1))) scaler_yaw_n = scaler_yaw_n * rp_scale;
     }
 
     //Damping by roll & pitch rate
@@ -220,10 +220,19 @@ void Loiter::run_vel(Vector3f& target_vel_ef, float& target_vel_yaw, Vector4b ax
                                 excessp2,
                                 rp_scale2);
 
-        if (rp_damp_msk & (1<<(2-1))) scaler_x = scaler_x * rp_scale2;
-        if (rp_damp_msk & (1<<(1-1))) scaler_y = scaler_y * rp_scale2;
-        if (rp_damp_msk & (1<<(3-1))) scaler_z = scaler_z * rp_scale2;
-        if (rp_damp_msk & (1<<(4-1))) scaler_yaw = scaler_yaw * rp_scale2;
+        if (rp_damp_msk & (1<<(2-1))) scaler_x_n = scaler_x_n * rp_scale2;
+        if (rp_damp_msk & (1<<(1-1))) scaler_y_n = scaler_y_n * rp_scale2;
+        if (rp_damp_msk & (1<<(3-1))) scaler_z_n = scaler_z_n * rp_scale2;
+        if (rp_damp_msk & (1<<(4-1))) scaler_yaw_n = scaler_yaw_n * rp_scale2;
+    }
+
+    float scaler_bat = (blimp.battery.voltage() - bat_off) * bat_mult;
+    gcs().send_named_float("BSCB", scaler_bat);
+    if (!is_zero(scaler_bat) && scaler_bat <= 1) {
+        scaler_x_n = scaler_x_n * scaler_bat;
+        scaler_y_n = scaler_y_n * scaler_bat;
+        scaler_z_n = scaler_z_n * scaler_bat;
+        scaler_yaw_n = scaler_yaw_n * scaler_bat;
     }
 
     scaler_x = scaler_x*MA + scaler_x_n*MO;
@@ -232,11 +241,19 @@ void Loiter::run_vel(Vector3f& target_vel_ef, float& target_vel_yaw, Vector4b ax
     scaler_yaw = scaler_yaw*MA + scaler_yaw_n*MO;
 
 #if HAL_LOGGING_ENABLED
-    AP::logger().WriteStreaming("BSC", "TimeUS,x,y,z,yaw,xn,yn,zn,yawn",
-                                "Qffffffff",
+    AP::logger().WriteStreaming("BSC", "TimeUS,x,y,z,yaw,xn,yn,zn,yawn,b",
+                                "Qfffffffff",
                                 AP_HAL::micros64(),
-                                scaler_x, scaler_y, scaler_z, scaler_yaw, scaler_x_n, scaler_y_n, scaler_z_n, scaler_yaw_n);
+                                scaler_x, scaler_y, scaler_z, scaler_yaw, scaler_x_n, scaler_y_n, scaler_z_n, scaler_yaw_n, scaler_bat);
 #endif
+    gcs().send_named_float("BSCXN", scaler_x_n);
+    gcs().send_named_float("BSCYN", scaler_y_n);
+    gcs().send_named_float("BSCZN", scaler_z_n);
+    gcs().send_named_float("BSCYAWN", scaler_yaw_n);
+    gcs().send_named_float("BSCX", scaler_x);
+    gcs().send_named_float("BSCY", scaler_y);
+    gcs().send_named_float("BSCZ", scaler_z);
+    gcs().send_named_float("BSCYAW", scaler_yaw);
 
     Vector4b zero;
     if (!blimp.motors->_armed || (blimp.g.dis_mask & (1<<(2-1)))) {
