@@ -20,5 +20,5 @@ void ModeVelocity::run()
     target_vel.z *= g.max_vel_z;
     target_vel_yaw *= g.max_vel_yaw;
 
-    blimp.loiter->run_vel(target_vel, target_vel_yaw, Vector4b{false,false,false,false});
+    blimp.loiter->run_vel(target_vel, target_vel_yaw, Vector4b{false,false,false,false}, true);
 }

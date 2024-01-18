@@ -54,6 +54,7 @@ public:
         scaler_y = 1;
         scaler_z = 1;
         scaler_yaw = 1;
+        AP_Param::setup_object_defaults(this, var_info);
     };
 
     // var_info for holding Parameter information
@@ -67,9 +68,10 @@ public:
     AP_Float            rp_damp_off2;
     AP_Int16            rp_damp_msk;
     AP_Float            scaler_spd;
+    AP_Float            pos_lag;
 
     //Run Loiter controller with target position and yaw in global frame. Expects to be called at loop rate.
     void run(Vector3f& target_pos, float& target_yaw, Vector4b axes_disabled);
-    //Run Loiter controller with target velocity and velocity in global frame. Expects to be called at loop rate.
-    void run_vel(Vector3f& target_vel, float& target_vel_yaw, Vector4b axes_disabled);
+    //Run Loiter controller with target velocity and yaw velocity in global frame. Expects to be called at loop rate.
+    void run_vel(Vector3f& target_vel, float& target_vel_yaw, Vector4b axes_disabled, bool log);
 };

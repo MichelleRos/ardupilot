@@ -13,7 +13,7 @@ const AP_Param::GroupInfo Fins::var_info[] = {
 
     // @Param: TURBO_MODE
     // @DisplayName: Enable turbo mode
-    // @Description: Enables double speed on high offset.
+    // @Description: Enables double speed on high offset (finned blimp only).
     // @Range: 0 1
     // @User: Standard
     AP_GROUPINFO("TURBO_MODE", 2, Fins, turbo_mode, 0),

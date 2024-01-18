@@ -3,9 +3,6 @@
  * Init and run calls for loiter flight mode
  */
 
-//Number of seconds of movement that the target position can be ahead of actual position.
-#define POS_LAG 1
-
 bool ModeLoiter::init(bool ignore_checks)
 {
     target_pos = blimp.pos_ned;
@@ -33,17 +30,20 @@ void ModeLoiter::run()
     }
 
     // This keeps the target position from getting too far away from the blimp's actual position.
-    // TODO Needs to allow position to get closer but not further.
-    if (fabsf(target_pos.x-blimp.pos_ned.x) < (g.max_pos_x*POS_LAG)) {
+    if ((fabsf(target_pos.x-blimp.pos_ned.x) < (g.max_pos_x*blimp.loiter->pos_lag)) || ((target_pos.x > blimp.pos_ned.x) && (pilot.x < 0)) || ((target_pos.x < blimp.pos_ned.x) && (pilot.x > 0))) {
         target_pos.x += pilot.x;
     }
-    if (fabsf(target_pos.y-blimp.pos_ned.y) < (g.max_pos_y*POS_LAG)) {
+    if ((fabsf(target_pos.y-blimp.pos_ned.y) < (g.max_pos_y*blimp.loiter->pos_lag)) || ((target_pos.y > blimp.pos_ned.y) && (pilot.y < 0)) || ((target_pos.y < blimp.pos_ned.y) && (pilot.y > 0))) {
         target_pos.y += pilot.y;
     }
-    if (fabsf(target_pos.z-blimp.pos_ned.z) < (g.max_pos_z*POS_LAG)) {
+    if ((fabsf(target_pos.z-blimp.pos_ned.z) < (g.max_pos_z*blimp.loiter->pos_lag)) || ((target_pos.z > blimp.pos_ned.z) && (pilot.z < 0)) || ((target_pos.z < blimp.pos_ned.z) && (pilot.z > 0))) {
         target_pos.z += pilot.z;
     }
-    if (fabsf(wrap_PI(target_yaw-ahrs.get_yaw())) < (g.max_pos_yaw*POS_LAG)) {
+    //Need to not just check target is greater than current, but also that it's not .too much. greater (eg not more than double pos lag).
+    // if ((fabsf(wrap_PI(target_yaw-ahrs.get_yaw())) < (g.max_pos_yaw*blimp.loiter->pos_lag)) || ((target_yaw > ahrs.get_yaw()) && (target_yaw < wrap_PI(ahrs.get_yaw()+0.5)) && (pilot_yaw < 0)) || ((target_yaw < ahrs.get_yaw()) && (target_yaw > wrap_PI(ahrs.get_yaw()+0.5)) && (pilot_yaw > 0))) {
+    //     target_yaw = wrap_PI(target_yaw + pilot_yaw);
+    // }
+    if (fabsf(wrap_PI(target_yaw-ahrs.get_yaw())) < (g.max_pos_yaw*blimp.loiter->pos_lag)) {
         target_yaw = wrap_PI(target_yaw + pilot_yaw);
     }
 
