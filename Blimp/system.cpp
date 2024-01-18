@@ -34,6 +34,14 @@ void Blimp::init_ardupilot()
     // allocate the motors class
     allocate_motors();
     loiter = NEW_NOTHROW Loiter(blimp.scheduler.get_loop_rate_hz());
+    if (loiter == nullptr) {
+        AP_BoardConfig::allocation_error("Loiter");
+    }
+    AP_Param::load_object_from_eeprom(loiter, Loiter::var_info);
+        // reload lines from the defaults file that may now be accessible
+    AP_Param::reload_defaults_file(true);
+    // param count could have changed
+    AP_Param::invalidate_count();
 
     // initialise rc channels including setting mode
     rc().convert_options(RC_Channel::AUX_FUNC::ARMDISARM_UNUSED, RC_Channel::AUX_FUNC::ARMDISARM);
