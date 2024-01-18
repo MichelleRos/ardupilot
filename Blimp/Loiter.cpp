@@ -136,6 +136,7 @@ void Loiter::run(Vector3f& target_pos, float& target_yaw, Vector4b axes_disabled
 void Loiter::run_vel(Vector3f& target_vel_ef, float& target_vel_yaw, Vector4b axes_disabled, bool log)
 {
     const float dt = blimp.scheduler.get_last_loop_time_s();
+    blimp.rotate_NE_to_BF(target_vel_ef.xy());
 
     //New value for scaler
     float scaler_x_n = 1;
@@ -302,7 +303,7 @@ void Loiter::run_vel(Vector3f& target_vel_ef, float& target_vel_yaw, Vector4b ax
         blimp.pid_vel_yaw.set_integrator(0);
     }
 
-    blimp.rotate_NE_to_BF(actuator);
+    // blimp.rotate_NE_to_BF(actuator); //Don't need this anymore because we're already in BF
 
     if (zero.x) {
         blimp.motors->front_out = 0;
