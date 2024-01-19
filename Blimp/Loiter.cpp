@@ -228,7 +228,6 @@ void Loiter::run_vel(Vector3f& target_vel_ef, float& target_vel_yaw, Vector4b ax
     }
 
     float scaler_bat = (blimp.battery.voltage() - bat_off) * bat_mult;
-    gcs().send_named_float("BSCB", scaler_bat);
     if (!is_zero(scaler_bat) && scaler_bat <= 1) {
         scaler_x_n = scaler_x_n * scaler_bat;
         scaler_y_n = scaler_y_n * scaler_bat;
@@ -247,14 +246,17 @@ void Loiter::run_vel(Vector3f& target_vel_ef, float& target_vel_yaw, Vector4b ax
                                 AP_HAL::micros64(),
                                 scaler_x, scaler_y, scaler_z, scaler_yaw, scaler_x_n, scaler_y_n, scaler_z_n, scaler_yaw_n, scaler_bat);
 #endif
-    gcs().send_named_float("BSCXN", scaler_x_n);
-    gcs().send_named_float("BSCYN", scaler_y_n);
-    gcs().send_named_float("BSCZN", scaler_z_n);
-    gcs().send_named_float("BSCYAWN", scaler_yaw_n);
-    gcs().send_named_float("BSCX", scaler_x);
-    gcs().send_named_float("BSCY", scaler_y);
-    gcs().send_named_float("BSCZ", scaler_z);
-    gcs().send_named_float("BSCYAW", scaler_yaw);
+    if (AP_HAL::millis() % blimp.g.stream_rate < 30){
+        gcs().send_named_float("BSCB", scaler_bat);
+        gcs().send_named_float("BSCXN", scaler_x_n);
+        gcs().send_named_float("BSCYN", scaler_y_n);
+        gcs().send_named_float("BSCZN", scaler_z_n);
+        gcs().send_named_float("BSCYAWN", scaler_yaw_n);
+        gcs().send_named_float("BSCX", scaler_x);
+        gcs().send_named_float("BSCY", scaler_y);
+        gcs().send_named_float("BSCZ", scaler_z);
+        gcs().send_named_float("BSCYAW", scaler_yaw);
+    }
 
     Vector4b zero;
     if (!blimp.motors->_armed || (blimp.g.dis_mask & (1<<(2-1)))) {

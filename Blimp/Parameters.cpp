@@ -259,6 +259,9 @@ const AP_Param::Info Blimp::var_info[] = {
     // @User: Standard
     GSCALAR(max_man_thr, "LOIT_MAX_POS_YAW", 1),
 
+    //Streamrate factor, not an actual rate
+    GSCALAR(stream_rate, "STREAM_RATE", 1000),
+
     // @Param: SIMPLE_MODE
     // @DisplayName: Simple mode
     // @Description: Simple mode for Position control - "forward" moves blimp in +ve X direction world-frame

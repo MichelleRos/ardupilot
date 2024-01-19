@@ -127,6 +127,13 @@ void Fins::output()
     blimp.Write_FINI(right_out, front_out, down_out, yaw_out);
 #endif
 
+    if (AP_HAL::millis() % blimp.g.stream_rate < 30){
+        gcs().send_named_float("FINIR", right_out); 
+        gcs().send_named_float("FINIF", front_out);
+        gcs().send_named_float("FINID", down_out);
+        gcs().send_named_float("FINIY", yaw_out);
+    }
+
     //Constrain after logging so as to still show when sub-optimal tuning is causing massive overshoots.
 
     right_out = constrain_float(right_out, -thr_max, thr_max);
