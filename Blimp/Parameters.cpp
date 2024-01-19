@@ -512,7 +512,7 @@ const AP_Param::Info Blimp::var_info[] = {
     // @Range: 0 6
     // @Increment: 0.01
     // @User: Advanced
-    GOBJECT(pid_vel_z, "LOIT_VELZ_", AC_PID_Basic),
+    GOBJECT(pid_vel_z, "LOIT_VELZ_", AC_PID),
 
     // @Param: VELYAW_P
     // @DisplayName: Velocity (yaw) P gain

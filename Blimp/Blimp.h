@@ -46,8 +46,6 @@
 #include <AP_BattMonitor/AP_BattMonitor.h>     // Battery monitor library
 #include <AP_Arming/AP_Arming.h>
 #include <AP_Scripting/AP_Scripting.h>
-#include <AC_PID/AC_PID_2D.h>
-#include <AC_PID/AC_PID_Basic.h>
 #include <AC_PID/AC_PID.h>
 #include <AP_Vehicle/AP_MultiCopter.h>
 
