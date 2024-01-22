@@ -133,10 +133,15 @@ void Loiter::run(Vector3f& target_pos, float& target_yaw, Vector4b axes_disabled
     run_vel(target_vel_ef_c, target_vel_yaw_c, axes_disabled, false);
 }
 
+//---------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------
 void Loiter::run_vel(Vector3f& target_vel_ef, float& target_vel_yaw, Vector4b axes_disabled, bool log)
 {
     const float dt = blimp.scheduler.get_last_loop_time_s();
+
     blimp.rotate_NE_to_BF(target_vel_ef.xy());
+    //Just for the sake of clarity...
+    Vector3f target_vel_bf = target_vel_ef;
 
     //New value for scaler
     float scaler_x_n = 1;
@@ -274,28 +279,31 @@ void Loiter::run_vel(Vector3f& target_vel_ef, float& target_vel_yaw, Vector4b ax
     //Disabled means "don't update PIDs or output anything at all". Zero means actually output zero thrust. I term is limited in either case."
     Vector4b limit = zero || axes_disabled;
 
-    Vector3f target_vel_ef_c{constrain_float(target_vel_ef.x, -blimp.g.max_vel_x, blimp.g.max_vel_x),
-                             constrain_float(target_vel_ef.y, -blimp.g.max_vel_y, blimp.g.max_vel_y),
-                             constrain_float(target_vel_ef.z, -blimp.g.max_vel_z, blimp.g.max_vel_z)};
+    Vector3f target_vel_bf_c{constrain_float(target_vel_bf.x, -blimp.g.max_vel_x, blimp.g.max_vel_x),
+                             constrain_float(target_vel_bf.y, -blimp.g.max_vel_y, blimp.g.max_vel_y),
+                             constrain_float(target_vel_bf.z, -blimp.g.max_vel_z, blimp.g.max_vel_z)};
     float target_vel_yaw_c = constrain_float(target_vel_yaw, -blimp.g.max_vel_yaw, blimp.g.max_vel_yaw);
+
+    Vector3f vel_bf_filtd = blimp.vel_ned_filtd;
+    blimp.rotate_NE_to_BF(vel_bf_filtd.xy());
 
     Vector2f actuator;
     if (!axes_disabled.x) {
-        actuator.x = blimp.pid_vel_x.update_all(target_vel_ef_c.x * scaler_x, blimp.vel_ned_filtd.x * scaler_x, dt, limit.x);
+        actuator.x = blimp.pid_vel_x.update_all(target_vel_bf_c.x * scaler_x, vel_bf_filtd.x, dt, limit.x);
     }
 
     if (!axes_disabled.y) {
-        actuator.y = blimp.pid_vel_y.update_all(target_vel_ef_c.y * scaler_y, blimp.vel_ned_filtd.y * scaler_y, dt, limit.y);
+        actuator.y = blimp.pid_vel_y.update_all(target_vel_bf_c.y * scaler_y, vel_bf_filtd.y, dt, limit.y);
     }
 
     float act_down = 0;
     if (!axes_disabled.z) {
-        act_down = blimp.pid_vel_z.update_all(target_vel_ef_c.z * scaler_z, blimp.vel_ned_filtd.z * scaler_z, dt, limit.z);
+        act_down = blimp.pid_vel_z.update_all(target_vel_bf_c.z * scaler_z, vel_bf_filtd.z, dt, limit.z);
     }
 
     float act_yaw = 0;
     if (!axes_disabled.yaw) {
-        act_yaw = blimp.pid_vel_yaw.update_all(target_vel_yaw_c * scaler_yaw, blimp.vel_yaw_filtd * scaler_yaw, dt, limit.yaw);
+        act_yaw = blimp.pid_vel_yaw.update_all(target_vel_yaw_c * scaler_yaw, blimp.vel_yaw_filtd, dt, limit.yaw);
     }
 
     if (!blimp.motors->armed()) {
@@ -334,9 +342,9 @@ void Loiter::run_vel(Vector3f& target_vel_ef, float& target_vel_yaw, Vector4b ax
 
 #if HAL_LOGGING_ENABLED
     if(log) {
-        AC_PosControl::Write_PSCN(0.0, blimp.pos_ned.x * 100.0, 0.0, target_vel_ef_c.x * 100.0, blimp.vel_ned_filtd.x * 100.0, 0.0, 0.0, 0.0);
-        AC_PosControl::Write_PSCE(0.0, blimp.pos_ned.y * 100.0, 0.0, target_vel_ef_c.y * 100.0, blimp.vel_ned_filtd.y * 100.0, 0.0, 0.0, 0.0);
-        AC_PosControl::Write_PSCD(0.0, -blimp.pos_ned.z * 100.0, 0.0, -target_vel_ef_c.z * 100.0, -blimp.vel_ned_filtd.z * 100.0, 0.0, 0.0, 0.0);
+        AC_PosControl::Write_PSCN(0.0, blimp.pos_ned.x * 100.0, 0.0, target_vel_bf_c.x * 100.0, vel_bf_filtd.x * 100.0, 0.0, 0.0, 0.0);
+        AC_PosControl::Write_PSCE(0.0, blimp.pos_ned.y * 100.0, 0.0, target_vel_bf_c.y * 100.0, vel_bf_filtd.y * 100.0, 0.0, 0.0, 0.0);
+        AC_PosControl::Write_PSCD(0.0, -blimp.pos_ned.z * 100.0, 0.0, -target_vel_bf_c.z * 100.0, -vel_bf_filtd.z * 100.0, 0.0, 0.0, 0.0);
     }
 #endif
 }
