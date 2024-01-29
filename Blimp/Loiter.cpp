@@ -5,14 +5,14 @@
 const AP_Param::GroupInfo Loiter::var_info[] = {
 
     // @Param: RP_DAMP_LIM
-    // @DisplayName: Roll/Pitch limit before damping outputs, in degrees. Zero means disabled.
+    // @DisplayName: Roll/Pitch limit (in deg) before damping outputs. Zero means disabled.
     // @Description: RP D
     // @Range: 0 180
     // @User: Standard
     AP_GROUPINFO("RP_DAMP_LIM", 4, Loiter, rp_damp_lim, 0),
 
     // @Param: RP_DAMP_OFF
-    // @DisplayName: Roll/Pitch limit where outputs are fully cut off when _AMT is 1.
+    // @DisplayName: Roll/Pitch limit (in deg) where outputs are fully cut off when _AMT is 1.
     // @Description: RP D
     // @Range: 0 180
     // @User: Standard
@@ -26,14 +26,14 @@ const AP_Param::GroupInfo Loiter::var_info[] = {
     AP_GROUPINFO("RP_DAMP_AMT", 9, Loiter, rp_damp_amt, 1),
 
     // @Param: RP_DAMP_LI2
-    // @DisplayName: Roll/Pitch rate limit before damping outputs, in degrees. Zero means disabled.
+    // @DisplayName: Roll/Pitch rate limit (in deg/s) before damping outputs. Zero means disabled.
     // @Description: RP D
     // @Range: 0 180
     // @User: Standard
     AP_GROUPINFO("RP_DAMP_LI2", 6, Loiter, rp_damp_lim2, 0),
 
     // @Param: RP_DAMP_OF2
-    // @DisplayName: Roll/Pitch rate limit where outputs are fully cut off when _AMT is 1.
+    // @DisplayName: Roll/Pitch rate limit (in deg/s) where outputs are fully cut off when _AMT is 1.
     // @Description: RP D
     // @Range: 0 1
     // @User: Standard
