@@ -91,8 +91,8 @@ const AP_Param::GroupInfo Loiter::var_info[] = {
     // @User: Advanced
     AP_GROUPINFO("SCALER_SPD", 18, Loiter, scaler_spd, 0.99),
 
-    // @Param: LAG
-    // @DisplayName: Loiter lag
+    // @Param: POS_LAG
+    // @DisplayName: Loiter position lag
     // @Description: Number of seconds' worth of travel that the actual position can be behind the target position.
     // @Units: s
     // @Range: 0 0.999

@@ -13,13 +13,13 @@ public:
 
     // Auto Pilot Modes enumeration
     enum class Number : uint8_t {
-        LAND =          0,  // go down to the ground, then go to mode hold
+        HOLD =          0,  // hold (stop moving)
         MANUAL =        1,  // manual control
         VELOCITY =      2,  // velocity mode
         LOITER =        3,  // loiter mode (position hold)
         RTL =           4,  // rtl
         AUTO =          5,  // auto
-        HOLD =          6,  // hold (stop moving)
+        LAND =          6,  // go down to the ground, then go to mode hold
     };
 
     // constructor
