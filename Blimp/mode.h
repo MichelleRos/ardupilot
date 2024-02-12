@@ -359,6 +359,13 @@ public:
         //TODO
     }
 
+    AP_Mission mission{
+        FUNCTOR_BIND_MEMBER(&ModeAuto::start_command, bool, const AP_Mission::Mission_Command &),
+        FUNCTOR_BIND_MEMBER(&ModeAuto::verify_command, bool, const AP_Mission::Mission_Command &),
+        FUNCTOR_BIND_MEMBER(&ModeAuto::exit_mission, void)};
+
+    AP_Mission_ChangeDetector mis_change_detector;
+
 protected:
 
     const char *name() const override
@@ -369,4 +376,10 @@ protected:
     {
         return "AUTO";
     }
+
+private:
+
+    bool start_command(const AP_Mission::Mission_Command& cmd);
+    bool verify_command(const AP_Mission::Mission_Command& cmd);
+    void exit_mission();
 };
