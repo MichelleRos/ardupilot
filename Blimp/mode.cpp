@@ -45,6 +45,9 @@ Mode *Blimp::mode_from_mode_num(const Mode::Number mode)
     case Mode::Number::RTL:
         ret = &mode_rtl;
         break;
+    case Mode::Number::AUTO:
+        ret = &mode_auto;
+        break;
     default:
         break;
     }

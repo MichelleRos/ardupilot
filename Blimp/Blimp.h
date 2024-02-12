@@ -90,6 +90,7 @@ public:
     friend class ModeVelocity;
     friend class ModeLoiter;
     friend class ModeRTL;
+    friend class ModeAuto;
 
     friend class Fins;
     friend class Loiter;
@@ -437,6 +438,7 @@ private:
     ModeVelocity mode_velocity;
     ModeLoiter mode_loiter;
     ModeRTL mode_rtl;
+    ModeAuto mode_auto;
 
     // mode.cpp
     Mode *mode_from_mode_num(const Mode::Number mode);
