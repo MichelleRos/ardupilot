@@ -359,12 +359,21 @@ public:
         //TODO
     }
 
+    Vector3f target_pos;
+    float target_yaw;
+    bool waiting_to_start;
+
     AP_Mission mission{
         FUNCTOR_BIND_MEMBER(&ModeAuto::start_command, bool, const AP_Mission::Mission_Command &),
         FUNCTOR_BIND_MEMBER(&ModeAuto::verify_command, bool, const AP_Mission::Mission_Command &),
         FUNCTOR_BIND_MEMBER(&ModeAuto::exit_mission, void)};
 
     AP_Mission_ChangeDetector mis_change_detector;
+
+    Location loc_from_cmd(const AP_Mission::Mission_Command& cmd, const Location& default_loc) const;
+    void do_nav_wp(const AP_Mission::Mission_Command& cmd);
+    // void ModeAuto::do_takeoff(const AP_Mission::Mission_Command& cmd);
+    // void ModeAuto::do_land(const AP_Mission::Mission_Command& cmd);
 
 protected:
 
