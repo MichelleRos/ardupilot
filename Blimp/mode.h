@@ -362,6 +362,8 @@ public:
     Vector3f target_pos;
     float target_yaw;
     bool waiting_to_start;
+    uint32_t last_report_ms;
+    bool tag;
 
     AP_Mission mission{
         FUNCTOR_BIND_MEMBER(&ModeAuto::start_command, bool, const AP_Mission::Mission_Command &),
@@ -374,6 +376,7 @@ public:
     void do_nav_wp(const AP_Mission::Mission_Command& cmd);
     // void ModeAuto::do_takeoff(const AP_Mission::Mission_Command& cmd);
     // void ModeAuto::do_land(const AP_Mission::Mission_Command& cmd);
+    bool verify_nav_wp(const AP_Mission::Mission_Command& cmd);
 
 protected:
 

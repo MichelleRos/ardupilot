@@ -14,19 +14,27 @@ bool ModeAuto::init(bool ignore_checks)
 //Runs the main loiter controller
 void ModeAuto::run()
 {
+    const uint32_t now_ms = AP_HAL::millis();
+    if (now_ms - last_report_ms >= uint(blimp.g.stream_rate)) {
+        last_report_ms = now_ms;
+        tag = true;
+    } else tag = false;
+    
     // start or update mission
     if (waiting_to_start) {
         // don't start the mission until we have an origin
         Location loc;
         if (blimp.ahrs.get_origin(loc)) {
+            if (tag) GCS_SEND_TEXT(MAV_SEVERITY_INFO, "M: Got location, starting mission.");
             // start/resume the mission (based on MIS_RESTART parameter)
             mission.start_or_resume();
             waiting_to_start = false;
 
             // initialise mission change check (ignore results)
             IGNORE_RETURN(mis_change_detector.check_for_mission_change());
-        }
+        } else if (tag) GCS_SEND_TEXT(MAV_SEVERITY_INFO, "M: Waiting for location.");
     } else {
+        if (tag) GCS_SEND_TEXT(MAV_SEVERITY_INFO, "M: Running mission.");
         // check for mission changes
         if (mis_change_detector.check_for_mission_change()) {
             // if mission is running restart the current command if it is a waypoint or spline command
@@ -37,12 +45,12 @@ void ModeAuto::run()
                     // failed to restart mission for some reason
                     gcs().send_text(MAV_SEVERITY_CRITICAL, "Auto mission changed but failed to restart command");
                 }
-            }
+            } else if (tag) GCS_SEND_TEXT(MAV_SEVERITY_INFO, "M: Mission not running.");
         }
 
         mission.update();
-        blimp.loiter->run(target_pos, target_yaw, Vector4b{false,false,false,false});
     }
+    blimp.loiter->run(target_pos, target_yaw, Vector4b{false,false,false,false});
 }
 
 Location ModeAuto::loc_from_cmd(const AP_Mission::Mission_Command& cmd, const Location& default_loc) const
@@ -93,6 +101,7 @@ bool ModeAuto::start_command(const AP_Mission::Mission_Command& cmd)
         
         default:
         // unable to use the command, allow the vehicle to try the next command
+        GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "Command not supported. Skipped.");
         return false;
     }
     return true;
@@ -100,9 +109,22 @@ bool ModeAuto::start_command(const AP_Mission::Mission_Command& cmd)
 
 bool ModeAuto::verify_command(const AP_Mission::Mission_Command& cmd)
 {
+    if (blimp.flightmode != &blimp.mode_auto) {
+        return false;
+    }
 
+    bool cmd_complete = false;
 
-    return true;
+    switch (cmd.id) {
+        case MAV_CMD_NAV_WAYPOINT:
+            cmd_complete = verify_nav_wp(cmd);
+            break;
+        default:
+            GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "Command not supported. Skipped.");
+            //Return true so it keeps going.
+            return true;
+    }
+    return cmd_complete;
 }
 
 void ModeAuto::exit_mission()
@@ -136,3 +158,32 @@ void ModeAuto::do_nav_wp(const AP_Mission::Mission_Command& cmd)
     }
 }
 
+bool ModeAuto::verify_nav_wp(const AP_Mission::Mission_Command& cmd)
+{
+    // // check if we have reached the waypoint
+    // if ( !copter.wp_nav->reached_wp_destination() ) {
+    //     return false;
+    // }
+
+    // // start timer if necessary
+    // if (loiter_time == 0) {
+    //     loiter_time = millis();
+    //     if (loiter_time_max > 0) {
+    //         // play a tone
+    //         AP_Notify::events.waypoint_complete = 1;
+    //     }
+    // }
+
+    // // check if timer has run out
+    // if (((millis() - loiter_time) / 1000) >= loiter_time_max) {
+    //     if (loiter_time_max == 0) {
+    //         // play a tone
+    //         AP_Notify::events.waypoint_complete = 1;
+    //     }
+    if (blimp.loiter->target_accepted()){
+        gcs().send_text(MAV_SEVERITY_INFO, "Reached command #%i",cmd.index);
+        return true;
+    }
+    GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Not at WP yet.");
+    return false;
+}

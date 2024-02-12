@@ -47,6 +47,8 @@ public:
     float scaler_z;
     float scaler_yaw;
 
+    float targ_dist;
+
     //constructor
     Loiter(uint16_t loop_rate)
     {
@@ -71,9 +73,17 @@ public:
     AP_Float            pos_lag;
     AP_Float            bat_mult;
     AP_Float            bat_off;
+    AP_Float            targ_acc;
 
     //Run Loiter controller with target position and yaw in global frame. Expects to be called at loop rate.
     void run(Vector3f& target_pos, float& target_yaw, Vector4b axes_disabled);
     //Run Loiter controller with target velocity and yaw velocity in global frame. Expects to be called at loop rate.
     void run_vel(Vector3f& target_vel, float& target_vel_yaw, Vector4b axes_disabled, bool log);
+
+    bool target_accepted(){
+        if (AP_HAL::millis() % 2000 < 30){
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Target is %fm away", targ_dist);
+        }
+        return (targ_dist <= targ_acc);
+    }
 };
