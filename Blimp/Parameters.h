@@ -87,7 +87,7 @@ public:
         k_param_log_bitmask,
         k_param_throttle_filt,
         k_param_throttle_behavior,
-        k_param_pilot_takeoff_alt, //unused
+        k_param_mission,                // mission library
 
         // AP_ADSB Library
         k_param_adsb,

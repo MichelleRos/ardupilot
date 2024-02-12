@@ -414,6 +414,8 @@ const AP_Param::Info Blimp::var_info[] = {
     // @Path: Loiter.cpp
     GOBJECTPTR(loiter, "LOIT_", Loiter),
 
+    GOBJECTN(mode_auto.mission, mission, "MIS_", AP_Mission),
+
     // @Param: VELXY_P
     // @DisplayName: Velocity (horizontal) P gain
     // @Description: Velocity (horizontal) P gain.  Converts the difference between desired and actual velocity to a target acceleration
