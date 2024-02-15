@@ -1,4 +1,4 @@
-FRAME_CLASS 2LOIT_
+FRAME_CLASS 2
 
 SERVO1_MAX       2000
 SERVO1_MIN       1000
@@ -14,55 +14,51 @@ SERVO4_MIN       1000
 SERVO4_TRIM      1500
 
 # default PID params for position and velocity-controlled modes
-LOIT_MAX_POS_XY       0.15
-LOIT_MAX_POS_YAW      0.3
-LOIT_MAX_POS_Z        0.15
-LOIT_MAX_VEL_XY       0.2
-LOIT_MAX_VEL_YAW      0.4
-LOIT_MAX_VEL_Z        0.2
+LOIT_MAX_POS_X   2.0
+LOIT_MAX_POS_Y   2.0
+LOIT_MAX_POS_YAW 2.0
+LOIT_MAX_POS_Z   2.0
+LOIT_MAX_VEL_X   0.3
+LOIT_MAX_VEL_Y   0.3
+LOIT_MAX_VEL_YAW 0.3
+LOIT_MAX_VEL_Z   0.3
 
-LOIT_VELXY_D          1.0
-LOIT_VELXY_FF         0.0
-LOIT_VELXY_FLTD       3.0
-LOIT_VELXY_FLTE       3.0
-LOIT_VELXY_I          1.5
-LOIT_VELXY_IMAX       5.0
-LOIT_VELXY_P          5.0
+LOIT_VELX_D          1.0
+LOIT_VELX_FF         0.0
+LOIT_VELX_I          1.5
+LOIT_VELX_P          5.0
+
+LOIT_VELY_D          1.0
+LOIT_VELY_FF         0.0
+LOIT_VELY_I          1.5
+LOIT_VELY_P          5.0
+
 LOIT_VELYAW_D         0.0
 LOIT_VELYAW_FF        0.0
-LOIT_VELYAW_FLTD      3.0
-LOIT_VELYAW_FLTE      3.0
 LOIT_VELYAW_I         0.8
-LOIT_VELYAW_IMAX      5.0
 LOIT_VELYAW_P         10.0
+
 LOIT_VELZ_D           0.0
 LOIT_VELZ_FF          0.0
-LOIT_VELZ_FLTD        3.0
-LOIT_VELZ_FLTE        3.0
 LOIT_VELZ_I           1.0
-LOIT_VELZ_IMAX        2.0
 LOIT_VELZ_P           15.0
 
-LOIT_POSXY_D          0.0
-LOIT_POSXY_FF         0.0
-LOIT_POSXY_FLTD       3.0
-LOIT_POSXY_FLTE       3.0
-LOIT_POSXY_I          0.05
-LOIT_POSXY_IMAX       0.1
-LOIT_POSXY_P          1.0
+LOIT_POSX_D          0.0
+LOIT_POSX_FF         0.0
+LOIT_POSX_I          0.05
+LOIT_POSX_P          1.0
+
+LOIT_POSY_D          0.0
+LOIT_POSY_FF         0.0
+LOIT_POSY_I          0.05
+LOIT_POSY_P          1.0
+
 LOIT_POSYAW_D         0.0
 LOIT_POSYAW_FF        0.0
-LOIT_POSYAW_FLTD      3.0
-LOIT_POSYAW_FLTE      3.0
-LOIT_POSYAW_FLTT      3.0
 LOIT_POSYAW_I         0.1
-LOIT_POSYAW_IMAX      1.0
 LOIT_POSYAW_P         1.0
-LOIT_POSYAW_SMAX      0.0
+
 LOIT_POSZ_D           0.0
 LOIT_POSZ_FF          0.0
-LOIT_POSZ_FLTD        3.0
-LOIT_POSZ_FLTE        3.0
 LOIT_POSZ_I           0.0
-LOIT_POSZ_IMAX        0.0
 LOIT_POSZ_P           0.7
