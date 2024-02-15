@@ -61,7 +61,7 @@ const AP_Param::GroupInfo Loiter::var_info[] = {
     AP_GROUPINFO("SCALER_SPD", 11, Loiter, scaler_spd, 0.99),
 
     //Number of seconds' worth of travel that the actual position can be behind the target position.
-    AP_GROUPINFO("LAG", 12, Loiter, pos_lag, 1),
+    AP_GROUPINFO("LAG", 12, Loiter, pos_lag, 0.2),
 
     AP_GROUPINFO("BAT_MULT", 13, Loiter, bat_mult, 1),
     AP_GROUPINFO("BAT_OFF", 14, Loiter, bat_off, 0),

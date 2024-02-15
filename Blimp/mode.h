@@ -258,6 +258,7 @@ public:
     // inherit constructor
     using Mode::Mode;
 
+    virtual bool init(bool ignore_checks) override;
     virtual void run() override;
 
     bool requires_GPS() const override
@@ -289,6 +290,9 @@ protected:
     }
 
 private:
+    Vector3f target_pos;
+    float target_yaw;
+    bool control_position;
 
 };
 
