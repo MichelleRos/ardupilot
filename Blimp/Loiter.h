@@ -81,9 +81,6 @@ public:
     void run_vel(Vector3f& target_vel, float& target_vel_yaw, Vector4b axes_disabled, bool log);
 
     bool target_accepted(){
-        if (AP_HAL::millis() % 2000 < 30){
-            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Target is %fm away", targ_dist);
-        }
         return (targ_dist <= targ_acc);
     }
 };

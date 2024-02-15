@@ -5,7 +5,7 @@
 const AP_Param::GroupInfo Loiter::var_info[] = {
 
     //Distance where it is considered within its target.
-    AP_GROUPINFO("TARG_ACC", 1, Loiter, targ_acc, 0.5),
+    AP_GROUPINFO("TARG_ACC", 1, Loiter, targ_acc, 0.2),
 
     // @Param: RP_DAMP_LIM
     // @DisplayName: Roll/Pitch limit (in deg) before damping outputs. Zero means disabled.
@@ -74,7 +74,8 @@ const AP_Param::GroupInfo Loiter::var_info[] = {
 
 void Loiter::run(Vector3f& target_pos, float& target_yaw, Vector4b axes_disabled)
 {
-    targ_dist = blimp.pos_ned.distance_squared(target_pos);
+    targ_dist = sqrtf(blimp.pos_ned.distance_squared(target_pos));
+    
     const float dt = blimp.scheduler.get_last_loop_time_s();
 
     float yaw_ef = blimp.ahrs.get_yaw();
@@ -124,8 +125,6 @@ void Loiter::run(Vector3f& target_pos, float& target_yaw, Vector4b axes_disabled
         blimp.pid_pos_y.set_integrator(0);
         blimp.pid_pos_z.set_integrator(0);
         blimp.pid_pos_yaw.set_integrator(0);
-        target_pos = blimp.pos_ned;
-        target_yaw = blimp.ahrs.get_yaw();
     }
 
 #if HAL_LOGGING_ENABLED
