@@ -13,12 +13,13 @@ public:
 
     // Auto Pilot Modes enumeration
     enum class Number : uint8_t {
-        LAND =          0,  // currently just stops moving
+        LAND =          0,  // go down to the ground, then go to mode hold
         MANUAL =        1,  // manual control
         VELOCITY =      2,  // velocity mode
         LOITER =        3,  // loiter mode (position hold)
         RTL =           4,  // rtl
         AUTO =          5,  // auto
+        HOLD =          6,  // hold (stop moving)
     };
 
     // constructor
@@ -392,4 +393,45 @@ private:
     bool start_command(const AP_Mission::Mission_Command& cmd);
     bool verify_command(const AP_Mission::Mission_Command& cmd);
     void exit_mission();
+};
+
+class ModeHold : public Mode
+{
+
+public:
+    // inherit constructor
+    using Mode::Mode;
+
+    virtual void run() override;
+
+    bool requires_GPS() const override
+    {
+        return false;
+    }
+    bool has_manual_throttle() const override
+    {
+        return true;
+    }
+    bool allows_arming(bool from_gcs) const override
+    {
+        return false;
+    };
+    bool is_autopilot() const override
+    {
+        return false;
+    }
+
+protected:
+
+    const char *name() const override
+    {
+        return "HOLD";
+    }
+    const char *name4() const override
+    {
+        return "HOLD";
+    }
+
+private:
+
 };
