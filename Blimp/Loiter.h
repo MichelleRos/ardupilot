@@ -78,7 +78,7 @@ public:
     //Run Loiter controller with target position and yaw in global frame. Expects to be called at loop rate.
     void run(Vector3f& target_pos, float& target_yaw, Vector4b axes_disabled);
     //Run Loiter controller with target velocity and yaw velocity in global frame. Expects to be called at loop rate.
-    void run_vel(Vector3f& target_vel, float& target_vel_yaw, Vector4b axes_disabled, bool log);
+    void run_vel(Vector3f& target_vel, float& target_vel_yaw, Vector4b axes_disabled, bool log = true);
 
     bool target_accepted(){
         return (targ_dist <= targ_acc);

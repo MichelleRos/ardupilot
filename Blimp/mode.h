@@ -290,9 +290,8 @@ protected:
     }
 
 private:
-    Vector3f target_pos;
-    float target_yaw;
-    bool control_position;
+    Vector3f targ_vel;
+    float targ_vel_yaw;
 
 };
 
