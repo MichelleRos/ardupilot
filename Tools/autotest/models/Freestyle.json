@@ -13,7 +13,7 @@
     "refSpd" : 20.0,    # m/s
     "refAngle" : 45.0,   # degrees
     "refVoltage" : 23.2, # volts
-    "refCurrent" : 18, # Amps
+    "refCurrent" : 5, # Amps
     "refAlt" : 607,       # meters AMSL
     "refTempC" : 25,     # degrees C
     "refBatRes" : 0.0226, # BAT.Res from log
@@ -22,7 +22,8 @@
     "maxVoltage" : 25.2,
 
     # full battery capacity, Ah
-    "battCapacityAh" : 1.3,
+    # 0 means unlimited
+    "battCapacityAh" : 0,
 
     # MOT_THST_EXPO
     "propExpo" : 0.7,
@@ -46,7 +47,7 @@
     "spin_max" : 0.95,
 
     # maximum motor slew rate, or zero to disable
-    "slew_max" : 200,
+    "slew_max" : 0,
 
     # total effective disc area in sq m for 4 x 5 inch diameter rotors
     "disc_area" : 0.204,
