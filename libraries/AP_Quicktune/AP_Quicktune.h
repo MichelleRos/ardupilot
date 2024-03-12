@@ -34,10 +34,22 @@ public:
 private:
     static AP_Quicktune *_singleton;
 
-    virtual bool is_valid(const Location &rally_point) const { return true; }
-
     // parameters
-    AP_Float _var;
+    AP_Float enabled;
+    AP_Float axes;
+    AP_Float double_time;
+    AP_Float gain_margin;
+    AP_Float osc_smax;
+    AP_Float yaw_p_max;
+    AP_Float yaw_d_max;
+    AP_Float rp_pi_ratio;
+    AP_Float y_pi_ratio;
+    AP_Float auto_filter;
+    AP_Float auto_save;
+    AP_Float rc_func;
+    AP_Float max_reduce;
+    AP_Float options;
+
 };
 
 namespace AP {
