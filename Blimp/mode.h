@@ -364,18 +364,18 @@ public:
     }
 
     Vector3f target_pos;
+    Vector3f target_vel;
+    Vector3f target_accel;
     float target_yaw;
     bool waiting_to_start;
 
     SCurve scurve_prev_leg;            // previous scurve trajectory used to blend with current scurve trajectory
     SCurve scurve_this_leg;            // current scurve trajectory
-    SCurve scurve_next_leg;            // next scurve trajectory used to blend with current scurve 
+    Vector3f scurve_this_leg_origin;
+    SCurve scurve_next_leg;            // next scurve trajectory used to blend with current scurve
     Vector3f origin;
     Vector3f destination;
     bool fast_wp;
-
-    Vector3f target_vel;
-    Vector3f target_accel;
 
     AP_Mission mission{
         FUNCTOR_BIND_MEMBER(&ModeAuto::start_command, bool, const AP_Mission::Mission_Command &),

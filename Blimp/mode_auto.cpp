@@ -50,6 +50,8 @@ void ModeAuto::run()
         mission.update();
     }
     blimp.loiter->run(target_pos, target_yaw, Vector4b{false,false,false,false});
+    gcs().send_named_float("TarX", target_pos.x);
+    gcs().send_named_float("TarY", target_pos.y);
 }
 
 Location ModeAuto::loc_from_cmd(const AP_Mission::Mission_Command& cmd, const Location& default_loc) const
@@ -154,6 +156,7 @@ void ModeAuto::exit_mission()
 }
 
 // get waypoint's location from command and send to scurves
+// only called with each new nav wp command
 void ModeAuto::do_nav_wp(const AP_Mission::Mission_Command& cmd)
 {
     Location default_loc = blimp.current_loc;
@@ -166,6 +169,7 @@ void ModeAuto::do_nav_wp(const AP_Mission::Mission_Command& cmd)
                                 fmaxf(g.max_vel_x,g.max_vel_y), g.max_vel_z, g.max_vel_z,
                                 g.wp_accel, g.wp_accel,
                                 g.wp_snap, g.wp_jerk);
+    scurve_this_leg_origin = origin;
     AP_Mission::Mission_Command next_cmd;
     if (!mission.get_next_nav_cmd(cmd.index+1, next_cmd)) {
         fast_wp = false;
@@ -180,13 +184,16 @@ void ModeAuto::do_nav_wp(const AP_Mission::Mission_Command& cmd)
     fast_wp = true;
 }
 
-//Advances along the waypoint and returns whether or not it has reached the waypoint
+// Advances along the waypoint and returns whether or not it has reached the waypoint
+// Called on every loop
 bool ModeAuto::verify_nav_wp(const AP_Mission::Mission_Command& cmd)
 {
     const float dt = blimp.scheduler.get_last_loop_time_s();
-    bool s_finished = scurve_this_leg.advance_target_along_track(scurve_prev_leg, scurve_next_leg, loiter->targ_acc, g.wp_accel, fast_wp, dt, target_pos, target_vel, target_accel);
+    bool s_finished = scurve_this_leg.advance_target_along_track(scurve_prev_leg, scurve_next_leg, loiter->targ_acc, g.wp_accel, fast_wp, dt, scurve_this_leg_origin, target_vel, target_accel);
+    target_pos = scurve_this_leg_origin;
+    scurve_this_leg_origin = origin;
 
-    if (blimp.loiter->target_accepted() || s_finished){
+    if (s_finished){ //blimp.loiter->target_accepted() ||
         return true;
     }
     return false;
