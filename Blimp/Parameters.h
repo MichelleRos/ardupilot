@@ -108,6 +108,8 @@ public:
         k_param_wp_accel,
         k_param_wp_snap,
         k_param_wp_jerk,
+        k_param_wp_vel,
+        k_param_wp_rad,
 
         //Position & Velocity controller params
         k_param_max_vel_x = 50,
@@ -268,6 +270,8 @@ public:
     AP_Float        wp_accel;
     AP_Float        wp_snap;
     AP_Float        wp_jerk;
+    AP_Float        wp_vel;
+    AP_Float        wp_rad;
 
     AP_Int8         simple_mode;
     AP_Int16        dis_mask;

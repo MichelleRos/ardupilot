@@ -372,6 +372,7 @@ public:
     SCurve scurve_prev_leg;            // previous scurve trajectory used to blend with current scurve trajectory
     SCurve scurve_this_leg;            // current scurve trajectory
     Vector3f scurve_this_leg_origin;
+    bool scurve_pause;
     SCurve scurve_next_leg;            // next scurve trajectory used to blend with current scurve
     Vector3f origin;
     Vector3f destination;

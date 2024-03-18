@@ -262,10 +262,12 @@ const AP_Param::Info Blimp::var_info[] = {
     //Streamrate factor, not an actual rate
     GSCALAR(stream_rate, "STREAM_RATE", 1000),
 
-    //Waypoint acceleration for scurves
-    GSCALAR(wp_accel, "WP_ACCEL", 1),
-    GSCALAR(wp_snap, "WP_SNAP", 1),
-    GSCALAR(wp_jerk, "WP_JERK", 1),
+    //Waypoint parameters for scurves
+    GSCALAR(wp_accel, "WP_ACCEL", 0.1),
+    GSCALAR(wp_snap, "WP_SNAP", 0.05),
+    GSCALAR(wp_jerk, "WP_JERK", 0.05),
+    GSCALAR(wp_vel, "WP_VEL", 0.2),
+    GSCALAR(wp_rad, "WP_RAD", 0.5),
 
     // @Param: SIMPLE_MODE
     // @DisplayName: Simple mode
