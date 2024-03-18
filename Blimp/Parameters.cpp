@@ -262,6 +262,11 @@ const AP_Param::Info Blimp::var_info[] = {
     //Streamrate factor, not an actual rate
     GSCALAR(stream_rate, "STREAM_RATE", 1000),
 
+    //Waypoint acceleration for scurves
+    GSCALAR(wp_accel, "WP_ACCEL", 1),
+    GSCALAR(wp_snap, "WP_SNAP", 1),
+    GSCALAR(wp_jerk, "WP_JERK", 1),
+
     // @Param: SIMPLE_MODE
     // @DisplayName: Simple mode
     // @Description: Simple mode for Position control - "forward" moves blimp in +ve X direction world-frame

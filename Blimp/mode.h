@@ -367,6 +367,16 @@ public:
     float target_yaw;
     bool waiting_to_start;
 
+    SCurve scurve_prev_leg;            // previous scurve trajectory used to blend with current scurve trajectory
+    SCurve scurve_this_leg;            // current scurve trajectory
+    SCurve scurve_next_leg;            // next scurve trajectory used to blend with current scurve 
+    Vector3f origin;
+    Vector3f destination;
+    bool fast_wp;
+
+    Vector3f target_vel;
+    Vector3f target_accel;
+
     AP_Mission mission{
         FUNCTOR_BIND_MEMBER(&ModeAuto::start_command, bool, const AP_Mission::Mission_Command &),
         FUNCTOR_BIND_MEMBER(&ModeAuto::verify_command, bool, const AP_Mission::Mission_Command &),
@@ -375,6 +385,9 @@ public:
     AP_Mission_ChangeDetector mis_change_detector;
 
     Location loc_from_cmd(const AP_Mission::Mission_Command& cmd, const Location& default_loc) const;
+    Vector3f vec_from_loc(const Location& loc);
+    Vector3f vec_from_cmd(const AP_Mission::Mission_Command& cmd, const Location& default_loc);
+
     void do_nav_wp(const AP_Mission::Mission_Command& cmd);
     // void ModeAuto::do_takeoff(const AP_Mission::Mission_Command& cmd);
     // void ModeAuto::do_land(const AP_Mission::Mission_Command& cmd);

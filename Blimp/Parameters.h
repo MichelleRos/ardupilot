@@ -105,6 +105,9 @@ public:
         k_param_loiter = 40,
         k_param_max_man_thr,
         k_param_stream_rate,
+        k_param_wp_accel,
+        k_param_wp_snap,
+        k_param_wp_jerk,
 
         //Position & Velocity controller params
         k_param_max_vel_x = 50,
@@ -262,6 +265,9 @@ public:
     AP_Float        max_pos_yaw;
     AP_Float        max_man_thr;
     AP_Int32        stream_rate;
+    AP_Float        wp_accel;
+    AP_Float        wp_snap;
+    AP_Float        wp_jerk;
 
     AP_Int8         simple_mode;
     AP_Int16        dis_mask;

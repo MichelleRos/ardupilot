@@ -8,6 +8,12 @@ bool ModeAuto::init(bool ignore_checks)
     target_pos = blimp.pos_ned;
     target_yaw = blimp.ahrs.get_yaw();
     waiting_to_start = true;
+    origin = target_pos;
+    destination = target_pos;
+
+    scurve_prev_leg.init();
+    scurve_this_leg.init();
+    scurve_next_leg.init();
 
     return true;
 }
@@ -70,6 +76,25 @@ Location ModeAuto::loc_from_cmd(const AP_Mission::Mission_Command& cmd, const Lo
     return ret;
 }
 
+Vector3f ModeAuto::vec_from_loc(const Location& loc)
+{
+    Vector3f vec;
+    if(loc.get_vector_from_origin_NEU(vec)){
+        vec.x = vec.x * 0.01;
+        vec.y = vec.y * 0.01;
+        vec.z = - vec.z * 0.01;
+    } else {
+        GCS_SEND_TEXT(MAV_SEVERITY_EMERGENCY, "get_vector_from_origin_NEU() returned false.");
+    }
+
+    return vec;
+}
+
+Vector3f ModeAuto::vec_from_cmd(const AP_Mission::Mission_Command& cmd, const Location& default_loc){
+    Location loc = loc_from_cmd(cmd, default_loc);
+    return vec_from_loc(loc);
+}
+
 bool ModeAuto::start_command(const AP_Mission::Mission_Command& cmd)
 {
     if (blimp.should_log(MASK_LOG_CMD)) {
@@ -91,7 +116,7 @@ bool ModeAuto::start_command(const AP_Mission::Mission_Command& cmd)
         // case MAV_CMD_NAV_LAND:              // 21 LAND to Waypoint
         //     do_land(cmd);
         //     break;
-        
+
         default:
         // unable to use the command, allow the vehicle to try the next command
         GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "Command not supported. Skipped.");
@@ -124,32 +149,44 @@ void ModeAuto::exit_mission()
 {
     // play a tone
     AP_Notify::events.mission_complete = 1;
-    // if we are not on the ground switch to loiter or land
-    // set_mode(Mode::Number::LOITER, ModeReason::MISSION_END);
+    // switch to mode loiter
+    set_mode(Mode::Number::LOITER, ModeReason::MISSION_END);
 }
 
+// get waypoint's location from command and send to scurves
 void ModeAuto::do_nav_wp(const AP_Mission::Mission_Command& cmd)
 {
     Location default_loc = blimp.current_loc;
-    
-    // get waypoint's location from command and send to wp_nav
-    const Location target_loc = loc_from_cmd(cmd, default_loc);
-    
-    Vector3f target_cm;
-    if(target_loc.get_vector_from_origin_NEU(target_cm)){
-        target_pos.x = target_cm.x * 0.01;
-        target_pos.y = target_cm.y * 0.01;
-        target_pos.z = -target_cm.z * 0.01;
-    } else {
-        //Shouldn't get here before origin is set. 
-        GCS_SEND_TEXT(MAV_SEVERITY_EMERGENCY, "get_vector_from_origin_NEU() returned false.");
-        // INTERNAL_ERROR(AP_InternalError::error_t::flow_of_control);
+
+    origin = destination;
+    destination = vec_from_cmd(cmd, default_loc);
+
+    scurve_prev_leg = scurve_this_leg;
+    scurve_this_leg.calculate_track(origin, destination,
+                                fmaxf(g.max_vel_x,g.max_vel_y), g.max_vel_z, g.max_vel_z,
+                                g.wp_accel, g.wp_accel,
+                                g.wp_snap, g.wp_jerk);
+    AP_Mission::Mission_Command next_cmd;
+    if (!mission.get_next_nav_cmd(cmd.index+1, next_cmd)) {
+        fast_wp = false;
+        return;
     }
+    const Location dest_loc = loc_from_cmd(cmd, default_loc);
+    Vector3f next_dest = vec_from_cmd(next_cmd, dest_loc);
+    scurve_next_leg.calculate_track(destination, next_dest,
+                                fmaxf(g.max_vel_x,g.max_vel_y), g.max_vel_z, g.max_vel_z,
+                                g.wp_accel, g.wp_accel,
+                                g.wp_snap, g.wp_jerk);
+    fast_wp = true;
 }
 
+//Advances along the waypoint and returns whether or not it has reached the waypoint
 bool ModeAuto::verify_nav_wp(const AP_Mission::Mission_Command& cmd)
 {
-    if (blimp.loiter->target_accepted()){
+    const float dt = blimp.scheduler.get_last_loop_time_s();
+    bool s_finished = scurve_this_leg.advance_target_along_track(scurve_prev_leg, scurve_next_leg, loiter->targ_acc, g.wp_accel, fast_wp, dt, target_pos, target_vel, target_accel);
+
+    if (blimp.loiter->target_accepted() || s_finished){
         return true;
     }
     return false;

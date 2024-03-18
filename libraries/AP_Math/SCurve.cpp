@@ -17,7 +17,7 @@
 #include <AP_HAL/AP_HAL.h>
 #include <AP_InternalError/AP_InternalError.h>
 #include <AP_Vehicle/AP_Vehicle_Type.h>
-#if APM_BUILD_COPTER_OR_HELI
+#if APM_BUILD_COPTER_OR_HELI || APM_BUILD_TYPE(APM_BUILD_Blimp)
 #include <AP_Logger/AP_Logger.h>
 #endif
 #include "SCurve.h"
@@ -494,9 +494,9 @@ bool SCurve::advance_target_along_track(SCurve &prev_leg, SCurve &next_leg, floa
 
     // check for change of leg on fast waypoint
     const float time_to_destination = get_time_remaining();
-    if (fast_waypoint 
-        && is_zero(next_leg.get_time_elapsed()) 
-        && (get_time_elapsed() >= time_turn_out() - next_leg.time_turn_in()) 
+    if (fast_waypoint
+        && is_zero(next_leg.get_time_elapsed())
+        && (get_time_elapsed() >= time_turn_out() - next_leg.time_turn_in())
         && (position_sq >= 0.25 * track.length_squared())) {
 
         Vector3f turn_pos = -get_track();
@@ -809,15 +809,15 @@ void SCurve::calculate_path(float Sm, float Jm, float V0, float Am, float Vm, fl
     }
 
     float tj = Jm * M_PI / (2 * Sm);
-    float At = MIN(MIN(Am, 
-        (Vm - V0) / (2.0f * tj) ), 
+    float At = MIN(MIN(Am,
+        (Vm - V0) / (2.0f * tj) ),
         (L + 4.0f * V0 * tj) / (4.0f * sq(tj)) );
     if (fabsf(At) < Jm * tj) {
         if (is_zero(V0)) {
             // we do not have a solution for non-zero initial velocity
             tj = MIN( MIN( MIN( tj,
-                powf((L * M_PI) / (8.0 * Sm), 1.0/4.0) ), 
-                powf((Vm * M_PI) / (4.0 * Sm), 1.0/3.0) ), 
+                powf((L * M_PI) / (8.0 * Sm), 1.0/4.0) ),
+                powf((Vm * M_PI) / (4.0 * Sm), 1.0/3.0) ),
                 safe_sqrt((Am * M_PI) / (2.0 * Sm)) );
             Jm = 2.0 * Sm * tj / M_PI;
             Am = Jm * tj;
@@ -867,7 +867,7 @@ void SCurve::calculate_path(float Sm, float Jm, float V0, float Am, float Vm, fl
 #endif
         INTERNAL_ERROR(AP_InternalError::error_t::invalid_arg_or_result);
 
-#if APM_BUILD_COPTER_OR_HELI
+#if APM_BUILD_COPTER_OR_HELI || APM_BUILD_TYPE(APM_BUILD_Blimp)
         // @LoggerMessage: SCVE
         // @Description: Debug message for SCurve internal error
         // @Field: TimeUS: Time since system startup
@@ -909,7 +909,7 @@ void SCurve::calculate_path(float Sm, float Jm, float V0, float Am, float Vm, fl
         }
 #endif  // HAL_LOGGING_ENABLED
 
-#endif  // APM_BUILD_COPTER_OR_HELI
+#endif  // APM_BUILD_COPTER_OR_HELI || APM_BUILD_TYPE(APM_BUILD_Blimp)
 
         Jm_out = 0.0f;
         t2_out = 0.0f;
