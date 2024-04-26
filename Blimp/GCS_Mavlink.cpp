@@ -128,28 +128,28 @@ void GCS_MAVLINK_Blimp::send_pid_tuning()
         const AP_PIDInfo *pid_info = nullptr;
         switch (axes[i]) {
         case PID_SEND::VELX:
-            pid_info = &blimp.pid_vel_x.get_pid_info();
+            pid_info = &blimp.loiter->pid_vel_x.get_pid_info();
             break;
         case PID_SEND::VELY:
-            pid_info = &blimp.pid_vel_y.get_pid_info();
+            pid_info = &blimp.loiter->pid_vel_y.get_pid_info();
             break;
         case PID_SEND::VELZ:
-            pid_info = &blimp.pid_vel_z.get_pid_info();
+            pid_info = &blimp.loiter->pid_vel_z.get_pid_info();
             break;
         case PID_SEND::VELYAW:
-            pid_info = &blimp.pid_vel_yaw.get_pid_info();
+            pid_info = &blimp.loiter->pid_vel_yaw.get_pid_info();
             break;
         case PID_SEND::POSX:
-            pid_info = &blimp.pid_pos_x.get_pid_info();
+            pid_info = &blimp.loiter->pid_pos_x.get_pid_info();
             break;
         case PID_SEND::POSY:
-            pid_info = &blimp.pid_pos_y.get_pid_info();
+            pid_info = &blimp.loiter->pid_pos_y.get_pid_info();
             break;
         case PID_SEND::POSZ:
-            pid_info = &blimp.pid_pos_z.get_pid_info();
+            pid_info = &blimp.loiter->pid_pos_z.get_pid_info();
             break;
         case PID_SEND::POSYAW:
-            pid_info = &blimp.pid_pos_yaw.get_pid_info();
+            pid_info = &blimp.loiter->pid_pos_yaw.get_pid_info();
             break;
         default:
             continue;

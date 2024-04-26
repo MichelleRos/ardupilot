@@ -69,18 +69,43 @@ public:
     AP_Float            rp_damp_amt2;
     AP_Float            rp_damp_off2;
     AP_Int16            rp_damp_msk;
-    AP_Float            scaler_spd;
-    AP_Float            pos_lag;
     AP_Float            bat_mult;
     AP_Float            bat_off;
     AP_Float            targ_acc;
 
+    // Vel & pos PIDs
+    //p, i, d, ff, imax, filt_T_hz, filt_E_hz, filt_D_hz
+    AC_PID pid_vel_x{3, 0.2, 0, 0, 0.5, 0, 0, 0};
+    AC_PID pid_vel_y{3, 0.2, 0, 0, 0.5, 0, 0, 0};
+    AC_PID pid_vel_z{7, 1.5, 0, 0, 0.5, 0, 0, 0};
+    AC_PID pid_vel_yaw{3, 0.4, 0, 0, 0.5, 0, 0, 0};
+
+    AC_PID pid_pos_x{1, 0.05, 0, 0, 0.5, 0, 0, 0};
+    AC_PID pid_pos_y{1, 0.05, 0, 0, 0.5, 0, 0, 0};
+    AC_PID pid_pos_z{0.7, 0,   0, 0, 0.5, 0, 0, 0};
+    AC_PID pid_pos_yaw{1.2, 0.5, 0, 0, 0.5, 0, 0, 0};
+
+    AP_Float    max_vel_x;
+    AP_Float    max_vel_y;
+    AP_Float    max_vel_z;
+    AP_Float    max_vel_yaw;
+    AP_Float    max_pos_x;
+    AP_Float    max_pos_y;
+    AP_Float    max_pos_z;
+    AP_Float    max_pos_yaw;
+
+    AP_Int16    dis_mask;
+    AP_Float    pid_dz;
+    AP_Float    scaler_spd;
+    AP_Float    pos_lag;
+
+
     //Run Loiter controller with target position and yaw in global frame. Expects to be called at loop rate.
     void run(Vector3f& target_pos, float& target_yaw, Vector4b axes_disabled);
-    //Run Loiter controller with target velocity and yaw velocity in global frame. Expects to be called at loop rate.
-    void run_vel(Vector3f& target_vel, float& target_vel_yaw, Vector4b axes_disabled, bool log = true);
+    //Run Loiter controller with target velocity and yaw velocity in body frame. Expects to be called at loop rate.
+    void run_vel(Vector3f& target_vel, float& target_vel_yaw, Vector4b axes_disabled, bool log);
 
     bool target_accepted(){
-        return (targ_dist <= targ_acc);
+    return (targ_dist <= targ_acc);
     }
 };
