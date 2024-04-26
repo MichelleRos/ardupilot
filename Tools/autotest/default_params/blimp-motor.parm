@@ -13,6 +13,8 @@ SERVO4_MAX       2000
 SERVO4_MIN       1000
 SERVO4_TRIM      1500
 
+LOIT_LAG         0.1
+
 # default PID params for position and velocity-controlled modes
 LOIT_MAX_POS_X   2.0
 LOIT_MAX_POS_Y   2.0
@@ -53,10 +55,10 @@ LOIT_POSY_FF         0.0
 LOIT_POSY_I          0.05
 LOIT_POSY_P          1.0
 
-LOIT_POSYAW_D         0.0
+LOIT_POSYAW_D         1.0
 LOIT_POSYAW_FF        0.0
 LOIT_POSYAW_I         0.1
-LOIT_POSYAW_P         1.0
+LOIT_POSYAW_P         3.0
 
 LOIT_POSZ_D           0.0
 LOIT_POSZ_FF          0.0
