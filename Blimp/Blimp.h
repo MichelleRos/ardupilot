@@ -223,9 +223,10 @@ private:
     Vector3f pos_ned;
     float vel_yaw;
     float vel_yaw_filtd;
-    // NotchFilterVector2f vel_xy_filter;
-    // NotchFilterFloat vel_z_filter;
-    // NotchFilterFloat vel_yaw_filter;
+    NotchFilterFloat vel_x_filter;
+    NotchFilterFloat vel_y_filter;
+    NotchFilterFloat vel_z_filter;
+    NotchFilterFloat vel_yaw_filter;
 
     // Inertial Navigation
     AP_InertialNav inertial_nav;
