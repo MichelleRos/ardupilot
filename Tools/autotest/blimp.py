@@ -7,10 +7,13 @@ AP_FLAKE8_CLEAN
 from __future__ import print_function
 import os
 import shutil
+import math
 
 from pymavlink import mavutil
 
 from vehicle_test_suite import TestSuite
+from pysim import vehicleinfo
+from vehicle_test_suite import NotAchievedException
 
 # get location of scripts
 testdir = os.path.dirname(os.path.realpath(__file__))
@@ -246,6 +249,77 @@ class AutoTestBlimp(TestSuite):
             p3=1, # p3, baro
         )
 
+    def FlyEachFrame(self):
+        '''Fly each supported internal frame'''
+        vinfo = vehicleinfo.VehicleInfo()
+        vinfo_options = vinfo.options[self.vehicleinfo_key()]
+        known_broken_frames = {
+            'none': 'none',
+        }
+        for frame in sorted(vinfo_options["frames"].keys()):
+            if frame in known_broken_frames:
+                self.progress("Not testing known-broken frame (%s)" %
+                              (known_broken_frames[frame]))
+                continue
+            frame_bits = vinfo_options["frames"][frame]
+            print("frame_bits: %s" % str(frame_bits))
+            if frame_bits.get("external", False):
+                self.progress("Not testing external simulation frame (%s)" %
+                              (known_broken_frames[frame]))
+                continue
+
+            self.start_subtest("Testing frame (%s)" % str(frame))
+
+            model = frame_bits.get("model", frame)
+            defaults = self.model_defaults_filepath(frame)
+            if not isinstance(defaults, list):
+                defaults = [defaults]
+            self.customise_SITL_commandline(
+                [],
+                defaults_filepath=defaults,
+                model=model,
+                wipe=True,
+            )
+
+            # add a listener that verifies yaw looks good:
+            def verify_yaw(mav, m):
+                if m.get_type() != 'ATTITUDE':
+                    return
+                yawspeed_thresh_rads = math.radians(20)
+                if m.yawspeed > yawspeed_thresh_rads:
+                    raise NotAchievedException("Excessive yaw on takeoff: %f deg/s > %f deg/s (frame=%s)" %
+                                               (math.degrees(m.yawspeed), math.degrees(yawspeed_thresh_rads), frame))
+            self.context_push()
+            self.install_message_hook_context(verify_yaw)
+            self.set_rc(3,2000)
+            self.wait_altitude(3, 3.5, relative=True, timeout=60)
+            self.set_rc(3, 1500)
+            self.context_pop()
+            self.change_mode('VELOCITY')
+            self.delay_sim_time(1)
+
+            def verify_rollpitch(mav, m):
+                if m.get_type() != 'ATTITUDE':
+                    return
+                pitch_thresh_rad = math.radians(2)
+                if m.pitch > pitch_thresh_rad:
+                    raise NotAchievedException("Excessive pitch %f deg > %f deg" %
+                                               (math.degrees(m.pitch), math.degrees(pitch_thresh_rad)))
+                roll_thresh_rad = math.radians(2)
+                if m.roll > roll_thresh_rad:
+                    raise NotAchievedException("Excessive roll %f deg > %f deg" %
+                                               (math.degrees(m.roll), math.degrees(roll_thresh_rad)))
+            self.context_push()
+            self.install_message_hook_context(verify_rollpitch)
+            for i in range(5):
+                self.set_rc(4, 2000)
+                self.delay_sim_time(0.5)
+                self.set_rc(4, 1500)
+                self.delay_sim_time(5)
+            self.context_pop()
+
+            self.do_RTL()
+
     def tests(self):
         '''return list of all tests'''
         # ret = super(AutoTestBlimp, self).tests()
@@ -254,6 +328,7 @@ class AutoTestBlimp(TestSuite):
             self.FlyManual,
             self.FlyLoiter,
             self.PREFLIGHT_Pressure,
+            self.FlyEachFrame,
         ])
         return ret
 

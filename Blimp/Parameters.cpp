@@ -213,7 +213,7 @@ const AP_Param::Info Blimp::var_info[] = {
     // @Description: Sets the maximum throttle output from manual mode. Note that this will be on top of FINS_THR_MAX.
     // @Range: 0.1 1
     // @User: Standard
-    GSCALAR(max_man_thr, "LOIT_MAX_POS_YAW", 1),
+    GSCALAR(max_man_thr, "MAX_MAN_THR", 1),
 
     //Streamrate factor, not an actual rate
     GSCALAR(stream_rate, "STREAM_RATE", 1000),
