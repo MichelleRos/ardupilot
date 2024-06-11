@@ -13,11 +13,13 @@ public:
 
     // Auto Pilot Modes enumeration
     enum class Number : uint8_t {
-        LAND =          0,  // currently just stops moving
+        HOLD =          0,  // hold (stop moving)
         MANUAL =        1,  // manual control
         VELOCITY =      2,  // velocity mode
         LOITER =        3,  // loiter mode (position hold)
         RTL =           4,  // rtl
+        AUTO =          5,  // auto
+        LAND =          6,  // go down to the ground, then go to mode hold
     };
 
     // constructor
@@ -256,6 +258,7 @@ public:
     // inherit constructor
     using Mode::Mode;
 
+    virtual bool init(bool ignore_checks) override;
     virtual void run() override;
 
     bool requires_GPS() const override
@@ -287,6 +290,8 @@ protected:
     }
 
 private:
+    Vector3f targ_vel;
+    float targ_vel_yaw;
 
 };
 
@@ -328,4 +333,122 @@ protected:
     {
         return "RTL";
     }
+};
+
+class ModeAuto : public Mode
+{
+
+public:
+    // inherit constructor
+    using Mode::Mode;
+
+    virtual bool init(bool ignore_checks) override;
+    virtual void run() override;
+
+    bool requires_GPS() const override
+    {
+        return true;
+    }
+    bool has_manual_throttle() const override
+    {
+        return false;
+    }
+    bool allows_arming(bool from_gcs) const override
+    {
+        return true;
+    };
+    bool is_autopilot() const override
+    {
+        return false;
+        //TODO
+    }
+
+    Vector3f target_pos;
+    Vector3f target_vel;
+    Vector3f target_accel;
+    float target_yaw;
+    bool waiting_to_start;
+
+    SCurve scurve_prev_leg;            // previous scurve trajectory used to blend with current scurve trajectory
+    SCurve scurve_this_leg;            // current scurve trajectory
+    Vector3f scurve_this_leg_origin;
+    bool scurve_pause;
+    SCurve scurve_next_leg;            // next scurve trajectory used to blend with current scurve
+    Vector3f origin;
+    Vector3f destination;
+    bool fast_wp;
+
+    AP_Mission mission{
+        FUNCTOR_BIND_MEMBER(&ModeAuto::start_command, bool, const AP_Mission::Mission_Command &),
+        FUNCTOR_BIND_MEMBER(&ModeAuto::verify_command, bool, const AP_Mission::Mission_Command &),
+        FUNCTOR_BIND_MEMBER(&ModeAuto::exit_mission, void)};
+
+    AP_Mission_ChangeDetector mis_change_detector;
+
+    Location loc_from_cmd(const AP_Mission::Mission_Command& cmd, const Location& default_loc) const;
+    Vector3f vec_from_loc(const Location& loc);
+    Vector3f vec_from_cmd(const AP_Mission::Mission_Command& cmd, const Location& default_loc);
+
+    void do_nav_wp(const AP_Mission::Mission_Command& cmd);
+    // void ModeAuto::do_takeoff(const AP_Mission::Mission_Command& cmd);
+    // void ModeAuto::do_land(const AP_Mission::Mission_Command& cmd);
+    bool verify_nav_wp(const AP_Mission::Mission_Command& cmd);
+
+protected:
+
+    const char *name() const override
+    {
+        return "AUTO";
+    }
+    const char *name4() const override
+    {
+        return "AUTO";
+    }
+
+private:
+
+    bool start_command(const AP_Mission::Mission_Command& cmd);
+    bool verify_command(const AP_Mission::Mission_Command& cmd);
+    void exit_mission();
+};
+
+class ModeHold : public Mode
+{
+
+public:
+    // inherit constructor
+    using Mode::Mode;
+
+    virtual void run() override;
+
+    bool requires_GPS() const override
+    {
+        return false;
+    }
+    bool has_manual_throttle() const override
+    {
+        return true;
+    }
+    bool allows_arming(bool from_gcs) const override
+    {
+        return false;
+    };
+    bool is_autopilot() const override
+    {
+        return false;
+    }
+
+protected:
+
+    const char *name() const override
+    {
+        return "HOLD";
+    }
+    const char *name4() const override
+    {
+        return "HOLD";
+    }
+
+private:
+
 };
