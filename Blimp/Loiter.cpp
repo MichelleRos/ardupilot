@@ -103,9 +103,6 @@ const AP_Param::GroupInfo Loiter::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("POS_LAG", 19, Loiter, pos_lag, 1),
 
-    //Distance where it is considered within its target.
-    AP_GROUPINFO("TARG_ACC", 20, Loiter, targ_acc, 0.2),
-
     AP_GROUPEND
 };
 

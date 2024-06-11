@@ -191,7 +191,7 @@ bool ModeAuto::verify_nav_wp(const AP_Mission::Mission_Command& cmd)
 {
     const float dt = blimp.scheduler.get_last_loop_time_s();
     bool s_finished = false;
-    if (blimp.loiter->target_accepted()){
+    if (blimp.loiter->target_within(g.wp_rad)){
         s_finished = scurve_this_leg.advance_target_along_track(scurve_prev_leg, scurve_next_leg, g.wp_rad, g.wp_accel, fast_wp, dt, scurve_this_leg_origin, target_vel, target_accel);
         target_pos = scurve_this_leg_origin;
         scurve_this_leg_origin = origin;

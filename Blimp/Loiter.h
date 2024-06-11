@@ -71,7 +71,6 @@ public:
     AP_Int16            rp_damp_msk;
     AP_Float            bat_mult;
     AP_Float            bat_off;
-    AP_Float            targ_acc;
 
     // Vel & pos PIDs
     //p, i, d, ff, imax, filt_T_hz, filt_E_hz, filt_D_hz
@@ -105,7 +104,7 @@ public:
     //Run Loiter controller with target velocity and yaw velocity in body frame. Expects to be called at loop rate.
     void run_vel(Vector3f& target_vel, float& target_vel_yaw, Vector4b axes_disabled, bool log);
 
-    bool target_accepted(){
-    return (targ_dist <= targ_acc);
+    bool target_within(float distance){
+        return (targ_dist <= distance);
     }
 };
