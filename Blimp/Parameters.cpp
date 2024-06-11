@@ -232,21 +232,6 @@ const AP_Param::Info Blimp::var_info[] = {
     // @User: Standard
     GSCALAR(simple_mode, "SIMPLE_MODE", 0),
 
-    // @Param: DIS_MASK
-    // @DisplayName: Disable output mask
-    // @Description: Mask for disabling (setting to zero) one or more of the 4 output axis in mode Velocity or Loiter
-    // @Bitmask: 0:Right,1:Front,2:Down,3:Yaw
-    // @User: Standard
-    GSCALAR(dis_mask, "DIS_MASK", 0),
-
-    // @Param: PID_DZ
-    // @DisplayName: Deadzone for the position PIDs
-    // @Description: Output 0 thrust signal when blimp is within this distance (in meters) of the target position. Warning: If this param is greater than LOIT_MAX_POS_X multiplied by LOIT_LAG then the blimp won't move at all in the X axis in Loiter mode. Same for the other axes.
-    // @Units: m
-    // @Range: 0.1 1
-    // @User: Standard
-    GSCALAR(pid_dz, "LOIT_PID_DZ", 0),
-
     // @Param: RC_SPEED
     // @DisplayName: ESC Update Speed
     // @Description: This is the speed in Hertz that your ESCs will receive updates

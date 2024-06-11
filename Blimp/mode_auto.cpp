@@ -166,7 +166,7 @@ void ModeAuto::do_nav_wp(const AP_Mission::Mission_Command& cmd)
 
     scurve_prev_leg = scurve_this_leg;
     scurve_this_leg.calculate_track(origin, destination,
-                                g.wp_vel, g.max_vel_z, g.max_vel_z,
+                                g.wp_vel, loiter->max_vel_z, loiter->max_vel_z,
                                 g.wp_accel, g.wp_accel,
                                 g.wp_snap, g.wp_jerk);
     scurve_this_leg_origin = origin;
@@ -179,7 +179,7 @@ void ModeAuto::do_nav_wp(const AP_Mission::Mission_Command& cmd)
     const Location dest_loc = loc_from_cmd(cmd, default_loc);
     Vector3f next_dest = vec_from_cmd(next_cmd, dest_loc);
     scurve_next_leg.calculate_track(destination, next_dest,
-                                g.wp_vel, g.max_vel_z, g.max_vel_z,
+                                g.wp_vel, loiter->max_vel_z, loiter->max_vel_z,
                                 g.wp_accel, g.wp_accel,
                                 g.wp_snap, g.wp_jerk);
     fast_wp = true;
