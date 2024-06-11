@@ -12,9 +12,6 @@ const AP_Param::GroupInfo Loiter::var_info[] = {
     AP_SUBGROUPINFO(pid_pos_z, "POSZ_", 6, Loiter, AC_PID),
     AP_SUBGROUPINFO(pid_pos_yaw, "POSYAW_", 7, Loiter, AC_PID),
 
-    //Distance where it is considered within its target.
-    AP_GROUPINFO("TARG_ACC", 1, Loiter, targ_acc, 0.2),
-
     // @Param: RP_DAMP_LIM
     // @DisplayName: Roll/Pitch limit (in deg) before damping outputs. Zero means disabled.
     // @Description: RP D
@@ -104,7 +101,10 @@ const AP_Param::GroupInfo Loiter::var_info[] = {
     // @Units: s
     // @Range: 0 0.999
     // @User: Standard
-    AP_GROUPINFO("LAG", 19, Loiter, pos_lag, 1),
+    AP_GROUPINFO("POS_LAG", 19, Loiter, pos_lag, 1),
+
+    //Distance where it is considered within its target.
+    AP_GROUPINFO("TARG_ACC", 20, Loiter, targ_acc, 0.2),
 
     AP_GROUPEND
 };

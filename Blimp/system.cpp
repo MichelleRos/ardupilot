@@ -248,7 +248,7 @@ const char* Blimp::get_frame_string()
  */
 void Blimp::allocate_motors(void)
 {
-    motors = new Fins(blimp.scheduler.get_loop_rate_hz(), (Fins::motor_frame_class)g2.frame_class.get());
+    motors = NEW_NOTHROW Fins(blimp.scheduler.get_loop_rate_hz(), (Fins::motor_frame_class)g2.frame_class.get());
     if (motors == nullptr) {
         AP_BoardConfig::allocation_error("FRAME_CLASS=%u", (unsigned)g2.frame_class.get());
     }

@@ -65,7 +65,7 @@ AP_Param *AP_Param::_singleton;
 # define FATAL(fmt, args ...) AP_HAL::panic(fmt, ## args);
  # define Debug(fmt, args ...)  do {::printf("%s:%d: " fmt "\n", __FUNCTION__, __LINE__, ## args); } while(0)
 #else
- # define FATAL(fmt, args ...) AP_HAL::panic("Bad parameter table");
+ # define FATAL(fmt, args ...) AP_HAL::panic("Bad parameter table" fmt, ## args);
  # define Debug(fmt, args ...)
 #endif
 
