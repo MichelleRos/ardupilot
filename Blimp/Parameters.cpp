@@ -377,7 +377,7 @@ const AP_Param::Info Blimp::var_info[] = {
     // @Path: Loiter.cpp
     GOBJECTPTR(loiter, "LOIT_", Loiter),
 
-    GOBJECTN(mode_auto.mission, mission, "MIS_", AP_Mission),\
+    GOBJECTN(mode_auto.mission, mission, "MIS_", AP_Mission),
     // @Group:
     // @Path: ../libraries/AP_Vehicle/AP_Vehicle.cpp
     PARAM_VEHICLE_INFO,
