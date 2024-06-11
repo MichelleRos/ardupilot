@@ -5,7 +5,7 @@
 
 bool ModeLand::init(bool ignore_checks)
 {
-    targ_vel = {0.0,0.0,0.5*blimp.g.max_vel_z};
+    targ_vel = {0.0,0.0,0.5*blimp.loiter->max_vel_z};
     return true;
 }
 
