@@ -215,8 +215,12 @@ const AP_Param::Info Blimp::var_info[] = {
     // @User: Standard
     GSCALAR(max_man_thr, "MAX_MAN_THR", 1),
 
-    //Streamrate factor, not an actual rate
-    GSCALAR(stream_rate, "STREAM_RATE", 1000),
+    // @Param: STREAM_RATE
+    // @DisplayName: Stream rate for blimp-specific values
+    // @Description: Stream rate in Hz for fins and loiter scaling values.
+    // @Range: 0.5 10
+    // @User: Standard
+    GSCALAR(stream_rate, "STREAM_RATE", 1),
 
     //Waypoint parameters for scurves
     GSCALAR(wp_accel, "WP_ACCEL", 0.1),

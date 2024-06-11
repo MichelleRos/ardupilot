@@ -112,7 +112,6 @@ void Fins::add_motor(int8_t fin_num, float right_amp_fac, float front_amp_fac, f
     }
 }
 
-//B,F,R,L = 0,1,2,3
 void Fins::output()
 {
     if (!_armed) {
@@ -127,7 +126,7 @@ void Fins::output()
     blimp.Write_FINI(right_out, front_out, down_out, yaw_out);
 #endif
 
-    if (AP_HAL::millis() % blimp.g.stream_rate < 30){
+    if (!is_equal(float(blimp.g.stream_rate), 0.0f) && AP_HAL::millis() % int((1 / blimp.g.stream_rate) * 1000) < 30){
         gcs().send_named_float("FINIR", right_out); 
         gcs().send_named_float("FINIF", front_out);
         gcs().send_named_float("FINID", down_out);

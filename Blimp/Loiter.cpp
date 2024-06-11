@@ -12,10 +12,6 @@ const AP_Param::GroupInfo Loiter::var_info[] = {
     AP_SUBGROUPINFO(pid_pos_z, "POSZ_", 6, Loiter, AC_PID),
     AP_SUBGROUPINFO(pid_pos_yaw, "POSYAW_", 7, Loiter, AC_PID),
 
-    // @Param: RP_DAMP_LIM
-    // @DisplayName: Roll/Pitch limit (in deg) before damping outputs. Zero means disabled.
-    // @Description: RP D
-    // @Range: 0 180
     // @Param: MAX_VEL_X
     // @DisplayName: Max X Velocity
     // @Description: Sets the maximum X velocity, in m/s
@@ -215,8 +211,8 @@ void Loiter::run_vel(Vector3f& target_vel_ef, float& target_vel_yaw, Vector4b ax
                                 AP_HAL::micros64(),
                                 scaler_x, scaler_y, scaler_z, scaler_yaw, scaler_x_n, scaler_y_n, scaler_z_n, scaler_yaw_n);
 #endif
-    if (AP_HAL::millis() % blimp.g.stream_rate < 30){
-        gcs().send_named_float("BSCXN", scaler_x_n);
+    if (!is_equal(float(blimp.g.stream_rate), 0.0f) && AP_HAL::millis() % int((1 / blimp.g.stream_rate) * 1000) < 30){
+        gcs().send_named_float("BSCXN", scaler_x_n); 
         gcs().send_named_float("BSCYN", scaler_y_n);
         gcs().send_named_float("BSCZN", scaler_z_n);
         gcs().send_named_float("BSCYAWN", scaler_yaw_n);
