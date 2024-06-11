@@ -13,7 +13,7 @@ bool ModeLand::init(bool ignore_checks)
 void ModeLand::run()
 {
     if (blimp.position_ok()) {
-        blimp.loiter->run_vel(targ_vel, targ_vel_yaw, Vector4b{false,false,false,false});        
+        blimp.loiter->run_vel(targ_vel, targ_vel_yaw, Vector4b{false,false,false,false}, true);        
     } else {
         //No position/velocity, so all we can do is go down slowly.
         motors->right_out = 0;
