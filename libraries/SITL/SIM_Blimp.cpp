@@ -32,9 +32,9 @@ Blimp::Blimp(const char *frame_str) :
     radius = 0.25;
     moment_of_inertia = {0.004375, 0.004375, 0.004375}; //m*r^2 for hoop...
     cog = {0, 0, 0.1}; //10 cm down from center (i.e. center of buoyancy), for now
-    k_tan = 0.6e-7; //Tangential (thrust) and normal force multipliers
-    k_nor = 0;//3.4e-7;
-    k_m = 5e-3;
+    k_tan = 0.6e-7; //Tangential (thrust) and normal force multipliers for the fins
+    k_nor = 0;
+    k_m = 0.15; //Thrust multiplier for motors
     gondolawidth = 0.1; //10cm
     drag_constant = 0.05;
     drag_gyr_constant = 0.15;

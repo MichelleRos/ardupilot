@@ -1,5 +1,4 @@
 #include "Blimp.h"
-
 #include <AC_AttitudeControl/AC_PosControl.h>
 
 const AP_Param::GroupInfo Loiter::var_info[] = {
@@ -747,7 +746,7 @@ const AP_Param::GroupInfo Loiter::var_info[] = {
     // @User: Advanced
     AP_SUBGROUPINFO(pid_pos_yaw, "POSYAW_", 7, Loiter, AC_PID),
 
-    // @Param: MAX_VEL_X
+    // @Param: MAX_VEL_Xgit
     // @DisplayName: Max X Velocity
     // @Description: Sets the maximum X velocity, in m/s
     // @Range: 0.2 5
