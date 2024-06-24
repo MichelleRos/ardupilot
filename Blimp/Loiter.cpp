@@ -808,6 +808,7 @@ const AP_Param::GroupInfo Loiter::var_info[] = {
     // @Bitmask: 0:Right,1:Front,2:Down,3:Yaw
     // @User: Standard
     AP_GROUPINFO("DIS_MASK", 16, Loiter, dis_mask, 0),
+    //1,2,4,8. Disable Right & Front = 3, Disable Yaw and Down = 12
 
     // @Param: PID_DZ
     // @DisplayName: Deadzone for the position PIDs

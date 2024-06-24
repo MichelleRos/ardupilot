@@ -27,42 +27,44 @@ LOIT_MAX_VEL_Y   0.3
 LOIT_MAX_VEL_YAW 0.3
 LOIT_MAX_VEL_Z   0.3
 
-LOIT_VELX_D          1.0
-LOIT_VELX_FF         0.0
-LOIT_VELX_I          1.5
-LOIT_VELX_P          5.0
+# Velocity controller params
+LOIT_VELX_D      0.3
+LOIT_VELX_I      1.5
+LOIT_VELX_IMAX   5.0
+LOIT_VELX_P      4.0
 
-LOIT_VELY_D          1.0
-LOIT_VELY_FF         0.0
-LOIT_VELY_I          1.5
-LOIT_VELY_P          5.0
+LOIT_VELYAW_D    0.1
+LOIT_VELYAW_I    0.5
+LOIT_VELYAW_IMAX 5.0
+LOIT_VELYAW_P    0.5
 
-LOIT_VELYAW_D         0.0
-LOIT_VELYAW_FF        0.0
-LOIT_VELYAW_I         0.8
-LOIT_VELYAW_P         10.0
+LOIT_VELY_D      0.5
+LOIT_VELY_I      1.5
+LOIT_VELY_IMAX   5.0
+LOIT_VELY_P      3.0
 
-LOIT_VELZ_D           0.0
-LOIT_VELZ_FF          0.0
-LOIT_VELZ_I           1.0
-LOIT_VELZ_P           15.0
+LOIT_VELZ_D      0.5
+LOIT_VELZ_I      1.0
+LOIT_VELZ_IMAX   2.0
+LOIT_VELZ_P      6.0
 
-LOIT_POSX_D          0.0
-LOIT_POSX_FF         0.0
-LOIT_POSX_I          0.05
-LOIT_POSX_P          1.0
+#Position controller params
+LOIT_POSX_D      0.0
+LOIT_POSX_I      0.05
+LOIT_POSX_IMAX   0.1
+LOIT_POSX_P      1.0
 
-LOIT_POSY_D          0.0
-LOIT_POSY_FF         0.0
-LOIT_POSY_I          0.05
-LOIT_POSY_P          1.0
+LOIT_POSYAW_D    1.0
+LOIT_POSYAW_I    0.1
+LOIT_POSYAW_IMAX 1.0
+LOIT_POSYAW_P    3.0
 
-LOIT_POSYAW_D         1.0
-LOIT_POSYAW_FF        0.0
-LOIT_POSYAW_I         0.1
-LOIT_POSYAW_P         3.0
+LOIT_POSY_D      0.0
+LOIT_POSY_I      1.0
+LOIT_POSY_IMAX   0.3
+LOIT_POSY_P      1.0
 
-LOIT_POSZ_D           0.0
-LOIT_POSZ_FF          0.0
-LOIT_POSZ_I           0.0
-LOIT_POSZ_P           0.7
+LOIT_POSZ_D      0.0
+LOIT_POSZ_I      0.0
+LOIT_POSZ_IMAX   0.0
+LOIT_POSZ_P      0.7

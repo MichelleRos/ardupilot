@@ -43,6 +43,7 @@ Blimp::Blimp(const char *frame_str) :
     ::printf("Starting Blimp model\n");
 
     if (strstr(frame_str, "motor")) {
+      drag_gyr_constant = 0.05;
       motorblimp = true;
       ::printf("Running motorblimp frame.\n");
     }
