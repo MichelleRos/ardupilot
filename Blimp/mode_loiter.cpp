@@ -23,7 +23,7 @@ void ModeLoiter::run()
         //If simple mode is disabled, input is in body-frame, thus needs to be rotated.
         blimp.rotate_BF_to_NE(pilot.xy());
     }
-    pilot.x *= loiter->pid_dz * dt;
+    pilot.x *= loiter->max_pos_x * dt;
     pilot.y *= loiter->max_pos_y * dt;
     pilot.z *= loiter->max_pos_z * dt;
     pilot_yaw *= loiter->max_pos_yaw * dt;
