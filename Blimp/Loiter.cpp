@@ -835,7 +835,7 @@ const AP_Param::GroupInfo Loiter::var_info[] = {
 
     AP_SUBGROUPINFO(pid_lvl_pitch, "LVLPIT_", 20, Loiter, AC_PID),
     AP_SUBGROUPINFO(pid_lvl_roll, "LVLRLL_", 21, Loiter, AC_PID),
-    AP_GROUPINFO("LVLMAX", 22, Loiter, level_max, 0.5), //Max throttle output to level
+    AP_GROUPINFO("LVLMAX", 22, Loiter, level_max, 0), //Max throttle output to level, use 0 to disable
 
     AP_GROUPEND
 };
@@ -1012,17 +1012,20 @@ void Loiter::run_vel(Vector3f& target_vel_ef, float& target_vel_yaw, Vector4b ax
 
     //We're already in body-frame, so we can output directly.
 
+    float right_out;
+    float front_out;
+
     if (zero.x) {
-        blimp.motors->front_out = 0;
+        front_out = 0;
     } else if (axes_disabled.x);
     else {
-        blimp.motors->front_out = actuator.x;
+        front_out = actuator.x;
     }
     if (zero.y) {
-        blimp.motors->right_out = 0;
+        right_out = 0;
     } else if (axes_disabled.y);
     else {
-        blimp.motors->right_out = actuator.y;
+        right_out = actuator.y;
     }
     if (zero.z) {
         blimp.motors->down_out = 0;
@@ -1037,6 +1040,13 @@ void Loiter::run_vel(Vector3f& target_vel_ef, float& target_vel_yaw, Vector4b ax
         blimp.motors->yaw_out = act_yaw;
     }
 
+    if (is_zero(level_max)) {
+        blimp.motors->right_out = right_out;
+        blimp.motors->front_out = front_out;
+    } else {
+        run_level(right_out, front_out);
+    }
+
 #if HAL_LOGGING_ENABLED
     if(log) {
         AC_PosControl::Write_PSCN(0.0, blimp.pos_ned.x * 100.0, 0.0, target_vel_bf_c.x * 100.0, vel_bf_filtd.x * 100.0, 0.0, 0.0, 0.0);
@@ -1044,4 +1054,47 @@ void Loiter::run_vel(Vector3f& target_vel_ef, float& target_vel_yaw, Vector4b ax
         AC_PosControl::Write_PSCD(0.0, -blimp.pos_ned.z * 100.0, 0.0, -target_vel_bf_c.z * 100.0, -vel_bf_filtd.z * 100.0, 0.0, 0.0, 0.0);
     }
 #endif
+
+}
+
+void Loiter::run_level(float& out_right_com, float& out_front_com)
+{
+    const float dt = blimp.scheduler.get_last_loop_time_s();
+    
+    // Run leveling pids
+    float level_pitch = blimp.loiter->pid_lvl_pitch.update_all(0, blimp.ahrs.get_pitch(), dt, 0);
+    float level_roll = blimp.loiter->pid_lvl_roll.update_all(0, blimp.ahrs.get_roll(), dt, 0);
+
+    float out_right_lvl = level_roll * blimp.loiter->level_max;
+    float out_front_lvl = level_pitch * blimp.loiter->level_max;
+
+    float totalr = out_right_lvl + out_right_com;
+    if (totalr > blimp.motors->thr_max) {
+        out_right_com = out_right_com - (totalr - blimp.motors->thr_max);
+    }
+
+    float totalf = out_front_lvl + out_front_com;
+    if (totalf > blimp.motors->thr_max) {
+        out_front_com = out_front_com - (totalf - blimp.motors->thr_max);
+    }
+
+    if (!blimp.motors->armed()) {
+        blimp.loiter->pid_lvl_roll.set_integrator(0);
+        blimp.loiter->pid_lvl_pitch.set_integrator(0);
+    }
+
+    blimp.motors->right_out = out_right_com + out_right_lvl;
+    blimp.motors->front_out = out_front_com + out_front_lvl;
+
+#if HAL_LOGGING_ENABLED
+    AP::logger().WriteStreaming("LVL", "TimeUS,lr,lf,orl,ofl,orc,ofc", "Qffffff",
+                                               AP_HAL::micros64(),
+                                               level_roll,
+                                               level_pitch,
+                                               out_right_lvl,
+                                               out_front_lvl,
+                                               out_right_com,
+                                               out_front_com);
+#endif
+
 }
