@@ -20,6 +20,7 @@ public:
         RTL =           4,  // rtl
         AUTO =          5,  // auto
         HOLD =          6,  // hold (stop moving)
+        LEVEL =         7,  // like manual mode, but keeps the blimp level
     };
 
     // constructor
@@ -447,6 +448,47 @@ protected:
     const char *name4() const override
     {
         return "HOLD";
+    }
+
+private:
+
+};
+
+class ModeLevel : public Mode
+{
+
+public:
+    // inherit constructor
+    using Mode::Mode;
+
+    virtual void run() override;
+
+    bool requires_GPS() const override
+    {
+        return false;
+    }
+    bool has_manual_throttle() const override
+    {
+        return true;
+    }
+    bool allows_arming(bool from_gcs) const override
+    {
+        return true;
+    };
+    bool is_autopilot() const override
+    {
+        return false;
+    }
+
+protected:
+
+    const char *name() const override
+    {
+        return "LEVEL";
+    }
+    const char *name4() const override
+    {
+        return "LEVL";
     }
 
 private:
