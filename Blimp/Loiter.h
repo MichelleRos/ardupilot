@@ -74,6 +74,10 @@ public:
     AC_PID pid_pos_z{0.7, 0,   0, 0, 0.5, 0, 0, 0};
     AC_PID pid_pos_yaw{1.2, 0.5, 0, 0, 0.5, 0, 0, 0};
 
+    AC_PID pid_lvl_pitch{1, 0.2, 0, 0, 0.5, 0, 0, 0};
+    AC_PID pid_lvl_roll{1, 0.2, 0, 0, 0.5, 0, 0, 0};
+    AP_Float level_max;
+
     AP_Float    max_vel_x;
     AP_Float    max_vel_y;
     AP_Float    max_vel_z;

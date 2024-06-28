@@ -833,6 +833,10 @@ const AP_Param::GroupInfo Loiter::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("POS_LAG", 19, Loiter, pos_lag, 1),
 
+    AP_SUBGROUPINFO(pid_lvl_pitch, "LVLPIT_", 20, Loiter, AC_PID),
+    AP_SUBGROUPINFO(pid_lvl_roll, "LVLRLL_", 21, Loiter, AC_PID),
+    AP_GROUPINFO("LVLMAX", 22, Loiter, level_max, 0.5), //Max throttle output to level
+
     AP_GROUPEND
 };
 

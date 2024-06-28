@@ -119,7 +119,9 @@ void GCS_MAVLINK_Blimp::send_pid_tuning()
         PID_SEND::POSX,
         PID_SEND::POSY,
         PID_SEND::POSZ,
-        PID_SEND::POSYAW
+        PID_SEND::POSYAW,
+        PID_SEND::LVLRLL,
+        PID_SEND::LVLPIT
     };
     for (uint8_t i=0; i<ARRAY_SIZE(axes); i++) {
         if (!(blimp.g.gcs_pid_mask & (1<<(axes[i]-1)))) {
@@ -153,6 +155,12 @@ void GCS_MAVLINK_Blimp::send_pid_tuning()
             break;
         case PID_SEND::POSYAW:
             pid_info = &blimp.loiter->pid_pos_yaw.get_pid_info();
+            break;
+        case PID_SEND::LVLRLL:
+            pid_info = &blimp.loiter->pid_lvl_roll.get_pid_info();
+            break;
+        case PID_SEND::LVLPIT:
+            pid_info = &blimp.loiter->pid_lvl_pitch.get_pid_info();
             break;
         default:
             continue;

@@ -210,7 +210,7 @@ const AP_Param::Info Blimp::var_info[] = {
 
     // @Param: MAX_MAN_THR
     // @DisplayName: Max Throttle in Manual Mode
-    // @Description: Sets the maximum throttle output from manual mode. Note that this will be on top of FINS_THR_MAX.
+    // @Description: Sets the maximum commanded throttle in manual mode. Note that this will be on top of FINS_THR_MAX.
     // @Range: 0.1 1
     // @User: Standard
     GSCALAR(max_man_thr, "MAX_MAN_THR", 1),
