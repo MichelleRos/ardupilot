@@ -746,61 +746,61 @@ const AP_Param::GroupInfo Loiter::var_info[] = {
     // @User: Advanced
     AP_SUBGROUPINFO(pid_pos_yaw, "POSYAW_", 7, Loiter, AC_PID),
 
-    // @Param: MAX_VEL_Xgit
+    // @Param: MAX_VEL_X
     // @DisplayName: Max X Velocity
     // @Description: Sets the maximum X velocity, in m/s
     // @Range: 0.2 5
     // @User: Standard
-    AP_GROUPINFO("MAX_VEL_X", 8, Loiter, max_vel_x, 0.5),
+    AP_GROUPINFO("MAX_VELX", 8, Loiter, max_vel_x, 0.5),
 
     // @Param: MAX_VEL_Y
     // @DisplayName: Max Y Velocity
     // @Description: Sets the maximum Y velocity, in m/s
     // @Range: 0.2 5
     // @User: Standard
-    AP_GROUPINFO("MAX_VEL_Y", 9, Loiter, max_vel_y, 0.5),
+    AP_GROUPINFO("MAX_VELY", 9, Loiter, max_vel_y, 0.5),
 
     // @Param: MAX_VEL_Z
     // @DisplayName: Max Z Velocity
     // @Description: Sets the maximum Z velocity, in m/s
     // @Range: 0.2 5
     // @User: Standard
-    AP_GROUPINFO("MAX_VEL_Z", 10, Loiter, max_vel_z, 0.4),
+    AP_GROUPINFO("MAX_VELZ", 10, Loiter, max_vel_z, 0.4),
 
     // @Param: MAX_VEL_YAW
     // @DisplayName: Max yaw Velocity
     // @Description: Sets the maximum yaw velocity, in rad/s
     // @Range: 0.2 5
     // @User: Standard
-    AP_GROUPINFO("MAX_VEL_YAW", 11, Loiter, max_vel_yaw, 0.5),
+    AP_GROUPINFO("MAX_VELYAW", 11, Loiter, max_vel_yaw, 0.5),
 
     // @Param: MAX_POS_X
     // @DisplayName: Max X Position change
     // @Description: Sets the maximum X position change, in m/s
     // @Range: 0.1 5
     // @User: Standard
-    AP_GROUPINFO("MAX_POS_X", 12, Loiter, max_pos_x, 0.2),
+    AP_GROUPINFO("MAX_POSX", 12, Loiter, max_pos_x, 0.2),
 
     // @Param: MAX_POS_Y
     // @DisplayName: Max Y Position change
     // @Description: Sets the maximum Y position change, in m/s
     // @Range: 0.1 5
     // @User: Standard
-    AP_GROUPINFO("MAX_POS_Y", 13, Loiter, max_pos_y, 0.2),
+    AP_GROUPINFO("MAX_POSY", 13, Loiter, max_pos_y, 0.2),
 
     // @Param: MAX_POS_Z
     // @DisplayName: Max Z Position change
     // @Description: Sets the maximum Z position change, in m/s
     // @Range: 0.1 5
     // @User: Standard
-    AP_GROUPINFO("MAX_POS_Z", 14, Loiter, max_pos_z, 0.15),
+    AP_GROUPINFO("MAX_POSZ", 14, Loiter, max_pos_z, 0.15),
 
     // @Param: MAX_POS_YAW
     // @DisplayName: Max Yaw Position change
     // @Description: Sets the maximum Yaw position change, in rad/s
     // @Range: 0.1 5
     // @User: Standard
-    AP_GROUPINFO("MAX_POS_YAW", 15, Loiter, max_pos_yaw, 0.3),
+    AP_GROUPINFO("MAX_POSYAW", 15, Loiter, max_pos_yaw, 0.3),
 
     // @Param: DIS_MASK
     // @DisplayName: Disable output mask

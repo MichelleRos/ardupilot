@@ -18,7 +18,7 @@ bool ModeAuto::init(bool ignore_checks)
     return true;
 }
 
-//Runs the main loiter controller
+//Runs the main auto controller
 void ModeAuto::run()
 {
     // start or update mission

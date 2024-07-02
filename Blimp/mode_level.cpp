@@ -6,6 +6,12 @@
 // Runs the main level controller
 void ModeLevel::run()
 {
+    if (is_zero(blimp.loiter->level_max)){
+        //Mode level is the same as manual mode when this parameter is zero, thus warn the user and switch to manual.
+        GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "LOIT_LVLMAX is zero. Switching to manual mode.");
+        set_mode(Mode::Number::MANUAL, ModeReason::UNAVAILABLE);
+    }
+
     Vector3f pilot;
     float pilot_yaw;
     get_pilot_input(pilot, pilot_yaw);
