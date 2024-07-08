@@ -19,7 +19,9 @@
 #define YAW_FLTE_MAX 2.0
 #define FLTD_MUL 0.5
 #define FLTT_MUL 0.5
-#define DEFAULT_SMAX
+#define DEFAULT_SMAX 50.0
+
+#define OPTIONS_TWO_POSITION (1<<0)
 
 class AP_Quicktune {
 public:
@@ -28,23 +30,19 @@ public:
     /* Do not allow copies */
     CLASS_NO_COPY(AP_Quicktune);
 
-
-
-
-
-
-
     // parameter block
     static const struct AP_Param::GroupInfo var_info[];
 
     // get singleton instance
     static AP_Quicktune *get_singleton() { return _singleton; }
 
+    void update();
+
 private:
     static AP_Quicktune *_singleton;
 
     // parameters
-    AP_Float enabled;
+    AP_Float enable;
     AP_Float axes;
     AP_Float double_time;
     AP_Float gain_margin;
@@ -55,15 +53,14 @@ private:
     AP_Float y_pi_ratio;
     AP_Float auto_filter;
     AP_Float auto_save;
-    AP_Float rc_func;
     AP_Float max_reduce;
-    AP_Float options;
-
-    bool is_quadplane;
+    AP_Int16 options;
 
     float get_time() {
         return AP_HAL::millis() * 0.001;
     }
+
+    bool have_pilot_input();
 
     enum class axis_names : uint8_t {
         RLL = 0,
@@ -103,6 +100,14 @@ private:
     uint8_t param_saved = 0; //{}
     uint8_t param_changed = 0; //{}
     bool need_restore = false;
+
+    void reset_axes_done();
+    void setup_SMAX();
+    void setup_filters(uint32_t axis);
+
+    uint32_t last_warning = get_time();
+
+    // AP_Motors& _motors;
 
 };
 
