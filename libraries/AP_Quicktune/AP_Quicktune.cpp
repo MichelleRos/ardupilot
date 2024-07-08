@@ -193,6 +193,7 @@ void AP_Quicktune::update(){
     float srate = get_slew_rate(axis);
     // float pname = get_pname(axis, stage);
     // float P = params[pname];
+    param_s pname = get_pname
     float oscillating = srate > osc_smax;
     float limited = reached_limit(pname, P:get());
     if (limited || oscillating){
@@ -258,7 +259,15 @@ bool AP_Quicktune::axis_enabled(AP_Quicktune::axis_names axis){
 }
 
 AP_Quicktune::axis_names AP_Quicktune::get_current_axis(){
-    // get the axis name we are working on, or nil for all done
+    // get the axis name we are working on, or DONE for all done 
+    axis_names axis_name;
+    for (int8_t i = 1; i < int8_t(axis_names::DONE); i++){
+        int8_t mask = (1 << (i-1));
+        if ((mask & axes) != 0 and axes_done[axis_name] == false){
+            return axis_names[i]
+        }
+    }
+    return axis_names::DONE;
 }
 
 float AP_Quicktune::get_slew_rate(AP_Quicktune::axis_names axis){
@@ -269,7 +278,7 @@ int8_t AP_Quicktune::advance_stage(AP_Quicktune::axis_names axis){
 //Move to next stage of tune
 }
 
-void AP_Quicktune::adjust_gain(AP_Quicktune::axis_names axis, AP_Quicktune::param_suffixes suffix, float value, bool limit){
+void AP_Quicktune::adjust_gain(AP_Quicktune::param_s param, float value, bool limit){
 //Change a gain.
 //if limit is true, also do limit_gain() here - don't reduce by more than 100?
 }
@@ -287,6 +296,10 @@ void AP_Quicktune::save_all_params(){
 }
 
 bool AP_Quicktune::reached_limit(){
+
+}
+
+void AP_Quicktune::get_all_params(){
 
 }
 

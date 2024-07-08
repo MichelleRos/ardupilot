@@ -47,7 +47,7 @@ public:
 
     // parameters
     AP_Float enable;
-    AP_Float axes;
+    AP_Int8 axes;
     AP_Float double_time;
     AP_Float gain_margin;
     AP_Float osc_smax;
@@ -55,7 +55,7 @@ public:
     AP_Float yaw_d_max;
     AP_Float rp_pi_ratio;
     AP_Float y_pi_ratio;
-    AP_Float auto_filter;
+    AP_Int8 auto_filter;
     AP_Float auto_save;
     AP_Float max_reduce;
     AP_Int16 options;
@@ -70,18 +70,47 @@ public:
         RLL = 0,
         PIT = 1,
         YAW = 2,
+        DONE = 3,
     };
 
-    enum class param_suffixes : uint8_t {
-        FF = 0,
-        P = 1,
-        I = 2,
-        D = 3,
-        SMAX = 4,
-        FLTT = 5,
-        FLTD = 6,
-        FLTE = 7,
+    // enum class param_suffixes : uint8_t {
+    //     FF = 0,
+    //     P = 1,
+    //     I = 2,
+    //     D = 3,
+    //     SMAX = 4,
+    //     FLTT = 5,
+    //     FLTD = 6,
+    //     FLTE = 7,
+    // };
+
+    enum class param_s : uint8_t {
+        RLL_FF,
+        RLL_P,
+        RLL_I,
+        RLL_D,
+        RLL_SMAX,
+        RLL_FLTT,
+        RLL_FLTD,
+        RLL_FLTE,
+        PIT_FF,
+        PIT_P,
+        PIT_I,
+        PIT_D,
+        PIT_SMAX,
+        PIT_FLTT,
+        PIT_FLTD,
+        PIT_FLTE,
+        YAW_FF,
+        YAW_P,
+        YAW_I,
+        YAW_D,
+        YAW_SMAX,
+        YAW_FLTT,
+        YAW_FLTD,
+        YAW_FLTE,
     };
+
 
     enum class stages : uint8_t {
         D = 0,
@@ -100,7 +129,6 @@ public:
     uint8_t axes_done = 0;
     uint8_t filters_done = 0;
 
-    uint8_t params = 0; // {}
     uint8_t param_saved = 0; //{}
     uint8_t param_changed = 0; //{}
     bool need_restore = false;
@@ -115,11 +143,12 @@ public:
     axis_names get_current_axis();
     float get_slew_rate(axis_names axis);
     int8_t advance_stage(axis_names axis);
-    void adjust_gain(axis_names axis, param_suffixes suffix, float value, bool limit);
+    void adjust_gain(param_s param, float value, bool limit);
     float get_gain_mul();
     void restore_all_params();
     void save_all_params();
     bool reached_limit();
+    void get_all_params();
 
     AP_Arming *arming = AP::arming().get_singleton();
     AP_Vehicle *vehicle = AP::vehicle();
