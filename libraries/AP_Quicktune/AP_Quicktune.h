@@ -11,6 +11,9 @@
 #include <AP_Common/AP_Common.h>
 #include <AP_Common/Location.h>
 #include <AP_Param/AP_Param.h>
+#include <AP_Logger/AP_Logger.h>
+#include <AP_Arming/AP_Arming.h>
+#include <AP_Vehicle/AP_Vehicle.h>
 
 
 #define UPDATE_RATE_HZ 40
@@ -38,7 +41,8 @@ public:
 
     void update();
 
-private:
+// private:
+
     static AP_Quicktune *_singleton;
 
     // parameters
@@ -101,14 +105,25 @@ private:
     uint8_t param_changed = 0; //{}
     bool need_restore = false;
 
-    void reset_axes_done();
-    void setup_SMAX();
-    void setup_filters(uint32_t axis);
-
     uint32_t last_warning = get_time();
 
-    // AP_Motors& _motors;
+    void reset_axes_done();
+    void setup_SMAX();
+    void setup_filters(axis_names axis);
+    bool have_pilot_input();
+    bool axis_enabled(axis_names axis);
+    axis_names get_current_axis();
+    float get_slew_rate(axis_names axis);
+    int8_t advance_stage(axis_names axis);
+    void adjust_gain(axis_names axis, param_suffixes suffix, float value, bool limit);
+    float get_gain_mul();
+    void restore_all_params();
+    void save_all_params();
+    bool reached_limit();
 
+    AP_Arming *arming = AP::arming().get_singleton();
+    AP_Vehicle *vehicle = AP::vehicle();
+    AP_Logger *logger = AP::logger().get_singleton();
 };
 
 namespace AP {

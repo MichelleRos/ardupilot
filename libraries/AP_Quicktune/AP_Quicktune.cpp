@@ -3,10 +3,8 @@
 #if QUICKTUNE_ENABLED
 
 #include <AP_AHRS/AP_AHRS.h>
-#include <AP_Logger/AP_Logger.h>
 #include <AP_Vehicle/AP_Vehicle_Type.h>
 #include <RC_Channel/RC_Channel.h>
-#include <AP_Arming/AP_Arming.h>
 
 
 const AP_Param::GroupInfo AP_Quicktune::var_info[] = {
@@ -111,8 +109,6 @@ AP_Quicktune *AP_Quicktune::_singleton;
 
 //Call at loop rate
 void AP_Quicktune::update(){
-    // RC_Channels *rcc = rc().get_singleton();
-
 
     if (enable < 1){
         return;
@@ -131,12 +127,12 @@ void AP_Quicktune::update(){
         sw_pos_tune = 2;
         sw_pos_save = -1;
     }
-    if (sw_pos == sw_pos_tune && (!AP::arming().is_armed() || !AP::vehicle()->get_likely_flying()) && get_time() > last_warning + 5){
+    if (sw_pos == sw_pos_tune && (!arming->is_armed() || !vehicle->get_likely_flying()) && get_time() > last_warning + 5){
         GCS_SEND_TEXT(MAV_SEVERITY_EMERGENCY, "Tuning: Must be flying to tune");
         last_warning = get_time();
         return;
     }
-    if (sw_pos == 0 || !AP::arming().is_armed() || !AP::vehicle()->get_likely_flying()){
+    if (sw_pos == 0 || !AP::arming().is_armed() || !vehicle->get_likely_flying()){
         //-- abort, revert parameters
         if (need_restore){
             need_restore = false;
@@ -195,8 +191,8 @@ void AP_Quicktune::update(){
     }
 
     float srate = get_slew_rate(axis);
-    float pname = get_pname(axis, stage);
-    float P = params[pname];
+    // float pname = get_pname(axis, stage);
+    // float P = params[pname];
     float oscillating = srate > osc_smax;
     float limited = reached_limit(pname, P:get());
     if (limited || oscillating){
@@ -220,7 +216,7 @@ void AP_Quicktune::update(){
             adjust_gain_limited(P_name, new_P);
         }
         setup_slew_gain(pname, new_gain);
-        AP::logger().WriteStreaming('QUIK','SRate,Gain,Param', 'ffn', srate, P:get(), axis .. stage);
+        logger->WriteStreaming('QUIK','SRate,Gain,Param', 'ffn', srate, P:get(), axis .. stage);
         GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Tuning: %s done", pname);
         advance_stage(axis);
         last_stage_change = get_time();
@@ -230,7 +226,7 @@ void AP_Quicktune::update(){
             new_gain = 0.001;
         }
         adjust_gain_limited(pname, new_gain);
-        AP::logger().WriteStreaming('QUIK','SRate,Gain,Param', 'ffn', srate, P:get(), axis .. stage);
+        logger->WriteStreaming('QUIK','SRate,Gain,Param', 'ffn', srate, P:get(), axis .. stage);
         if (get_time() - last_gain_report > 3){
             last_gain_report = get_time();
             GCS_SEND_TEXT(MAV_SEVERITY_INFO, "%s %.4f sr:%.2f", pname, new_gain, srate);
@@ -238,17 +234,17 @@ void AP_Quicktune::update(){
     }
 }
 
+//Need to remeber starting params & be able to reset them
+
 void AP_Quicktune::reset_axes_done(){
 //Reset the parameter for which axes have been done.
 }
-
-//Need to memorise starting params & be able to reset them
 
 void AP_Quicktune::setup_SMAX(){
 //Check each SMAX param, set to DEFAULT_SMAX if it is zero.
 }
 
-void AP_Quicktune::setup_filters(uint32_t axis){
+void AP_Quicktune::setup_filters(AP_Quicktune::axis_names axis){
 //Set filters for FLTD, FLTT to INS_GYRO_FILTER * FLTT_MUL or FLTD_MUL.
 //Set FLTE to YAW_FLTE_MAX if it is 0 or greater than that.
 }
@@ -257,29 +253,41 @@ bool AP_Quicktune::have_pilot_input(){
 //Check whether there is pilot input currently.
 }
 
-bool AP_Quicktune::axis_enabled(axis){
+bool AP_Quicktune::axis_enabled(AP_Quicktune::axis_names axis){
 //Check whether axis has been enabled to be checked.
 }
 
-int8_t AP_Quicktune::get_current_axis(){
+AP_Quicktune::axis_names AP_Quicktune::get_current_axis(){
     // get the axis name we are working on, or nil for all done
 }
 
-float AP_Quicktune::get_slew_rate(axis){
+float AP_Quicktune::get_slew_rate(AP_Quicktune::axis_names axis){
 //Get the current slewrate from AC_AttitudeControl:get_rpy_srate()
 }
 
-int8_t AP_Quicktune::advance_stage(axis){
+int8_t AP_Quicktune::advance_stage(AP_Quicktune::axis_names axis){
 //Move to next stage of tune
 }
 
-adjust_gain(name, value, limit){
+void AP_Quicktune::adjust_gain(AP_Quicktune::axis_names axis, AP_Quicktune::param_suffixes suffix, float value, bool limit){
 //Change a gain.
 //if limit is true, also do limit_gain() here - don't reduce by more than 100?
 }
 
-get_gain_mul(){
-   return math.exp(math.log(2.0)/(UPDATE_RATE_HZ*QUIK_DOUBLE_TIME:get()))
+float AP_Quicktune::get_gain_mul(){
+   return exp(log(2.0)/(UPDATE_RATE_HZ*double_time));
+}
+
+void AP_Quicktune::restore_all_params(){
+
+}
+
+void AP_Quicktune::save_all_params(){
+
+}
+
+bool AP_Quicktune::reached_limit(){
+
 }
 
 namespace AP {
