@@ -160,7 +160,7 @@ void AP_Quicktune::update(){
         return;
     }
 
-    axis = get_current_axis();
+    axis_names axis = get_current_axis();
     if (axis == 0){//nil
         // -- nothing left to do, check autosave time
         if (tune_done_time != 0 and auto_save > 0){
@@ -191,43 +191,42 @@ void AP_Quicktune::update(){
     }
 
     float srate = get_slew_rate(axis);
-    // float pname = get_pname(axis, stage);
-    // float P = params[pname];
-    param_s pname = get_pname
+    float P = params[pname];
+    param_s pname = get_pname(axis, stage);
     float oscillating = srate > osc_smax;
-    float limited = reached_limit(pname, P:get());
+    float limited = reached_limit(pname, P);
     if (limited || oscillating){
         float reduction = (100.0-gain_margin)*0.01;
         if (!oscillating){
             reduction = 1.0;
         }
-        float new_gain = P:get() * reduction;
+        float new_gain = P * reduction;
         float limit = gain_limit(pname);
         if (limit > 0.0 && new_gain > limit){
             new_gain = limit;
         }
-        float old_gain = param_saved[pname]
+        float old_gain = param_saved[pname];
         if (new_gain < old_gain && string.sub(pname,-2) == '_D' && param_axis(pname) != 'YAW'){
             //-- we are lowering a D gain from the original gain. Also lower the P gain by the same amount so that we don't trigger P oscillation. We don't drop P by more than a factor of 2
-            float ratio = math.max(new_gain / old_gain, 0.5);
+            float ratio = fmaxf(new_gain / old_gain, 0.5);
             float P_name = string.gsub(pname, "_D", "_P");
-            float old_P = params[P_name]:get();
+            float old_P = params[P_name];
             float new_P = old_P * ratio;
             GCS_SEND_TEXT(MAV_SEVERITY_INFO, "adjusting %s %.3f -> %.3f", P_name, old_P, new_P);
             adjust_gain_limited(P_name, new_P);
         }
         setup_slew_gain(pname, new_gain);
-        logger->WriteStreaming('QUIK','SRate,Gain,Param', 'ffn', srate, P:get(), axis .. stage);
+        logger->WriteStreaming('QUIK','TimeUS,SRate,Gain,Param', 'QffI', AP_HAL::micros64(), srate, P, int(pname));
         GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Tuning: %s done", pname);
         advance_stage(axis);
         last_stage_change = get_time();
     } else {
-        float new_gain = P:get()*get_gain_mul();
+        float new_gain = P*get_gain_mul();
         if (new_gain <= 0.0001){
             new_gain = 0.001;
         }
         adjust_gain_limited(pname, new_gain);
-        logger->WriteStreaming('QUIK','SRate,Gain,Param', 'ffn', srate, P:get(), axis .. stage);
+        logger->WriteStreaming('QUIK','TimeUS,SRate,Gain,Param', 'QffI', AP_HAL::micros64(), srate, P, int(pname));
         if (get_time() - last_gain_report > 3){
             last_gain_report = get_time();
             GCS_SEND_TEXT(MAV_SEVERITY_INFO, "%s %.4f sr:%.2f", pname, new_gain, srate);
