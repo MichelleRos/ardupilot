@@ -475,6 +475,8 @@ void Copter::allocate_motors(void)
     AP_Param::load_object_from_eeprom(circle_nav, circle_nav->var_info);
 #endif
 
+    quicktune = NEW_NOTHROW AP_Quicktune(*attitude_control);
+
     // reload lines from the defaults file that may now be accessible
     AP_Param::reload_defaults_file(true);
     
