@@ -161,7 +161,7 @@ void AP_Quicktune::update(){
     }
 
     axis_names axis = get_current_axis();
-    if (axis == 0){//nil
+    if (axis == axis_names::DONE){
         // -- nothing left to do, check autosave time
         if (tune_done_time != 0 and auto_save > 0){
             if (get_time() - tune_done_time > auto_save){
@@ -185,7 +185,7 @@ void AP_Quicktune::update(){
         return;
     }
 
-    if (!filters_done[axis]){
+    if (!filter_done(axis)){
         GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Starting %s tune", axis);
         setup_filters(axis);
     }
@@ -327,6 +327,18 @@ bool AP_Quicktune::axis_enabled(uint8_t axis)
 {
     //Check whether axis has been enabled to be tuned.
     return item_in_bitmask(uint8_t(axis), axes_enabled);
+}
+
+bool AP_Quicktune::filter_done(AP_Quicktune::axis_names axis)
+{
+    //Check whether axis has been enabled to be tuned.
+    return item_in_bitmask(uint8_t(axis), filters_done);
+}
+
+AP_Quicktune::param_s AP_Quicktune::get_pname(AP_Quicktune::axis_names axis, AP_Quicktune::stages stage)
+{
+
+
 }
 
 

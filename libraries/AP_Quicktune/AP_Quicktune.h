@@ -152,6 +152,8 @@ public:
     bool item_in_bitmask(uint8_t item, uint32_t bitmask);
     bool axis_done(axis_names axis);
     bool axis_enabled(uint8_t axis);
+    bool filter_done(AP_Quicktune::axis_names axis);
+    param_s get_pname(AP_Quicktune::axis_names axis, AP_Quicktune::stages stage);
 
     AP_Arming *arming = AP::arming().get_singleton();
     AP_Vehicle *vehicle = AP::vehicle();
