@@ -41,14 +41,9 @@ public:
     // parameter block
     static const struct AP_Param::GroupInfo var_info[];
 
-    // get singleton instance
-    static AP_Quicktune *get_singleton() { return _singleton; }
-
     void update();
 
 // private:
-
-    static AP_Quicktune *_singleton;
 
     AC_AttitudeControl& attitude_control;
 
@@ -71,8 +66,6 @@ public:
         return AP_HAL::millis() * 0.001;
     }
 
-    bool have_pilot_input();
-
     enum class axis_names : uint8_t {
         RLL = 0,
         PIT = 1,
@@ -92,7 +85,7 @@ public:
     // };
 
     enum class param_s : uint8_t {
-        RLL_FF,
+        // RLL_FF,
         RLL_P,
         RLL_I,
         RLL_D,
@@ -100,7 +93,7 @@ public:
         RLL_FLTT,
         RLL_FLTD,
         RLL_FLTE,
-        PIT_FF,
+        // PIT_FF,
         PIT_P,
         PIT_I,
         PIT_D,
@@ -108,8 +101,7 @@ public:
         PIT_FLTT,
         PIT_FLTD,
         PIT_FLTE,
-        YAW_FF,
-
+        // YAW_FF,
         YAW_P,
         YAW_I,
         YAW_D,
@@ -162,14 +154,12 @@ public:
     bool axis_enabled(uint8_t axis);
     bool filter_done(AP_Quicktune::axis_names axis);
     param_s get_pname(AP_Quicktune::axis_names axis, AP_Quicktune::stages stage);
+    float get_param(AP_Quicktune::param_s param);
+    void set_param(AP_Quicktune::param_s param, float value);
 
     AP_Arming *arming = AP::arming().get_singleton();
     AP_Vehicle *vehicle = AP::vehicle();
     AP_Logger *logger = AP::logger().get_singleton();
-};
-
-namespace AP {
-    AP_Quicktune *quicktune();
 };
 
 #endif  // QUICKTUNE_ENABLED

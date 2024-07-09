@@ -90,21 +90,6 @@ const AP_Param::GroupInfo AP_Quicktune::var_info[] = {
     AP_GROUPEND
 };
 
-// constructor
-AP_Quicktune::AP_Quicktune(){
-
-#if CONFIG_HAL_BOARD == HAL_BOARD_SITL
-    if (_singleton != nullptr) {
-        AP_HAL::panic("Quicktune must be singleton");
-    }
-#endif
-    _singleton = this;
-    AP_Param::setup_object_defaults(this, var_info);
-}
-
-// singleton instance
-AP_Quicktune *AP_Quicktune::_singleton;
-
 //Need access to roll, pitch yaw rc channels, and gyro filter param
 //Currently .just. doing this for multicopter (since they are the most likely to be running eg 1MB boards that can't do scripting)
 
@@ -344,13 +329,60 @@ AP_Quicktune::param_s AP_Quicktune::get_pname(AP_Quicktune::axis_names axis, AP_
 
 }
 
-
-namespace AP {
-
-AP_Quicktune *quicktune()
+float AP_Quicktune::get_param(AP_Quicktune::param_s param)
 {
-    return AP_Quicktune::get_singleton();
+    switch (param)
+    {
+    case param_s::RLL_P:
+        return attitude_control.get_rate_roll_pid().kP();
+    case param_s::RLL_I:
+        return attitude_control.get_rate_roll_pid().kI();
+    case param_s::RLL_D:
+        return attitude_control.get_rate_roll_pid().kD();
+    case param_s::PIT_P:
+        return attitude_control.get_rate_pitch_pid().kP();
+    case param_s::PIT_I:
+        return attitude_control.get_rate_pitch_pid().kI();
+    case param_s::PIT_D:
+        return attitude_control.get_rate_pitch_pid().kD();
+    case param_s::YAW_P:
+        return attitude_control.get_rate_yaw_pid().kP();
+    case param_s::YAW_I:
+        return attitude_control.get_rate_yaw_pid().kI();
+    case param_s::YAW_D:
+        return attitude_control.get_rate_yaw_pid().kD();
+    default:
+        INTERNAL_ERROR(AP_InternalError::error_t::flow_of_control);
+        break;
+    }
 }
 
+void AP_Quicktune::set_param(AP_Quicktune::param_s param, float value)
+{
+    switch (param)
+    {
+    case param_s::RLL_P:
+        return attitude_control.get_rate_roll_pid().kP(value);
+    case param_s::RLL_I:
+        return attitude_control.get_rate_roll_pid().kI(value);
+    case param_s::RLL_D:
+        return attitude_control.get_rate_roll_pid().kD(value);
+    case param_s::PIT_P:
+        return attitude_control.get_rate_pitch_pid().kP(value);
+    case param_s::PIT_I:
+        return attitude_control.get_rate_pitch_pid().kI(value);
+    case param_s::PIT_D:
+        return attitude_control.get_rate_pitch_pid().kD(value);
+    case param_s::YAW_P:
+        return attitude_control.get_rate_yaw_pid().kP(value);
+    case param_s::YAW_I:
+        return attitude_control.get_rate_yaw_pid().kI(value);
+    case param_s::YAW_D:
+        return attitude_control.get_rate_yaw_pid().kD(value);
+    default:
+        INTERNAL_ERROR(AP_InternalError::error_t::flow_of_control);
+        break;
+    }
 }
+
 #endif //QUICKTUNE_ENABLED
