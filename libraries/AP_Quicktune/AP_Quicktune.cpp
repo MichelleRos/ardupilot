@@ -236,69 +236,97 @@ void AP_Quicktune::update(){
 
 //Need to remeber starting params & be able to reset them
 
-void AP_Quicktune::reset_axes_done(){
+void AP_Quicktune::reset_axes_done()
+{
 //Reset the parameter for which axes have been done.
 }
 
-void AP_Quicktune::setup_SMAX(){
+void AP_Quicktune::setup_SMAX()
+{
 //Check each SMAX param, set to DEFAULT_SMAX if it is zero.
 }
 
-void AP_Quicktune::setup_filters(AP_Quicktune::axis_names axis){
+void AP_Quicktune::setup_filters(AP_Quicktune::axis_names axis)
+{
 //Set filters for FLTD, FLTT to INS_GYRO_FILTER * FLTT_MUL or FLTD_MUL.
 //Set FLTE to YAW_FLTE_MAX if it is 0 or greater than that.
 }
 
-bool AP_Quicktune::have_pilot_input(){
+bool AP_Quicktune::have_pilot_input()
+{
 //Check whether there is pilot input currently.
 }
 
-bool AP_Quicktune::axis_enabled(AP_Quicktune::axis_names axis){
+bool AP_Quicktune::axis_enabled(AP_Quicktune::axis_names axis)
+{
 //Check whether axis has been enabled to be checked.
 }
 
-AP_Quicktune::axis_names AP_Quicktune::get_current_axis(){
+AP_Quicktune::axis_names AP_Quicktune::get_current_axis()
+{
     // get the axis name we are working on, or DONE for all done 
     axis_names axis_name;
     for (int8_t i = 1; i < int8_t(axis_names::DONE); i++){
         int8_t mask = (1 << (i-1));
-        if ((mask & axes) != 0 and axes_done[axis_name] == false){
-            return axis_names[i]
+        if ((mask & axes) != 0 and item_enabled(uint8_t(axis_name), axes_done) == false){
+            return axis_name;
         }
     }
     return axis_names::DONE;
 }
 
-float AP_Quicktune::get_slew_rate(AP_Quicktune::axis_names axis){
+float AP_Quicktune::get_slew_rate(AP_Quicktune::axis_names axis)
+{
 //Get the current slewrate from AC_AttitudeControl:get_rpy_srate()
 }
 
-int8_t AP_Quicktune::advance_stage(AP_Quicktune::axis_names axis){
+int8_t AP_Quicktune::advance_stage(AP_Quicktune::axis_names axis)
+{
 //Move to next stage of tune
 }
 
-void AP_Quicktune::adjust_gain(AP_Quicktune::param_s param, float value, bool limit){
+void AP_Quicktune::adjust_gain(AP_Quicktune::param_s param, float value, bool limit)
+{
 //Change a gain.
 //if limit is true, also do limit_gain() here - don't reduce by more than 100?
 }
 
-float AP_Quicktune::get_gain_mul(){
+float AP_Quicktune::get_gain_mul()
+{
    return exp(log(2.0)/(UPDATE_RATE_HZ*double_time));
 }
 
-void AP_Quicktune::restore_all_params(){
+void AP_Quicktune::restore_all_params()
+{
 
 }
 
-void AP_Quicktune::save_all_params(){
+void AP_Quicktune::save_all_params()
+{
 
 }
 
-bool AP_Quicktune::reached_limit(){
+bool AP_Quicktune::reached_limit()
+{
 
 }
 
-void AP_Quicktune::get_all_params(){
+void AP_Quicktune::get_all_params()
+{
+
+}
+
+bool AP_Quicktune::item_enabled(uint8_t item, uint32_t bitmask)
+{
+
+    // if (!(mask & *_log_bitmask)) {
+    //     return false;
+    // }
+    // return true;
+    if ((1<<item) & bitmask){
+        return true;
+    }
+    return false;
 
 }
 

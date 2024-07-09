@@ -109,6 +109,7 @@ public:
         YAW_FLTT,
         YAW_FLTD,
         YAW_FLTE,
+        END,
     };
 
 
@@ -126,11 +127,11 @@ public:
     float slew_target = 0;
     float slew_delta = 0;
 
-    uint8_t axes_done = 0;
-    uint8_t filters_done = 0;
+    uint32_t axes_done = 0;
+    uint32_t filters_done = 0;
 
-    uint8_t param_saved = 0; //{}
-    uint8_t param_changed = 0; //{}
+    uint32_t param_saved = 0; //{}
+    uint32_t param_changed = 0; //{}
     bool need_restore = false;
 
     uint32_t last_warning = get_time();
@@ -149,6 +150,7 @@ public:
     void save_all_params();
     bool reached_limit();
     void get_all_params();
+    bool item_enabled(uint8_t item, uint32_t bitmask);
 
     AP_Arming *arming = AP::arming().get_singleton();
     AP_Vehicle *vehicle = AP::vehicle();
