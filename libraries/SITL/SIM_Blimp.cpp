@@ -196,7 +196,6 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acc,
       if (input.servos[i] == 0) {
           mot[i].throttle = 0;
       } else {
-        //for servo range of -75 deg to +75 deg
         mot[i].throttle = filtered_servo_angle(input, i);
       }
       mot[i].thrust = mot[i].throttle * k_m;
@@ -237,6 +236,11 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acc,
     Vector3f ang; //x,y,z correspond to roll, pitch, yaw.
     dcm.to_euler(&ang.x, &ang.y, &ang.z); //rpy in radians
     Vector3f ang_ef = dcm * ang;
+
+    AP::logger().WriteStreaming("SDCM", "TimeUS,bx,by,bz,ex,ey,ez",
+                                "Qffffff",
+                                AP_HAL::micros64(),
+                                ang.x,ang.y,ang.z,ang_ef.x,ang_ef.y,ang_ef.z);
 
     rot_T.x -= (mass*GRAVITY_MSS*sinf(ang_ef.x)/cog.z)*0.01;
     rot_T.y -= (mass*GRAVITY_MSS*sinf(ang_ef.y)/cog.z)*0.01;
