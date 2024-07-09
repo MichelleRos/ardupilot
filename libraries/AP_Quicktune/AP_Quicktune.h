@@ -28,7 +28,12 @@
 
 class AP_Quicktune {
 public:
-    AP_Quicktune();
+    // AP_Quicktune();
+    AP_Quicktune(AC_AttitudeControl& _attitude_control) :
+    attitude_control(_attitude_control)
+    {
+        AP_Param::setup_object_defaults(this, var_info);
+    }
 
     /* Do not allow copies */
     CLASS_NO_COPY(AP_Quicktune);
@@ -44,6 +49,8 @@ public:
 // private:
 
     static AP_Quicktune *_singleton;
+
+    AC_AttitudeControl& attitude_control;
 
     // parameters
     AP_Float enable;
@@ -102,6 +109,7 @@ public:
         PIT_FLTD,
         PIT_FLTE,
         YAW_FF,
+
         YAW_P,
         YAW_I,
         YAW_D,

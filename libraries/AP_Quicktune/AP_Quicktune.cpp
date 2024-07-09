@@ -5,6 +5,7 @@
 #include <AP_AHRS/AP_AHRS.h>
 #include <AP_Vehicle/AP_Vehicle_Type.h>
 #include <RC_Channel/RC_Channel.h>
+#include <AC_AttitudeControl/AC_AttitudeControl.h>
 
 
 const AP_Param::GroupInfo AP_Quicktune::var_info[] = {
@@ -109,6 +110,8 @@ AP_Quicktune *AP_Quicktune::_singleton;
 
 //Call at loop rate
 void AP_Quicktune::update(){
+    // attitude_control.get_rate_roll_pid().kD(
+
 
     if (enable < 1){
         return;
