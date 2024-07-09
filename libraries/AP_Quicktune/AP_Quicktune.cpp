@@ -18,7 +18,7 @@ const AP_Param::GroupInfo AP_Quicktune::var_info[] = {
     // @DisplayName:
     // @Description:
     // @User: Standard
-    AP_GROUPINFO("AXES", 1, AP_Quicktune, axes, 7),
+    AP_GROUPINFO("AXES", 1, AP_Quicktune, axes_enabled, 7),
 
     // @Param: QUIK_ENABLE
     // @DisplayName:
@@ -257,18 +257,12 @@ bool AP_Quicktune::have_pilot_input()
 //Check whether there is pilot input currently.
 }
 
-bool AP_Quicktune::axis_enabled(AP_Quicktune::axis_names axis)
-{
-//Check whether axis has been enabled to be checked.
-}
-
 AP_Quicktune::axis_names AP_Quicktune::get_current_axis()
 {
     // get the axis name we are working on, or DONE for all done 
     axis_names axis_name;
     for (int8_t i = 1; i < int8_t(axis_names::DONE); i++){
-        int8_t mask = (1 << (i-1));
-        if ((mask & axes) != 0 and item_enabled(uint8_t(axis_name), axes_done) == false){
+        if (axis_enabled(i) == true && axis_done(axis_name) == false){
             return axis_name;
         }
     }
@@ -316,19 +310,25 @@ void AP_Quicktune::get_all_params()
 
 }
 
-bool AP_Quicktune::item_enabled(uint8_t item, uint32_t bitmask)
+bool AP_Quicktune::item_in_bitmask(uint8_t item, uint32_t bitmask)
 {
-
-    // if (!(mask & *_log_bitmask)) {
-    //     return false;
-    // }
-    // return true;
     if ((1<<item) & bitmask){
         return true;
     }
     return false;
-
 }
+
+bool AP_Quicktune::axis_done(AP_Quicktune::axis_names axis)
+{
+    return item_in_bitmask(uint8_t(axis), axes_done);
+}
+
+bool AP_Quicktune::axis_enabled(uint8_t axis)
+{
+    //Check whether axis has been enabled to be tuned.
+    return item_in_bitmask(uint8_t(axis), axes_enabled);
+}
+
 
 namespace AP {
 

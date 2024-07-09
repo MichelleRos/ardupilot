@@ -47,7 +47,7 @@ public:
 
     // parameters
     AP_Float enable;
-    AP_Int8 axes;
+    AP_Int8 axes_enabled;
     AP_Float double_time;
     AP_Float gain_margin;
     AP_Float osc_smax;
@@ -140,7 +140,6 @@ public:
     void setup_SMAX();
     void setup_filters(axis_names axis);
     bool have_pilot_input();
-    bool axis_enabled(axis_names axis);
     axis_names get_current_axis();
     float get_slew_rate(axis_names axis);
     int8_t advance_stage(axis_names axis);
@@ -150,7 +149,9 @@ public:
     void save_all_params();
     bool reached_limit();
     void get_all_params();
-    bool item_enabled(uint8_t item, uint32_t bitmask);
+    bool item_in_bitmask(uint8_t item, uint32_t bitmask);
+    bool axis_done(axis_names axis);
+    bool axis_enabled(uint8_t axis);
 
     AP_Arming *arming = AP::arming().get_singleton();
     AP_Vehicle *vehicle = AP::vehicle();
