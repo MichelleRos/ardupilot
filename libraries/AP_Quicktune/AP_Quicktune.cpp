@@ -7,9 +7,6 @@
 #include <RC_Channel/RC_Channel.h>
 #include <AC_AttitudeControl/AC_AttitudeControl.h>
 
-// #pragma GCC diagnostic ignored "-Wno-narrowing"
-
-
 const AP_Param::GroupInfo AP_Quicktune::var_info[] = {
     // @Param: QUIK_ENABLE
     // @DisplayName: Enable Quicktune
@@ -219,7 +216,7 @@ void AP_Quicktune::update(){
         if (new_gain < old_gain && (pname == param_s::PIT_D || pname == param_s::RLL_D)){
             //-- we are lowering a D gain from the original gain. Also lower the P gain by the same amount so that we don't trigger P oscillation. We don't drop P by more than a factor of 2
             float ratio = fmaxf(new_gain / old_gain, 0.5);
-            param_s P_name = param_s(uint8_t(pname)+2); //from P to D
+            param_s P_name = param_s(uint8_t(pname)-2); //from D to P
             float old_P = get_param_value(P_name);;
             float new_P = old_P * ratio;
             GCS_SEND_TEXT(MAV_SEVERITY_INFO, "adjusting %s %.3f -> %.3f", P_name, old_P, new_P);
@@ -253,24 +250,52 @@ void AP_Quicktune::update(){
 
 void AP_Quicktune::reset_axes_done()
 {
-//Reset the parameter for which axes have been done.
-
+    //Reset the parameter for which axes have been done.
+    axes_done = 0;
+    filters_done = 0;
+    stage = stages::D;
 }
 
 void AP_Quicktune::setup_SMAX()
 {
-//Check each SMAX param, set to DEFAULT_SMAX if it is zero.
+    //Check each SMAX param, set to DEFAULT_SMAX if it is zero.
+    for (uint8_t i = 3; i < 21; i+7){
+        float smax = get_param_value(param_s(i));
+        if (smax <= 0){
+            adjust_gain(param_s(i), DEFAULT_SMAX); 
+        }
+    }
 }
 
 void AP_Quicktune::setup_filters(AP_Quicktune::axis_names axis)
 {
-//Set filters for FLTD, FLTT to INS_GYRO_FILTER * FLTT_MUL or FLTD_MUL.
-//Set FLTE to YAW_FLTE_MAX if it is 0 or greater than that.
+    if (auto_filter <= 0){
+        set_bitmask(true, filters_done, uint8_t(axis));
+    }
+    float gyro_filter = imu->get_gyro_filter_hz();
+    adjust_gain(get_pname(axis, stages::FLTT), gyro_filter * FLTT_MUL);
+    adjust_gain(get_pname(axis, stages::FLTD), gyro_filter * FLTT_MUL);
+
+    if (axis == axis_names::YAW){
+        float FLTE = get_param_value(param_s::YAW_FLTE);
+        if (FLTE < 0.0 || FLTE > YAW_FLTE_MAX){
+            adjust_gain(param_s::YAW_FLTE, YAW_FLTE_MAX);
+        }
+    }
+    set_bitmask(true, filters_done, uint8_t(axis));
 }
 
+// check for pilot input to pause tune
 bool AP_Quicktune::have_pilot_input()
 {
-//Check whether there is pilot input currently.
+    float roll = rc().rc_channel(rcmap->roll()-1)->norm_input_dz();
+    float pitch = rc().rc_channel(rcmap->pitch()-1)->norm_input_dz();
+    float yaw = rc().rc_channel(rcmap->yaw()-1)->norm_input_dz();
+
+    if (fabsf(roll) > 0 || fabsf(pitch) > 0 || fabsf(yaw) > 0){
+        return true;
+    }
+    return false;
 }
 
 AP_Quicktune::axis_names AP_Quicktune::get_current_axis()
@@ -381,6 +406,11 @@ bool AP_Quicktune::item_in_bitmask(uint8_t item, uint32_t bitmask)
         return true;
     }
     return false;
+}
+
+void AP_Quicktune::set_bitmask(bool value, uint32_t &bitmask, uint8_t position)
+{
+    bitmask = (value<<position) & bitmask;
 }
 
 bool AP_Quicktune::axis_done(AP_Quicktune::axis_names axis)

@@ -74,8 +74,6 @@ public:
         END = 4,
     };
 
-
-    //P-gain must be the first parameter for each axis.
     enum class param_s : uint8_t {
         RLL_P,
         RLL_I,
@@ -101,14 +99,20 @@ public:
         END,
     };
 
-
+    //Also the gains
     enum class stages : uint8_t {
-        D = 0,
-        P = 1,
-        END = 2,
+        D,
+        P,
+        FINISH,
+        I,
+        SMAX,
+        FLTT,
+        FLTD,
+        FLTE,
+        END,
     };
 
-    stages stage = stages::END;
+    stages stage = stages::D;
     float last_stage_change = get_time();
     float last_gain_report = get_time();
     float last_pilot_input = get_time();
@@ -156,10 +160,13 @@ public:
     AP_Quicktune::axis_names get_axis(AP_Quicktune::param_s param);
     float limit_gain(AP_Quicktune::param_s param, float value);
     char* get_param_name(AP_Quicktune::param_s param);
+    void set_bitmask(bool value, uint32_t &bitmask, uint8_t position);
 
     AP_Arming *arming = AP::arming().get_singleton();
     AP_Vehicle *vehicle = AP::vehicle();
     AP_Logger *logger = AP::logger().get_singleton();
+    AP_InertialSensor *imu = AP_InertialSensor::get_singleton();
+    const RCMapper* rcmap = AP::rcmap();
     
 };
 
