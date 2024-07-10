@@ -14,7 +14,11 @@
 #include <AP_Logger/AP_Logger.h>
 #include <AP_Arming/AP_Arming.h>
 #include <AP_Vehicle/AP_Vehicle.h>
-
+#include <AP_Vehicle/AP_Vehicle_Type.h>
+#include <AC_AttitudeControl/AC_AttitudeControl.h>
+#include <AP_AHRS/AP_AHRS.h>
+#include <RC_Channel/RC_Channel.h>
+#include <GCS_MAVLink/GCS.h>
 
 #define UPDATE_RATE_HZ 40
 #define STAGE_DELAY 4.0
@@ -28,12 +32,21 @@
 
 class AP_Quicktune {
 public:
-    // AP_Quicktune();
-    AP_Quicktune(AC_AttitudeControl& _attitude_control) :
-    attitude_control(_attitude_control)
+    AP_Quicktune()
     {
         AP_Param::setup_object_defaults(this, var_info);
+        if (singleton != nullptr) {
+            AP_HAL::panic("Quicktune must be singleton.");
+        }
+        singleton = this;
     }
+
+    static AP_Quicktune *get_singleton(void) {
+        return singleton;
+    }
+
+    // Empty destructor to suppress compiler warning
+    virtual ~AP_Quicktune() {}
 
     /* Do not allow copies */
     CLASS_NO_COPY(AP_Quicktune);
@@ -44,8 +57,6 @@ public:
     void update();
 
 // private:
-
-    AC_AttitudeControl& attitude_control;
 
     // parameters
     AP_Float enable;
@@ -82,6 +93,7 @@ public:
         RLL_FLTT,
         RLL_FLTD,
         RLL_FLTE,
+        RLL_FF,
         PIT_P,
         PIT_I,
         PIT_D,
@@ -89,6 +101,7 @@ public:
         PIT_FLTT,
         PIT_FLTD,
         PIT_FLTE,
+        PIT_FF,
         YAW_P,
         YAW_I,
         YAW_D,
@@ -96,6 +109,7 @@ public:
         YAW_FLTT,
         YAW_FLTD,
         YAW_FLTE,
+        YAW_FF,
         END,
     };
 
@@ -103,8 +117,9 @@ public:
     enum class stages : uint8_t {
         D,
         P,
-        FINISH,
+        DONE,
         I,
+        FF,
         SMAX,
         FLTT,
         FLTD,
@@ -112,7 +127,7 @@ public:
         END,
     };
 
-    stages stage = stages::D;
+    stages current_stage = stages::D;
     float last_stage_change = get_time();
     float last_gain_report = get_time();
     float last_pilot_input = get_time();
@@ -141,7 +156,7 @@ public:
     bool have_pilot_input();
     axis_names get_current_axis();
     float get_slew_rate(axis_names axis);
-    int8_t advance_stage(axis_names axis);
+    void advance_stage(axis_names axis);
     void adjust_gain(param_s param, float value);
     void adjust_gain_limited(param_s param, float value);
     float get_gain_mul();
@@ -150,20 +165,25 @@ public:
     bool reached_limit();
     void get_all_params();
     bool item_in_bitmask(uint8_t item, uint32_t bitmask);
-    param_s get_pname(AP_Quicktune::axis_names axis, AP_Quicktune::stages stage);
-    float get_param_value(AP_Quicktune::param_s param);
-    void set_param_value(AP_Quicktune::param_s param, float value);
-    float gain_limit(AP_Quicktune::param_s param);
-    AP_Quicktune::axis_names get_axis(AP_Quicktune::param_s param);
-    float limit_gain(AP_Quicktune::param_s param, float value);
-    char* get_param_name(AP_Quicktune::param_s param);
+    param_s get_pname(axis_names axis, stages stage);
+    float get_param_value(param_s param);
+    void set_param_value(param_s param, float value);
+    float gain_limit(param_s param);
+    axis_names get_axis(param_s param);
+    float limit_gain(param_s param, float value);
+    const char* get_param_name(param_s param);
     void set_bitmask(bool value, uint32_t &bitmask, uint8_t position);
+    stages get_stage(param_s param);
+    const char* get_axis_name(axis_names axis);
 
     AP_Arming *arming = AP::arming().get_singleton();
     AP_Vehicle *vehicle = AP::vehicle();
     AP_Logger *logger = AP::logger().get_singleton();
     AP_InertialSensor *imu = AP_InertialSensor::get_singleton();
     const RCMapper* rcmap = AP::rcmap();
+    AC_AttitudeControl *attitude_control = AC_AttitudeControl::get_singleton();
+
+    static AP_Quicktune *singleton;
     
 };
 
