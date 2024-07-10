@@ -97,9 +97,9 @@ void AP_Quicktune::update(){
     if (have_pilot_input()){
         last_pilot_input = get_time();
     }
-    uint8_t pos;
-    bool sw_pos = rc().get_aux_cached(RC_Channel::AUX_FUNC::QUICKTUNE, pos);
-    if (!sw_pos){
+    uint8_t sw_pos;
+    bool sw_set = rc().get_aux_cached(RC_Channel::AUX_FUNC::QUICKTUNE, sw_pos);
+    if (!sw_set){
         return;
     }
     int8_t sw_pos_tune = 1;
@@ -466,7 +466,8 @@ AP_Quicktune::param_s AP_Quicktune::get_pname(AP_Quicktune::axis_names axis, AP_
                 return param_s::RLL_P;
             } return param_s::RLL_D;
         default:
-            INTERNAL_ERROR(AP_InternalError::error_t::flow_of_control);
+            GCS_SEND_TEXT(MAV_SEVERITY_EMERGENCY, "INTERNAL ERROR (469)");
+            // INTERNAL_ERROR(AP_InternalError::error_t::flow_of_control);
             return param_s::END;
     }
 }
@@ -507,7 +508,8 @@ float AP_Quicktune::get_param_value(AP_Quicktune::param_s param)
         case param_s::YAW_D:
             return attitude_control->get_rate_yaw_pid().kD();
         default:
-            INTERNAL_ERROR(AP_InternalError::error_t::flow_of_control);
+            GCS_SEND_TEXT(MAV_SEVERITY_EMERGENCY, "INTERNAL ERROR (511)");
+            // INTERNAL_ERROR(AP_InternalError::error_t::flow_of_control);
             return 0.0;
             break;
     }
@@ -545,7 +547,8 @@ void AP_Quicktune::set_param_value(AP_Quicktune::param_s param, float value)
             attitude_control->get_rate_yaw_pid().kD(value);
             return;
         default:
-            INTERNAL_ERROR(AP_InternalError::error_t::flow_of_control);
+            GCS_SEND_TEXT(MAV_SEVERITY_EMERGENCY, "INTERNAL ERROR (550)");
+            // INTERNAL_ERROR(AP_InternalError::error_t::flow_of_control);
             return;
     }
 }
@@ -582,7 +585,8 @@ void AP_Quicktune::set_and_save_param_value(AP_Quicktune::param_s param, float v
             attitude_control->get_rate_yaw_pid().kD_s(value);
             return;
         default:
-            INTERNAL_ERROR(AP_InternalError::error_t::flow_of_control);
+            GCS_SEND_TEXT(MAV_SEVERITY_EMERGENCY, "INTERNAL ERROR (588)");
+            // INTERNAL_ERROR(AP_InternalError::error_t::flow_of_control);
             return;
     }
 }

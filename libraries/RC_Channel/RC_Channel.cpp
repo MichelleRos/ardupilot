@@ -693,6 +693,7 @@ void RC_Channel::init_aux_function(const AUX_FUNC ch_option, const AuxSwitchPos 
 #if HAL_MOUNT_ENABLED
     case AUX_FUNC::MOUNT_LRF_ENABLE:
 #endif
+    case AUX_FUNC::QUICKTUNE:
         break;
 
     // not really aux functions:
