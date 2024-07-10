@@ -162,12 +162,11 @@ public:
     float get_gain_mul();
     void restore_all_params();
     void save_all_params();
-    bool reached_limit();
-    void get_all_params();
     bool item_in_bitmask(uint8_t item, uint32_t bitmask);
     param_s get_pname(axis_names axis, stages stage);
     float get_param_value(param_s param);
     void set_param_value(param_s param, float value);
+    void set_and_save_param_value(param_s param, float value);
     float gain_limit(param_s param);
     axis_names get_axis(param_s param);
     float limit_gain(param_s param, float value);

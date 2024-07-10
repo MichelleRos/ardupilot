@@ -175,7 +175,10 @@ void AP_Quicktune::update(){
     if (!need_restore){
         // -- we are just starting tuning, get current values
         GCS_SEND_TEXT(MAV_SEVERITY_NOTICE, "Tuning: starting tune");
-        get_all_params();
+        // get_all_params(); - inlined
+        for (int8_t pname = 0; pname < uint8_t(param_s::END); pname++){
+            param_saved[pname] = get_param_value(param_s(pname));
+        }
         setup_SMAX();
     }
 
@@ -300,10 +303,9 @@ bool AP_Quicktune::have_pilot_input()
 AP_Quicktune::axis_names AP_Quicktune::get_current_axis()
 {
     // get the axis name we are working on, or DONE for all done 
-    axis_names axis_name;
     for (int8_t i = 1; i < int8_t(axis_names::DONE); i++){
-        if (item_in_bitmask(i, axes_enabled) == true && item_in_bitmask(uint8_t(axis_name), axes_done) == false){
-            return axis_name;
+        if (item_in_bitmask(i, axes_enabled) == true && item_in_bitmask(i, axes_done) == false){
+            return axis_names(i);
         }
     }
     return axis_names::DONE;
@@ -425,26 +427,13 @@ void AP_Quicktune::restore_all_params()
 void AP_Quicktune::save_all_params()
 {
     // for pname in pairs(params) do
-    // for (int8_t pname = 0; pname < uint8_t(param_s::END); pname++){
-    //     if (item_in_bitmask(pname, param_changed)){
-    //         params[pname]:set_and_save(params[pname]:get())
-    //         param_saved[pname] = params[pname]:get()
-    //         param_changed[pname] = false
-    //     end
-    // end
-}
-
-bool AP_Quicktune::reached_limit()
-{
-
-
-    return true;
-
-}
-
-void AP_Quicktune::get_all_params()
-{
-
+    for (int8_t pname = 0; pname < uint8_t(param_s::END); pname++){
+        if (item_in_bitmask(pname, param_changed)){
+            set_and_save_param_value(param_s(pname), get_param_value(param_s(pname)));
+            param_saved[pname] = get_param_value(param_s(pname));
+            set_bitmask(false, param_changed, pname);
+        }
+    }
 }
 
 bool AP_Quicktune::item_in_bitmask(uint8_t item, uint32_t bitmask)
@@ -555,6 +544,43 @@ void AP_Quicktune::set_param_value(AP_Quicktune::param_s param, float value)
             return;
         case param_s::YAW_D:
             attitude_control->get_rate_yaw_pid().kD(value);
+            return;
+        default:
+            INTERNAL_ERROR(AP_InternalError::error_t::flow_of_control);
+            return;
+    }
+}
+
+void AP_Quicktune::set_and_save_param_value(AP_Quicktune::param_s param, float value)
+{
+    switch (param)
+    {
+        case param_s::RLL_P:
+            attitude_control->get_rate_roll_pid().kP_s(value);
+            return;
+        case param_s::RLL_I:
+            attitude_control->get_rate_roll_pid().kI_s(value);
+            return;
+        case param_s::RLL_D:
+            attitude_control->get_rate_roll_pid().kD_s(value);
+            return;
+        case param_s::PIT_P:
+            attitude_control->get_rate_pitch_pid().kP_s(value);
+            return;
+        case param_s::PIT_I:
+            attitude_control->get_rate_pitch_pid().kI_s(value);
+            return;
+        case param_s::PIT_D:
+            attitude_control->get_rate_pitch_pid().kD_s(value);
+            return;
+        case param_s::YAW_P:
+            attitude_control->get_rate_yaw_pid().kP_s(value);
+            return;
+        case param_s::YAW_I:
+            attitude_control->get_rate_yaw_pid().kI_s(value);
+            return;
+        case param_s::YAW_D:
+            attitude_control->get_rate_yaw_pid().kD_s(value);
             return;
         default:
             INTERNAL_ERROR(AP_InternalError::error_t::flow_of_control);
