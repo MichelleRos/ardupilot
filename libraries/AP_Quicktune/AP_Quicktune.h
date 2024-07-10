@@ -150,8 +150,8 @@ public:
     bool axis_enabled(uint8_t axis);
     bool filter_done(AP_Quicktune::axis_names axis);
     param_s get_pname(AP_Quicktune::axis_names axis, AP_Quicktune::stages stage);
-    float get_param(AP_Quicktune::param_s param);
-    void set_param(AP_Quicktune::param_s param, float value);
+    float get_param_value(AP_Quicktune::param_s param);
+    void set_param_value(AP_Quicktune::param_s param, float value);
     float gain_limit(AP_Quicktune::param_s param);
     AP_Quicktune::axis_names get_axis(AP_Quicktune::param_s param);
     float limit_gain(AP_Quicktune::param_s param, float value);

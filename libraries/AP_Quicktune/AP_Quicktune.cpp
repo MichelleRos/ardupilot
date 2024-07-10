@@ -148,7 +148,7 @@ void AP_Quicktune::update(){
     if (get_time() - last_stage_change < STAGE_DELAY){
         //update_slew_gain(); (was a function, but only called once)
         if (slew_parm != param_s::END){
-            float P = get_param(slew_parm);
+            float P = get_param_value(slew_parm);
             // local axis = param_axis(slew_parm)
             // local ax_stage = string.sub(slew_parm, -1)
             adjust_gain(slew_parm, P+slew_delta);
@@ -198,9 +198,13 @@ void AP_Quicktune::update(){
 
     float srate = get_slew_rate(axis);
     param_s pname = get_pname(axis, stage);
-    float P = get_param(pname);
+    float P = get_param_value(pname);
     float oscillating = srate > osc_smax;
-    float limited = reached_limit(pname, P);
+
+    // float limited = reached_limit(pname, P);
+    float limit = gain_limit(pname);
+    bool limited = (limit > 0.0 && P >= limit);
+       
     if (limited || oscillating){
         float reduction = (100.0-gain_margin)*0.01;
         if (!oscillating){
@@ -216,7 +220,7 @@ void AP_Quicktune::update(){
             //-- we are lowering a D gain from the original gain. Also lower the P gain by the same amount so that we don't trigger P oscillation. We don't drop P by more than a factor of 2
             float ratio = fmaxf(new_gain / old_gain, 0.5);
             param_s P_name = param_s(uint8_t(pname)+2); //from P to D
-            float old_P = get_param(P_name);;
+            float old_P = get_param_value(P_name);;
             float new_P = old_P * ratio;
             GCS_SEND_TEXT(MAV_SEVERITY_INFO, "adjusting %s %.3f -> %.3f", P_name, old_P, new_P);
             adjust_gain_limited(P_name, new_P);
@@ -225,7 +229,7 @@ void AP_Quicktune::update(){
         slew_parm = pname;
         slew_target = limit_gain(pname, new_gain);
         slew_steps = UPDATE_RATE_HZ/2;
-        slew_delta = (slew_target - get_param(pname)) / slew_steps;
+        slew_delta = (slew_target - get_param_value(pname)) / slew_steps;
 
         logger->WriteStreaming("QUIK","TimeUS,SRate,Gain,Param", "QffI", AP_HAL::micros64(), srate, P, int(pname));
         GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Tuning: %s done", pname);
@@ -250,6 +254,7 @@ void AP_Quicktune::update(){
 void AP_Quicktune::reset_axes_done()
 {
 //Reset the parameter for which axes have been done.
+
 }
 
 void AP_Quicktune::setup_SMAX()
@@ -417,7 +422,7 @@ AP_Quicktune::param_s AP_Quicktune::get_pname(AP_Quicktune::axis_names axis, AP_
     }
 }
 
-float AP_Quicktune::get_param(AP_Quicktune::param_s param)
+float AP_Quicktune::get_param_value(AP_Quicktune::param_s param)
 {
     switch (param)
     {
@@ -441,11 +446,12 @@ float AP_Quicktune::get_param(AP_Quicktune::param_s param)
             return attitude_control.get_rate_yaw_pid().kD();
         default:
             INTERNAL_ERROR(AP_InternalError::error_t::flow_of_control);
+            return 0.0;
             break;
     }
 }
 
-void AP_Quicktune::set_param(AP_Quicktune::param_s param, float value)
+void AP_Quicktune::set_param_value(AP_Quicktune::param_s param, float value)
 {
     switch (param)
     {
