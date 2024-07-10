@@ -54,6 +54,7 @@ public:
     // parameter block
     static const struct AP_Param::GroupInfo var_info[];
 
+    void init();
     void update();
 
 // private:
@@ -148,7 +149,7 @@ public:
 
     bool need_restore = false;
 
-    uint32_t last_warning = get_time();
+    uint32_t last_warning;
 
     void reset_axes_done();
     void setup_SMAX();

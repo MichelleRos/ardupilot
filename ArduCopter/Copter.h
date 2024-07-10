@@ -224,6 +224,7 @@ public:
     friend class ModeZigZag;
     friend class ModeAutorotate;
     friend class ModeTurtle;
+    friend class ModeQuicktune;
 
     friend class _AutoTakeoff;
 
@@ -479,7 +480,6 @@ private:
     AC_PosControl *pos_control;
     AC_WPNav *wp_nav;
     AC_Loiter *loiter_nav;
-    AP_Quicktune *quicktune;
 
 #if AC_CUSTOMCONTROL_MULTI_ENABLED == ENABLED
     AC_CustomControl custom_control{ahrs_view, attitude_control, motors, scheduler.get_loop_period_s()};
@@ -487,6 +487,10 @@ private:
 
 #if MODE_CIRCLE_ENABLED == ENABLED
     AC_Circle *circle_nav;
+#endif
+
+#if QUICKTUNE_ENABLED
+    AP_Quicktune *quicktune;
 #endif
 
     // System Timers

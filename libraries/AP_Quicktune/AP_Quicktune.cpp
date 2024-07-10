@@ -86,8 +86,12 @@ const AP_Param::GroupInfo AP_Quicktune::var_info[] = {
     AP_GROUPEND
 };
 
-//Need access to roll, pitch yaw rc channels, and gyro filter param
 //Currently .just. doing this for multicopter (since they are the most likely to be running eg 1MB boards that can't do scripting)
+
+void AP_Quicktune::init()
+{
+    last_warning = get_time();
+}
 
 //Call at loop rate
 void AP_Quicktune::update(){

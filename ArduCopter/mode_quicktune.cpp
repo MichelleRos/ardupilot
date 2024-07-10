@@ -3,8 +3,7 @@
 // land_init - initialise land controller
 bool ModeQuicktune::init(bool ignore_checks)
 {
-
-
+    copter.quicktune->init();
     return true;
 }
 
@@ -12,5 +11,5 @@ bool ModeQuicktune::init(bool ignore_checks)
 // should be called at looprate
 void ModeQuicktune::run()
 {
-
+    copter.quicktune->update();
 }
