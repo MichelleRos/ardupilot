@@ -221,7 +221,12 @@ void AP_Quicktune::update(){
             GCS_SEND_TEXT(MAV_SEVERITY_INFO, "adjusting %s %.3f -> %.3f", P_name, old_P, new_P);
             adjust_gain_limited(P_name, new_P);
         }
-        setup_slew_gain(pname, new_gain);
+        // setup_slew_gain(pname, new_gain); //was a function but only callsed once
+        slew_parm = pname;
+        slew_target = limit_gain(pname, new_gain);
+        slew_steps = UPDATE_RATE_HZ/2;
+        slew_delta = (slew_target - get_param(pname)) / slew_steps;
+
         logger->WriteStreaming("QUIK","TimeUS,SRate,Gain,Param", "QffI", AP_HAL::micros64(), srate, P, int(pname));
         GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Tuning: %s done", pname);
         advance_stage(axis);
@@ -301,6 +306,38 @@ void AP_Quicktune::adjust_gain(AP_Quicktune::param_s param, float value)
 {
 //Change a gain.
 //if limit is true, also do limit_gain() here - don't reduce by more than 100?
+}
+
+float AP_Quicktune::limit_gain(AP_Quicktune::param_s param, float value)
+{
+    float saved_value = param_saved[uint8_t(param)];
+    // float max_reduction = QUIK_MAX_REDUCE:get()
+    if (max_reduce >= 0 && max_reduce < 100 && saved_value > 0){
+        // check if we exceeded gain reduction
+        float reduction_pct = 100.0 * (saved_value - value) / saved_value;
+        if (reduction_pct > max_reduce){
+            float new_value = saved_value * (100 - max_reduce) * 0.01;
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "limiting %s %.3f -> %.3f", get_param_name(param), value, new_value);
+            value = new_value;
+        }
+    }
+   return value;
+}
+
+char* AP_Quicktune::get_param_name(AP_Quicktune::param_s param)
+{
+    //Currently just outputting the axis...
+    switch (get_axis(param))
+    {
+    case axis_names::RLL:
+        return "Roll";
+    case axis_names::PIT:
+        return "Pitch";
+    case axis_names::YAW:
+        return "Yaw";
+    default:
+        return "UNK";
+    }
 }
 
 void AP_Quicktune::adjust_gain_limited(AP_Quicktune::param_s param, float value)

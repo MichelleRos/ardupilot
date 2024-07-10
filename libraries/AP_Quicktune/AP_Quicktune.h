@@ -154,10 +154,13 @@ public:
     void set_param(AP_Quicktune::param_s param, float value);
     float gain_limit(AP_Quicktune::param_s param);
     AP_Quicktune::axis_names get_axis(AP_Quicktune::param_s param);
+    float limit_gain(AP_Quicktune::param_s param, float value);
+    char* get_param_name(AP_Quicktune::param_s param);
 
     AP_Arming *arming = AP::arming().get_singleton();
     AP_Vehicle *vehicle = AP::vehicle();
     AP_Logger *logger = AP::logger().get_singleton();
+    
 };
 
 #endif  // QUICKTUNE_ENABLED
