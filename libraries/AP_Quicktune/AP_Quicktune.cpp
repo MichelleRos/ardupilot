@@ -188,7 +188,7 @@ void AP_Quicktune::update(){
         return;
     }
 
-    if (!filter_done(axis)){
+    if (!item_in_bitmask(uint8_t(axis), filters_done)){
         GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Starting %s tune", axis);
         setup_filters(axis);
     }
@@ -303,7 +303,7 @@ AP_Quicktune::axis_names AP_Quicktune::get_current_axis()
     // get the axis name we are working on, or DONE for all done 
     axis_names axis_name;
     for (int8_t i = 1; i < int8_t(axis_names::DONE); i++){
-        if (axis_enabled(i) == true && axis_done(axis_name) == false){
+        if (item_in_bitmask(i, axes_enabled) == true && item_in_bitmask(uint8_t(axis_name), axes_done) == false){
             return axis_name;
         }
     }
@@ -413,23 +413,6 @@ void AP_Quicktune::set_bitmask(bool value, uint32_t &bitmask, uint8_t position)
     bitmask = (value<<position) & bitmask;
 }
 
-bool AP_Quicktune::axis_done(AP_Quicktune::axis_names axis)
-{
-    return item_in_bitmask(uint8_t(axis), axes_done);
-}
-
-bool AP_Quicktune::axis_enabled(uint8_t axis)
-{
-    //Check whether axis has been enabled to be tuned.
-    return item_in_bitmask(uint8_t(axis), axes_enabled);
-}
-
-bool AP_Quicktune::filter_done(AP_Quicktune::axis_names axis)
-{
-    //Check whether axis has been enabled to be tuned.
-    return item_in_bitmask(uint8_t(axis), filters_done);
-}
-
 AP_Quicktune::param_s AP_Quicktune::get_pname(AP_Quicktune::axis_names axis, AP_Quicktune::stages stage)
 {
     switch (axis)
@@ -534,9 +517,5 @@ float AP_Quicktune::gain_limit(AP_Quicktune::param_s param)
     }
    return 0.0;
 }
-
-
-
-
 
 #endif //QUICKTUNE_ENABLED

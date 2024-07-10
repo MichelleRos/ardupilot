@@ -150,9 +150,6 @@ public:
     bool reached_limit();
     void get_all_params();
     bool item_in_bitmask(uint8_t item, uint32_t bitmask);
-    bool axis_done(axis_names axis);
-    bool axis_enabled(uint8_t axis);
-    bool filter_done(AP_Quicktune::axis_names axis);
     param_s get_pname(AP_Quicktune::axis_names axis, AP_Quicktune::stages stage);
     float get_param_value(AP_Quicktune::param_s param);
     void set_param_value(AP_Quicktune::param_s param, float value);
