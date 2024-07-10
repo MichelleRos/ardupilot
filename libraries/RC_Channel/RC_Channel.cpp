@@ -1755,6 +1755,7 @@ bool RC_Channel::do_aux_function(const AUX_FUNC ch_option, const AuxSwitchPos ch
     case AUX_FUNC::SCRIPTING_6:
     case AUX_FUNC::SCRIPTING_7:
     case AUX_FUNC::SCRIPTING_8:
+    case AUX_FUNC::QUICKTUNE:
         break;
 
     case AUX_FUNC::LOWEHEISER_THROTTLE:

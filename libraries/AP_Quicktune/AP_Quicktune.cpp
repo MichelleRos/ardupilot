@@ -88,11 +88,6 @@ const AP_Param::GroupInfo AP_Quicktune::var_info[] = {
 
 //Currently .just. doing this for multicopter (since they are the most likely to be running eg 1MB boards that can't do scripting)
 
-void AP_Quicktune::init()
-{
-    last_warning = get_time();
-}
-
 //Call at loop rate
 void AP_Quicktune::update(){
 
@@ -103,7 +98,7 @@ void AP_Quicktune::update(){
         last_pilot_input = get_time();
     }
     uint8_t pos;
-    bool sw_pos = rc().get_aux_cached(RC_Channel::AUX_FUNC::SCRIPTING_1, pos);
+    bool sw_pos = rc().get_aux_cached(RC_Channel::AUX_FUNC::QUICKTUNE, pos);
     if (!sw_pos){
         return;
     }
