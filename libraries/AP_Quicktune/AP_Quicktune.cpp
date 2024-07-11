@@ -6,55 +6,55 @@ AP_Quicktune *AP_Quicktune::singleton;
 
 const AP_Param::GroupInfo AP_Quicktune::var_info[] = {
     // @Param: QUIK_ENABLE
-    // @DisplayName: Enable Quicktune
+    // @DisplayName: Enable Quicktune.
     // @Description:
     // @User: Standard
     AP_GROUPINFO("ENABLE", 0, AP_Quicktune, enable, 0),
 
     // @Param: QUIK_AXES
-    // @DisplayName:
+    // @DisplayName: Bitmask of axes to tune.
     // @Description:
     // @User: Standard
     AP_GROUPINFO("AXES", 1, AP_Quicktune, axes_enabled, 7),
 
-    // @Param: QUIK_ENABLE
-    // @DisplayName:
-    // @Description:
+    // @Param: QUIK_DOUBLE_TIME
+    // @DisplayName: Double time.
+    // @Description: Time taken to double the gain.
     // @User: Standard
     AP_GROUPINFO("DOUBLE_TIME", 2, AP_Quicktune, double_time, 10),
 
     // @Param: QUIK_GAIN_MARGIN
-    // @DisplayName:
+    // @DisplayName: Gain margin.
     // @Description:
     // @User: Standard
     AP_GROUPINFO("GAIN_MARGIN", 3, AP_Quicktune, gain_margin, 60),
 
     // @Param: QUIK_OSC_SMAX
-    // @DisplayName:
+    // @DisplayName: Slewrate for oscillation detection.
     // @Description:
     // @User: Standard
     AP_GROUPINFO("OSC_SMAX", 4, AP_Quicktune, osc_smax, 5),
 
     // @Param: QUIK_YAW_P_MAX
-    // @DisplayName:
-    // @Description:
+    // @DisplayName: Yaw P max.
+    // @Description: Maximum Yaw P gain to tune to.
     // @User: Standard
     AP_GROUPINFO("YAW_P_MAX", 5, AP_Quicktune, yaw_p_max, 0.5),
 
     // @Param: QUIK_YAW_D_MAX
-    // @DisplayName:
-    // @Description:
+    // @DisplayName: Yaw D max.
+    // @Description: Maximum Yaw D gain to tune to.
     // @User: Standard
     AP_GROUPINFO("YAW_D_MAX", 6, AP_Quicktune, yaw_d_max, 0.01),
 
     // @Param: QUIK_RP_PI_RATIO
-    // @DisplayName:
+    // @DisplayName: Ratio between P and I gains for roll and pitch axes.
     // @Description:
     // @User: Standard
     AP_GROUPINFO("RP_PI_RATIO", 7, AP_Quicktune, rp_pi_ratio, 1.0),
 
     // @Param: QUIK_Y_PI_RATIO
-    // @DisplayName:
+    // @DisplayName: Ratio between P and I gains for yaw axis.
     // @Description:
     // @User: Standard
     AP_GROUPINFO("Y_PI_RATIO", 8, AP_Quicktune, y_pi_ratio, 10),
@@ -72,23 +72,21 @@ const AP_Param::GroupInfo AP_Quicktune::var_info[] = {
     AP_GROUPINFO("AUTO_SAVE", 10, AP_Quicktune, auto_save, 0),
 
     // @Param: QUIK_MAX_REDUCE
-    // @DisplayName:
+    // @DisplayName: Maximum reduction in percent.
     // @Description:
     // @User: Standard
     AP_GROUPINFO("MAX_REDUCE", 12, AP_Quicktune, max_reduce, 20),
 
     // @Param: QUIK_OPTIONS
-    // @DisplayName:
-    // @Description:
+    // @DisplayName: Options bitmask.
+    // @Description: Bit 1 uses 2 position switch.
     // @User: Standard
     AP_GROUPINFO("OPTIONS", 13, AP_Quicktune, options, 0),
 
     AP_GROUPEND
 };
 
-//Currently .just. doing this for multicopter (since they are the most likely to be running eg 1MB boards that can't do scripting)
-
-//Call at loop rate
+// Call at loop rate
 void AP_Quicktune::update(){
 
     if (enable < 1){
@@ -114,12 +112,12 @@ void AP_Quicktune::update(){
         return;
     }
     if (sw_pos == 0 || !AP::arming().is_armed() || !vehicle->get_likely_flying()){
-        //-- abort, revert parameters
+        // abort, revert parameters
         if (need_restore){
             need_restore = false;
             restore_all_params();
             GCS_SEND_TEXT(MAV_SEVERITY_EMERGENCY, "Tuning: reverted");
-            tune_done_time = 0;//nil
+            tune_done_time = 0;
         }
         reset_axes_done();
         return;
@@ -137,7 +135,7 @@ void AP_Quicktune::update(){
     }
 
     if (get_time() - last_stage_change < STAGE_DELAY){
-        //update_slew_gain(); (was a function, but only called once)
+        //update_slew_gain(); ->inlined
         if (slew_parm != param_s::END){
             float P = get_param_value(slew_parm);
             // local axis = param_axis(slew_parm)
@@ -173,9 +171,9 @@ void AP_Quicktune::update(){
     }
 
     if (!need_restore){
-        // -- we are just starting tuning, get current values
+        // we are just starting tuning, get current values
         GCS_SEND_TEXT(MAV_SEVERITY_NOTICE, "Tuning: starting tune");
-        // get_all_params(); - inlined
+        // get_all_params(); ->inlined
         for (int8_t pname = 0; pname < uint8_t(param_s::END); pname++){
             param_saved[pname] = get_param_value(param_s(pname));
         }
@@ -196,7 +194,7 @@ void AP_Quicktune::update(){
     float P = get_param_value(pname);
     bool oscillating = srate > osc_smax;
 
-    // float limited = reached_limit(pname, P);
+    // float limited = reached_limit(pname, P); -> inlined
     float limit = gain_limit(pname);
     bool limited = (limit > 0.0 && P >= limit);
        
@@ -219,7 +217,7 @@ void AP_Quicktune::update(){
             GCS_SEND_TEXT(MAV_SEVERITY_INFO, "adjusting %s %.3f -> %.3f", get_param_name(P_name), old_P, new_P);
             adjust_gain_limited(P_name, new_P);
         }
-        // setup_slew_gain(pname, new_gain); //was a function but only callsed once
+        // setup_slew_gain(pname, new_gain); -> inlined
         slew_parm = pname;
         slew_target = limit_gain(pname, new_gain);
         slew_steps = UPDATE_RATE_HZ/2;
@@ -243,19 +241,17 @@ void AP_Quicktune::update(){
     }
 }
 
-//Need to remeber starting params & be able to reset them
-
+// Reset the parameter for which axes have been done.
 void AP_Quicktune::reset_axes_done()
 {
-    //Reset the parameter for which axes have been done.
     axes_done = 0;
     filters_done = 0;
     current_stage = stages::D;
 }
 
+// Check each SMAX param, set to DEFAULT_SMAX if it is zero.
 void AP_Quicktune::setup_SMAX()
 {
-    //Check each SMAX param, set to DEFAULT_SMAX if it is zero.
     param_s is[3];
     is[0] = param_s::RLL_SMAX;
     is[1] = param_s::PIT_SMAX;
@@ -287,7 +283,7 @@ void AP_Quicktune::setup_filters(AP_Quicktune::axis_names axis)
     set_bitmask(true, filters_done, uint8_t(axis));
 }
 
-// check for pilot input to pause tune
+// Check for pilot input to pause tune
 bool AP_Quicktune::have_pilot_input()
 {
     float roll = rc().rc_channel(rcmap->roll()-1)->norm_input_dz();
@@ -300,10 +296,10 @@ bool AP_Quicktune::have_pilot_input()
     return false;
 }
 
+// Get the axis name we are working on, or DONE for all done 
 AP_Quicktune::axis_names AP_Quicktune::get_current_axis()
 {
-    // get the axis name we are working on, or DONE for all done 
-    for (int8_t i = 1; i < int8_t(axis_names::DONE); i++){
+    for (int8_t i = 0; i < int8_t(axis_names::DONE); i++){
         if (item_in_bitmask(i, axes_enabled) == true && item_in_bitmask(i, axes_done) == false){
             return axis_names(i);
         }
@@ -340,7 +336,6 @@ void AP_Quicktune::advance_stage(AP_Quicktune::axis_names axis)
 
 void AP_Quicktune::adjust_gain(AP_Quicktune::param_s param, float value)
 {
-    // float P = get_param_value(param);
     need_restore = true;
     set_bitmask(true, param_changed, uint8_t(param));
     set_param_value(param, value);
@@ -349,7 +344,6 @@ void AP_Quicktune::adjust_gain(AP_Quicktune::param_s param, float value)
         // also change I gain
         param_s iname = param_s(uint8_t(param)+1);
         param_s ffname = param_s(uint8_t(param)+7);
-        // float I = get_param_value(iname);
         float FF = get_param_value(ffname);
         if (FF > 0){
             // if we have any FF on an axis then we don't couple I to P,
@@ -378,7 +372,6 @@ void AP_Quicktune::adjust_gain_limited(AP_Quicktune::param_s param, float value)
 float AP_Quicktune::limit_gain(AP_Quicktune::param_s param, float value)
 {
     float saved_value = param_saved[uint8_t(param)];
-    // float max_reduction = QUIK_MAX_REDUCE:get()
     if (max_reduce >= 0 && max_reduce < 100 && saved_value > 0){
         // check if we exceeded gain reduction
         float reduction_pct = 100.0 * (saved_value - value) / saved_value;
@@ -467,7 +460,6 @@ void AP_Quicktune::set_bitmask(bool value, uint32_t &bitmask, uint8_t position)
 
 AP_Quicktune::param_s AP_Quicktune::get_pname(AP_Quicktune::axis_names axis, AP_Quicktune::stages stage)
 {
-    // TODO Expand to be able to do all the gains.
     switch (axis)
     {
         case axis_names::RLL:
