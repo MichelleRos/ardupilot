@@ -158,6 +158,7 @@ void AP_Quicktune::update(){
     }
 
     axis_names axis = get_current_axis();
+
     if (axis == axis_names::DONE){
         // -- nothing left to do, check autosave time
         if (!is_zero(tune_done_time) && auto_save > 0){
@@ -315,14 +316,12 @@ float AP_Quicktune::get_slew_rate(AP_Quicktune::axis_names axis)
     switch(axis) {
     case axis_names::RLL:
         return attitude_control->get_rate_roll_pid().get_pid_info().slew_rate;
-        break;
     case axis_names::PIT:
         return attitude_control->get_rate_pitch_pid().get_pid_info().slew_rate;
-        break;
     case axis_names::YAW:
         return attitude_control->get_rate_yaw_pid().get_pid_info().slew_rate;
-        break;
     default:
+        GCS_SEND_TEXT(MAV_SEVERITY_EMERGENCY, "INTERNAL ERROR - get_slew_rate - axis was %d", uint8_t(axis));
         return 0.0;
     }
 }
@@ -394,17 +393,29 @@ float AP_Quicktune::limit_gain(AP_Quicktune::param_s param, float value)
 
 const char* AP_Quicktune::get_param_name(AP_Quicktune::param_s param)
 {
-    //Currently just outputting the axis...
-    switch (get_axis(param))
+    switch (param)
     {
-    case axis_names::RLL:
-        return "Roll";
-    case axis_names::PIT:
-        return "Pitch";
-    case axis_names::YAW:
-        return "Yaw";
-    default:
-        return "UNK";
+        case param_s::RLL_P:
+            return "Roll P";
+        case param_s::RLL_I:
+            return "Roll I";
+        case param_s::RLL_D:
+            return "Roll D";
+        case param_s::PIT_P:
+            return "Pitch P";
+        case param_s::PIT_I:
+            return "Pitch I";
+        case param_s::PIT_D:
+            return "Pitch D";
+        case param_s::YAW_P:
+            return "Yaw P";
+        case param_s::YAW_I:
+            return "Yaw I";
+        case param_s::YAW_D:
+            return "Yaw D";
+        default:
+            GCS_SEND_TEXT(MAV_SEVERITY_EMERGENCY, "INTERNAL ERROR - get_param_name - param was %d", uint8_t(param));
+            return "UNK";
     }
 }
 
@@ -443,9 +454,15 @@ bool AP_Quicktune::item_in_bitmask(uint8_t item, uint32_t bitmask)
     return false;
 }
 
+#define bitset(byte,nbit)   ((byte) |=  (1<<(nbit)))
+#define bitclear(byte,nbit) ((byte) &= ~(1<<(nbit)))
 void AP_Quicktune::set_bitmask(bool value, uint32_t &bitmask, uint8_t position)
 {
-    bitmask = (value<<position) & bitmask;
+    if(value){
+        bitset(bitmask, position);
+    } else {
+        bitclear(bitmask, position);
+    }
 }
 
 AP_Quicktune::param_s AP_Quicktune::get_pname(AP_Quicktune::axis_names axis, AP_Quicktune::stages stage)
@@ -454,19 +471,52 @@ AP_Quicktune::param_s AP_Quicktune::get_pname(AP_Quicktune::axis_names axis, AP_
     switch (axis)
     {
         case axis_names::RLL:
-            if (stage == stages::P){
-                return param_s::RLL_P;
-            } return param_s::RLL_D;
+            switch (stage)
+            {
+                case stages::P:
+                    return param_s::RLL_P;
+                case stages::D:
+                    return param_s::RLL_D;
+                case stages::FLTT:
+                    return param_s::RLL_FLTT;
+                case stages::FLTD:
+                    return param_s::RLL_FLTD;
+                default:
+                    GCS_SEND_TEXT(MAV_SEVERITY_EMERGENCY, "INTERNAL ERROR - get_pname - axis was %d, stage was %d", uint8_t(axis), uint8_t(stage));
+                    return param_s::END;
+            }
         case axis_names::PIT:
-            if (stage == stages::P){
-                return param_s::RLL_P;
-            } return param_s::RLL_D;
+            switch (stage)
+            {
+                case stages::P:
+                    return param_s::PIT_P;
+                case stages::D:
+                    return param_s::PIT_D;
+                case stages::FLTT:
+                    return param_s::PIT_FLTT;
+                case stages::FLTD:
+                    return param_s::PIT_FLTD;
+                default:
+                    GCS_SEND_TEXT(MAV_SEVERITY_EMERGENCY, "INTERNAL ERROR - get_pname - axis was %d, stage was %d", uint8_t(axis), uint8_t(stage));
+                    return param_s::END;
+            }
         case axis_names::YAW:
-            if (stage == stages::P){
-                return param_s::RLL_P;
-            } return param_s::RLL_D;
+            switch (stage)
+            {
+                case stages::P:
+                    return param_s::YAW_P;
+                case stages::D:
+                    return param_s::YAW_D;
+                case stages::FLTT:
+                    return param_s::YAW_FLTT;
+                case stages::FLTD:
+                    return param_s::YAW_FLTD;
+                default:
+                    GCS_SEND_TEXT(MAV_SEVERITY_EMERGENCY, "INTERNAL ERROR - get_pname - axis was %d, stage was %d", uint8_t(axis), uint8_t(stage));
+                    return param_s::END;
+            }
         default:
-            GCS_SEND_TEXT(MAV_SEVERITY_EMERGENCY, "INTERNAL ERROR (469)");
+            GCS_SEND_TEXT(MAV_SEVERITY_EMERGENCY, "INTERNAL ERROR - get_pname - axis was %d", uint8_t(axis));
             // INTERNAL_ERROR(AP_InternalError::error_t::flow_of_control);
             return param_s::END;
     }
@@ -508,7 +558,7 @@ float AP_Quicktune::get_param_value(AP_Quicktune::param_s param)
         case param_s::YAW_D:
             return attitude_control->get_rate_yaw_pid().kD();
         default:
-            GCS_SEND_TEXT(MAV_SEVERITY_EMERGENCY, "INTERNAL ERROR (511)");
+            GCS_SEND_TEXT(MAV_SEVERITY_EMERGENCY, "INTERNAL ERROR - get_param_value - param was %d", uint8_t(param));
             // INTERNAL_ERROR(AP_InternalError::error_t::flow_of_control);
             return 0.0;
             break;
@@ -547,7 +597,7 @@ void AP_Quicktune::set_param_value(AP_Quicktune::param_s param, float value)
             attitude_control->get_rate_yaw_pid().kD(value);
             return;
         default:
-            GCS_SEND_TEXT(MAV_SEVERITY_EMERGENCY, "INTERNAL ERROR (550)");
+            GCS_SEND_TEXT(MAV_SEVERITY_EMERGENCY, "INTERNAL ERROR - set param value - param was %d", uint8_t(param));
             // INTERNAL_ERROR(AP_InternalError::error_t::flow_of_control);
             return;
     }
@@ -585,7 +635,7 @@ void AP_Quicktune::set_and_save_param_value(AP_Quicktune::param_s param, float v
             attitude_control->get_rate_yaw_pid().kD_s(value);
             return;
         default:
-            GCS_SEND_TEXT(MAV_SEVERITY_EMERGENCY, "INTERNAL ERROR (588)");
+            GCS_SEND_TEXT(MAV_SEVERITY_EMERGENCY, "INTERNAL ERROR - set_and_save_param_value - param was %d", uint8_t(param));
             // INTERNAL_ERROR(AP_InternalError::error_t::flow_of_control);
             return;
     }
@@ -615,6 +665,7 @@ const char* AP_Quicktune::get_axis_name(AP_Quicktune::axis_names axis)
         case axis_names::YAW:
             return "Yaw";
         default:
+            GCS_SEND_TEXT(MAV_SEVERITY_EMERGENCY, "INTERNAL ERROR - get_axis_name - axis was %d", uint8_t(axis));
             return "UNK";
     }
 }
