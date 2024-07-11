@@ -186,6 +186,31 @@ void AC_PID::set_notch_sample_rate(float sample_rate)
 #endif
 }
 
+// filt_T_hz - set target filter hz
+void AC_PID::filt_T_hz_s(float hz)
+{
+    _filt_T_hz.set_and_save(fabsf(hz));
+}
+
+// filt_E_hz - set error filter hz
+void AC_PID::filt_E_hz_s(float hz)
+{
+    _filt_E_hz.set_and_save(fabsf(hz));
+}
+
+// filt_D_hz - set derivative filter hz
+void AC_PID::filt_D_hz_s(float hz)
+{
+    _filt_D_hz.set_and_save(fabsf(hz));
+}
+
+// slew_limit - set slew limit
+void AC_PID::slew_limit_s(float smax)
+{
+    _slew_rate_max.set_and_save(fabsf(smax));
+}
+
+
 //  update_all - set target and measured inputs to PID controller and calculate outputs
 //  target and error are filtered
 //  the derivative is then calculated and filtered

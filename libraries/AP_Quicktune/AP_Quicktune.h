@@ -20,7 +20,7 @@
 #include <RC_Channel/RC_Channel.h>
 #include <GCS_MAVLink/GCS.h>
 
-#define UPDATE_RATE_HZ 40
+#define UPDATE_RATE_HZ 400
 #define STAGE_DELAY 4.0
 #define PILOT_INPUT_DELAY 4.0
 #define YAW_FLTE_MAX 2.0

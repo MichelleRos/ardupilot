@@ -343,13 +343,13 @@ void AP_Quicktune::adjust_gain(AP_Quicktune::param_s param, float value)
     if (get_stage(param) == stages::P){
         // also change I gain
         param_s iname = param_s(uint8_t(param)+1);
-        param_s ffname = param_s(uint8_t(param)+7);
-        float FF = get_param_value(ffname);
-        if (FF > 0){
-            // if we have any FF on an axis then we don't couple I to P,
-            // usually we want I = FF for a one second time constant for trim
-            return;
-        }
+        // param_s ffname = param_s(uint8_t(param)+7);
+        // float FF = get_param_value(ffname);
+        // if (FF > 0){
+        //     // if we have any FF on an axis then we don't couple I to P,
+        //     // usually we want I = FF for a one second time constant for trim
+        //     return;
+        // }
         set_bitmask(true, param_changed, uint8_t(iname));
 
         // work out ratio of P to I that we want
@@ -537,18 +537,48 @@ float AP_Quicktune::get_param_value(AP_Quicktune::param_s param)
             return attitude_control->get_rate_roll_pid().kI();
         case param_s::RLL_D:
             return attitude_control->get_rate_roll_pid().kD();
+        case param_s::RLL_SMAX:
+            return attitude_control->get_rate_roll_pid().slew_limit();
+        case param_s::RLL_FLTT:
+            return attitude_control->get_rate_roll_pid().filt_T_hz();
+        case param_s::RLL_FLTD:
+            return attitude_control->get_rate_roll_pid().filt_D_hz();
+        case param_s::RLL_FLTE:
+            return attitude_control->get_rate_roll_pid().filt_E_hz();
+        case param_s::RLL_FF:
+            return attitude_control->get_rate_roll_pid().ff();
         case param_s::PIT_P:
             return attitude_control->get_rate_pitch_pid().kP();
         case param_s::PIT_I:
             return attitude_control->get_rate_pitch_pid().kI();
         case param_s::PIT_D:
             return attitude_control->get_rate_pitch_pid().kD();
+        case param_s::PIT_SMAX:
+            return attitude_control->get_rate_pitch_pid().slew_limit();
+        case param_s::PIT_FLTT:
+            return attitude_control->get_rate_pitch_pid().filt_T_hz();
+        case param_s::PIT_FLTD:
+            return attitude_control->get_rate_pitch_pid().filt_D_hz();
+        case param_s::PIT_FLTE:
+            return attitude_control->get_rate_pitch_pid().filt_E_hz();
+        case param_s::PIT_FF:
+            return attitude_control->get_rate_pitch_pid().ff();
         case param_s::YAW_P:
             return attitude_control->get_rate_yaw_pid().kP();
         case param_s::YAW_I:
             return attitude_control->get_rate_yaw_pid().kI();
         case param_s::YAW_D:
             return attitude_control->get_rate_yaw_pid().kD();
+        case param_s::YAW_SMAX:
+            return attitude_control->get_rate_yaw_pid().slew_limit();    
+        case param_s::YAW_FLTT:
+            return attitude_control->get_rate_yaw_pid().filt_T_hz();
+        case param_s::YAW_FLTD:
+            return attitude_control->get_rate_yaw_pid().filt_D_hz();
+        case param_s::YAW_FLTE:
+            return attitude_control->get_rate_yaw_pid().filt_E_hz();
+        case param_s::YAW_FF:
+            return attitude_control->get_rate_roll_pid().ff();
         default:
             GCS_SEND_TEXT(MAV_SEVERITY_EMERGENCY, "INTERNAL ERROR - get_param_value - param was %d", uint8_t(param));
             // INTERNAL_ERROR(AP_InternalError::error_t::flow_of_control);
@@ -563,36 +593,82 @@ void AP_Quicktune::set_param_value(AP_Quicktune::param_s param, float value)
     {
         case param_s::RLL_P:
             attitude_control->get_rate_roll_pid().kP(value);
-            return;
+            break;
         case param_s::RLL_I:
             attitude_control->get_rate_roll_pid().kI(value);
-            return;
+            break;
         case param_s::RLL_D:
             attitude_control->get_rate_roll_pid().kD(value);
-            return;
+            break;
+        case param_s::RLL_SMAX:
+            attitude_control->get_rate_roll_pid().slew_limit(value);
+            break;
+        case param_s::RLL_FLTT:
+            attitude_control->get_rate_roll_pid().filt_T_hz(value);
+            break;
+        case param_s::RLL_FLTD:
+            attitude_control->get_rate_roll_pid().filt_D_hz(value);
+            break;
+        case param_s::RLL_FLTE:
+            attitude_control->get_rate_roll_pid().filt_E_hz(value);
+            break;
+        case param_s::RLL_FF:
+            attitude_control->get_rate_roll_pid().ff(value);
+            break;
         case param_s::PIT_P:
             attitude_control->get_rate_pitch_pid().kP(value);
-            return;
+            break;
         case param_s::PIT_I:
             attitude_control->get_rate_pitch_pid().kI(value);
-            return;
+            break;
         case param_s::PIT_D:
             attitude_control->get_rate_pitch_pid().kD(value);
-            return;
+            break;
+        case param_s::PIT_SMAX:
+            attitude_control->get_rate_pitch_pid().slew_limit(value);
+            break;
+        case param_s::PIT_FLTT:
+            attitude_control->get_rate_pitch_pid().filt_T_hz(value);
+            break;
+        case param_s::PIT_FLTD:
+            attitude_control->get_rate_pitch_pid().filt_D_hz(value);
+            break;
+        case param_s::PIT_FLTE:
+            attitude_control->get_rate_pitch_pid().filt_E_hz(value);
+            break;
+        case param_s::PIT_FF:
+            attitude_control->get_rate_pitch_pid().ff(value);
+            break;
         case param_s::YAW_P:
             attitude_control->get_rate_yaw_pid().kP(value);
-            return;
+            break;
         case param_s::YAW_I:
             attitude_control->get_rate_yaw_pid().kI(value);
-            return;
+            break;
         case param_s::YAW_D:
             attitude_control->get_rate_yaw_pid().kD(value);
-            return;
+            break;
+        case param_s::YAW_SMAX:
+            attitude_control->get_rate_yaw_pid().slew_limit(value);
+            break;
+        case param_s::YAW_FLTT:
+            attitude_control->get_rate_yaw_pid().filt_T_hz(value);
+            break;
+        case param_s::YAW_FLTD:
+            attitude_control->get_rate_yaw_pid().filt_D_hz(value);
+            break;
+        case param_s::YAW_FLTE:
+            attitude_control->get_rate_yaw_pid().filt_E_hz(value);
+            break;
+        case param_s::YAW_FF:
+            attitude_control->get_rate_yaw_pid().ff(value);
+            break;
         default:
             GCS_SEND_TEXT(MAV_SEVERITY_EMERGENCY, "INTERNAL ERROR - set param value - param was %d", uint8_t(param));
             // INTERNAL_ERROR(AP_InternalError::error_t::flow_of_control);
-            return;
+            break;
     }
+    return;
 }
 
 void AP_Quicktune::set_and_save_param_value(AP_Quicktune::param_s param, float value)
@@ -601,36 +677,82 @@ void AP_Quicktune::set_and_save_param_value(AP_Quicktune::param_s param, float v
     {
         case param_s::RLL_P:
             attitude_control->get_rate_roll_pid().kP_s(value);
-            return;
+            break;
         case param_s::RLL_I:
             attitude_control->get_rate_roll_pid().kI_s(value);
-            return;
+            break;
         case param_s::RLL_D:
             attitude_control->get_rate_roll_pid().kD_s(value);
-            return;
+            break;
+        case param_s::RLL_SMAX:
+            attitude_control->get_rate_roll_pid().slew_limit_s(value);
+            break;
+        case param_s::RLL_FLTT:
+            attitude_control->get_rate_roll_pid().filt_T_hz_s(value);
+            break;
+        case param_s::RLL_FLTD:
+            attitude_control->get_rate_roll_pid().filt_D_hz_s(value);
+            break;
+        case param_s::RLL_FLTE:
+            attitude_control->get_rate_roll_pid().filt_E_hz_s(value);
+            break;
+        case param_s::RLL_FF:
+            attitude_control->get_rate_roll_pid().ff_s(value);
+            break;
         case param_s::PIT_P:
             attitude_control->get_rate_pitch_pid().kP_s(value);
-            return;
+            break;
         case param_s::PIT_I:
             attitude_control->get_rate_pitch_pid().kI_s(value);
-            return;
+            break;
         case param_s::PIT_D:
             attitude_control->get_rate_pitch_pid().kD_s(value);
-            return;
+            break;
+        case param_s::PIT_SMAX:
+            attitude_control->get_rate_pitch_pid().slew_limit_s(value);
+            break;
+        case param_s::PIT_FLTT:
+            attitude_control->get_rate_pitch_pid().filt_T_hz_s(value);
+            break;
+        case param_s::PIT_FLTD:
+            attitude_control->get_rate_pitch_pid().filt_D_hz_s(value);
+            break;
+        case param_s::PIT_FLTE:
+            attitude_control->get_rate_pitch_pid().filt_E_hz_s(value);
+            break;
+        case param_s::PIT_FF:
+            attitude_control->get_rate_pitch_pid().ff_s(value);
+            break;
         case param_s::YAW_P:
             attitude_control->get_rate_yaw_pid().kP_s(value);
-            return;
+            break;
         case param_s::YAW_I:
             attitude_control->get_rate_yaw_pid().kI_s(value);
-            return;
+            break;
         case param_s::YAW_D:
             attitude_control->get_rate_yaw_pid().kD_s(value);
-            return;
+            break;
+        case param_s::YAW_SMAX:
+            attitude_control->get_rate_yaw_pid().slew_limit_s(value);
+            break;
+        case param_s::YAW_FLTT:
+            attitude_control->get_rate_yaw_pid().filt_T_hz_s(value);
+            break;
+        case param_s::YAW_FLTD:
+            attitude_control->get_rate_yaw_pid().filt_D_hz_s(value);
+            break;
+        case param_s::YAW_FLTE:
+            attitude_control->get_rate_yaw_pid().filt_E_hz_s(value);
+            break;
+        case param_s::YAW_FF:
+            attitude_control->get_rate_yaw_pid().ff_s(value);
+            break;
         default:
-            GCS_SEND_TEXT(MAV_SEVERITY_EMERGENCY, "INTERNAL ERROR - set_and_save_param_value - param was %d", uint8_t(param));
+            GCS_SEND_TEXT(MAV_SEVERITY_EMERGENCY, "INTERNAL ERROR - sas_param_value - param was %d", uint8_t(param));
             // INTERNAL_ERROR(AP_InternalError::error_t::flow_of_control);
-            return;
+            break;
     }
+    return;
 }
 
 AP_Quicktune::axis_names AP_Quicktune::get_axis(AP_Quicktune::param_s param)

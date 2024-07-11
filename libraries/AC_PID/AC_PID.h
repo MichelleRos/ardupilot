@@ -134,6 +134,10 @@ public:
     void kI_s(const float v) { _ki.set_and_save(v); }
     void kD_s(const float v) { _kd.set_and_save(v); }
     void ff_s(const float v) { _kff.set_and_save(v); }
+    void slew_limit_s(const float v);
+    void filt_T_hz_s(const float v);
+    void filt_E_hz_s(const float v);
+    void filt_D_hz_s(const float v);
 
     // set the desired and actual rates (for logging purposes)
     void set_target_rate(float target) { _pid_info.target = target; }
