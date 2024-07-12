@@ -164,6 +164,7 @@ public:
     void save_all_params();
     bool item_in_bitmask(uint8_t item, uint32_t bitmask);
     param_s get_pname(axis_names axis, stages stage);
+    AP_Float *get_param_pointer(param_s param);
     float get_param_value(param_s param);
     void set_param_value(param_s param, float value);
     void set_and_save_param_value(param_s param, float value);
