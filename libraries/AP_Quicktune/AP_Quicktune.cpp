@@ -112,22 +112,22 @@ void AP_Quicktune::update(){
         return;
     }
     if (sw_pos == 0 || !AP::arming().is_armed() || !vehicle->get_likely_flying()){
-        // abort, revert parameters
+        // Abort, revert parameters
         if (need_restore){
             need_restore = false;
             restore_all_params();
-            GCS_SEND_TEXT(MAV_SEVERITY_EMERGENCY, "Tuning: reverted");
+            GCS_SEND_TEXT(MAV_SEVERITY_EMERGENCY, "Tuning: Reverted");
             tune_done_time = 0;
         }
         reset_axes_done();
         return;
     }
     if (sw_pos == sw_pos_save){
-        // -- save all params
+        // Save all params
         if (need_restore){
             need_restore = false;
             save_all_params();
-            GCS_SEND_TEXT(MAV_SEVERITY_NOTICE, "Tuning: saved");
+            GCS_SEND_TEXT(MAV_SEVERITY_NOTICE, "Tuning: Saved");
         }
     }
     if (sw_pos != sw_pos_tune){
@@ -135,7 +135,7 @@ void AP_Quicktune::update(){
     }
 
     if (get_time() - last_stage_change < STAGE_DELAY){
-        //update_slew_gain(); ->inlined
+        // Update slew gain
         if (slew_parm != param_s::END){
             float P = get_param_value(slew_parm);
             axis_names axis = get_axis(slew_parm);
@@ -144,7 +144,7 @@ void AP_Quicktune::update(){
             slew_steps = slew_steps - 1;
             logger->WriteStreaming("QUIK","TimeUS,SRate,Gain,Param", "QffI", AP_HAL::micros64(), get_slew_rate(axis), P, int(slew_parm));
             if (slew_steps == 0){
-                GCS_SEND_TEXT(MAV_SEVERITY_INFO, "%s %.4f", get_param_name(slew_parm), P);
+                GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Tuning: %s %.4f", get_param_name(slew_parm), P);
                 slew_parm = param_s::END;
                 if (get_current_axis() == axis_names::DONE){
                     GCS_SEND_TEXT(MAV_SEVERITY_NOTICE, "Tuning: DONE");
@@ -158,12 +158,12 @@ void AP_Quicktune::update(){
     axis_names axis = get_current_axis();
 
     if (axis == axis_names::DONE){
-        // -- nothing left to do, check autosave time
+        // Nothing left to do, check autosave time
         if (!is_zero(tune_done_time) && auto_save > 0){
             if (get_time() - tune_done_time > auto_save){
                 need_restore = false;
                 save_all_params();
-                GCS_SEND_TEXT(MAV_SEVERITY_NOTICE, "Tuning: saved");
+                GCS_SEND_TEXT(MAV_SEVERITY_NOTICE, "Tuning: Saved");
                 tune_done_time = 0;
             }
         }
@@ -171,13 +171,23 @@ void AP_Quicktune::update(){
     }
 
     if (!need_restore){
-        // we are just starting tuning, get current values
-        GCS_SEND_TEXT(MAV_SEVERITY_NOTICE, "Tuning: starting tune");
-        // get_all_params(); ->inlined
+        // We are just starting tuning, get current values
+        GCS_SEND_TEXT(MAV_SEVERITY_NOTICE, "Tuning: Starting tune");
+        // Get all params
         for (int8_t pname = 0; pname < uint8_t(param_s::END); pname++){
             param_saved[pname] = get_param_value(param_s(pname));
         }
-        setup_SMAX();
+        // Set up SMAX
+        param_s is[3];
+        is[0] = param_s::RLL_SMAX;
+        is[1] = param_s::PIT_SMAX;
+        is[2] = param_s::YAW_SMAX;
+        for (uint8_t i = 0; i < 3; i++){
+            float smax = get_param_value(is[i]);
+            if (smax <= 0){
+                adjust_gain(is[i], DEFAULT_SMAX); 
+            }
+        }
     }
 
     if (get_time() - last_pilot_input < PILOT_INPUT_DELAY){
@@ -185,18 +195,18 @@ void AP_Quicktune::update(){
     }
 
     if (!item_in_bitmask(uint8_t(axis), filters_done)){
-        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Starting %s tune", get_axis_name(axis));
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Tuning: Starting %s tune", get_axis_name(axis));
         setup_filters(axis);
     }
 
     param_s pname = get_pname(axis, current_stage);
-    // float limited = reached_limit(pname, P); -> inlined
     float P = get_param_value(pname);
     float limit = gain_limit(pname);
     bool limited = (limit > 0.0 && P >= limit);
     float srate = get_slew_rate(axis);
     bool oscillating = srate > osc_smax;
-       
+    
+    // Check if reached limit
     if (limited || oscillating){
         float reduction = (100.0-gain_margin)*0.01;
         if (!oscillating){
@@ -208,15 +218,15 @@ void AP_Quicktune::update(){
         }
         float old_gain = param_saved[uint8_t(pname)];
         if (new_gain < old_gain && (pname == param_s::PIT_D || pname == param_s::RLL_D)){
-            //-- we are lowering a D gain from the original gain. Also lower the P gain by the same amount so that we don't trigger P oscillation. We don't drop P by more than a factor of 2
+            // We are lowering a D gain from the original gain. Also lower the P gain by the same amount so that we don't trigger P oscillation. We don't drop P by more than a factor of 2
             float ratio = fmaxf(new_gain / old_gain, 0.5);
             param_s P_name = param_s(uint8_t(pname)-2); //from D to P
             float old_P = get_param_value(P_name);;
             float new_P = old_P * ratio;
-            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "adjusting %s %.3f -> %.3f", get_param_name(P_name), old_P, new_P);
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Tuning: Adjusting %s %.3f -> %.3f", get_param_name(P_name), old_P, new_P);
             adjust_gain_limited(P_name, new_P);
         }
-        // setup_slew_gain(pname, new_gain); -> inlined
+        // Set up slew gain
         slew_parm = pname;
         slew_target = limit_gain(pname, new_gain);
         slew_steps = UPDATE_RATE_HZ/2;
@@ -235,33 +245,16 @@ void AP_Quicktune::update(){
         logger->WriteStreaming("QUIK","TimeUS,SRate,Gain,Param", "QffI", AP_HAL::micros64(), srate, P, int(pname));
         if (get_time() - last_gain_report > 3){
             last_gain_report = get_time();
-            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "%s %.4f sr:%.2f", get_param_name(pname), new_gain, srate);
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Tuning: %s %.4f sr:%.2f", get_param_name(pname), new_gain, srate);
         }
     }
 }
 
-// Reset the parameter for which axes have been done.
 void AP_Quicktune::reset_axes_done()
 {
     axes_done = 0;
     filters_done = 0;
     current_stage = stages::D;
-}
-
-// Check each SMAX param, set to DEFAULT_SMAX if it is zero.
-void AP_Quicktune::setup_SMAX()
-{
-    param_s is[3];
-    is[0] = param_s::RLL_SMAX;
-    is[1] = param_s::PIT_SMAX;
-    is[2] = param_s::YAW_SMAX;
-
-    for (uint8_t i = 0; i < 3; i++){
-        float smax = get_param_value(is[i]);
-        if (smax <= 0){
-            adjust_gain(is[i], DEFAULT_SMAX); 
-        }
-    }
 }
 
 void AP_Quicktune::setup_filters(AP_Quicktune::axis_names axis)
@@ -340,18 +333,18 @@ void AP_Quicktune::adjust_gain(AP_Quicktune::param_s param, float value)
     set_param_value(param, value);
 
     if (get_stage(param) == stages::P){
-        // also change I gain
+        // Also change I gain
         param_s iname = param_s(uint8_t(param)+1);
         // param_s ffname = param_s(uint8_t(param)+7);
         // float FF = get_param_value(ffname);
         // if (FF > 0){
-        //     // if we have any FF on an axis then we don't couple I to P,
+        //     // If we have any FF on an axis then we don't couple I to P,
         //     // usually we want I = FF for a one second time constant for trim
         //     return;
         // }
         set_bitmask(true, param_changed, uint8_t(iname));
 
-        // work out ratio of P to I that we want
+        // Work out ratio of P to I that we want
         float pi_ratio = rp_pi_ratio;
         if (get_axis(param) == axis_names::YAW){
             pi_ratio = y_pi_ratio;
@@ -372,11 +365,11 @@ float AP_Quicktune::limit_gain(AP_Quicktune::param_s param, float value)
 {
     float saved_value = param_saved[uint8_t(param)];
     if (max_reduce >= 0 && max_reduce < 100 && saved_value > 0){
-        // check if we exceeded gain reduction
+        // Check if we exceeded gain reduction
         float reduction_pct = 100.0 * (saved_value - value) / saved_value;
         if (reduction_pct > max_reduce){
             float new_value = saved_value * (100 - max_reduce) * 0.01;
-            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "limiting %s %.3f -> %.3f", get_param_name(param), value, new_value);
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Tuning: Limiting %s %.3f -> %.3f", get_param_name(param), value, new_value);
             value = new_value;
         }
     }

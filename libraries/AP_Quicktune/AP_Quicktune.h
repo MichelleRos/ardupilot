@@ -151,7 +151,6 @@ public:
     uint32_t last_warning = get_time();
 
     void reset_axes_done();
-    void setup_SMAX();
     void setup_filters(axis_names axis);
     bool have_pilot_input();
     axis_names get_current_axis();
