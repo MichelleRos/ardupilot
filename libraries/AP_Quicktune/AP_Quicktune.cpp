@@ -79,7 +79,7 @@ const AP_Param::GroupInfo AP_Quicktune::var_info[] = {
 
     // @Param: QUIK_OPTIONS
     // @DisplayName: Options bitmask.
-    // @Description: Bit 1 uses 2 position switch.
+    // @Description: Bit 0 uses 2 position switch.
     // @User: Standard
     AP_GROUPINFO("OPTIONS", 13, AP_Quicktune, options, 0),
 
@@ -142,7 +142,7 @@ void AP_Quicktune::update(){
             // local ax_stage = string.sub(slew_parm, -1)
             adjust_gain(slew_parm, P+slew_delta);
             slew_steps = slew_steps - 1;
-            logger->WriteStreaming("QUIK","TimeUS,SRate,Gain,Param", "QffI", AP_HAL::micros64(), get_slew_rate(axis), P, int(slew_parm));
+            logger->WriteStreaming("QUIK","TimeUS,SRate,Gain,Param,ParamNo", "QffNI", AP_HAL::micros64(), get_slew_rate(axis), P, get_param_name(slew_parm), int(slew_parm));
             if (slew_steps == 0){
                 GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Tuning: %s %.4f", get_param_name(slew_parm), P);
                 slew_parm = param_s::END;
@@ -232,7 +232,7 @@ void AP_Quicktune::update(){
         slew_steps = UPDATE_RATE_HZ/2;
         slew_delta = (slew_target - get_param_value(pname)) / slew_steps;
 
-        logger->WriteStreaming("QUIK","TimeUS,SRate,Gain,Param", "QffI", AP_HAL::micros64(), srate, P, int(pname));
+        logger->WriteStreaming("QUIK","TimeUS,SRate,Gain,Param,ParamNo", "QffNI", AP_HAL::micros64(), srate, P, get_param_name(pname), int(pname));
         GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Tuning: %s done", get_param_name(pname));
         advance_stage(axis);
         last_stage_change = get_time();
@@ -242,7 +242,7 @@ void AP_Quicktune::update(){
             new_gain = 0.001;
         }
         adjust_gain_limited(pname, new_gain);
-        logger->WriteStreaming("QUIK","TimeUS,SRate,Gain,Param", "QffI", AP_HAL::micros64(), srate, P, int(pname));
+        logger->WriteStreaming("QUIK","TimeUS,SRate,Gain,Param,ParamNo", "QffNI", AP_HAL::micros64(), srate, P, get_param_name(pname), int(pname));
         if (get_time() - last_gain_report > 3){
             last_gain_report = get_time();
             GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Tuning: %s %.4f sr:%.2f", get_param_name(pname), new_gain, srate);
