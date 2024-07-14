@@ -493,7 +493,7 @@ const AP_Param::Info Copter::var_info[] = {
     GOBJECTPTR(circle_nav, "CIRCLE_",  AC_Circle),
 #endif
 
-#if MODE_CIRCLE_ENABLED == ENABLED
+#if QUICKTUNE_ENABLED == ENABLED
     // @Group: QUIK_
     // @Path: ../libraries/AP_Quicktune/AP_Quicktune.cpp
     GOBJECTPTR(quicktune, "QUIK_",  AP_Quicktune),
