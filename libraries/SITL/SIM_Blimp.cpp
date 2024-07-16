@@ -242,15 +242,17 @@ void Blimp::calculate_forces(const struct sitl_input &input, Vector3f &body_acc,
                                 AP_HAL::micros64(),
                                 ang.x,ang.y,ang.z,ang_ef.x,ang_ef.y,ang_ef.z);
 
-    rot_T.x -= (mass*GRAVITY_MSS*sinf(ang_ef.x)/cog.z)*0.01;
-    rot_T.y -= (mass*GRAVITY_MSS*sinf(ang_ef.y)/cog.z)*0.01;
+    Vector3f rot_T_ef{0,0,0};
+    rot_T_ef.x -= (mass*GRAVITY_MSS*sinf(ang_ef.x)/cog.z)*0.01;
+    rot_T_ef.y -= (mass*GRAVITY_MSS*sinf(ang_ef.y)/cog.z)*0.01;
+    Vector3f rot_T_g = dcm.transposed() * rot_T_ef;
 
     #endif
     //rot accel = torque / moment of inertia
     //Torque = moment force.
-    rot_accel.x = rot_T.x / moment_of_inertia.x;
-    rot_accel.y = rot_T.y / moment_of_inertia.y;
-    rot_accel.z = rot_T.z / moment_of_inertia.z;
+    rot_accel.x = (rot_T.x + rot_T_g.x) / moment_of_inertia.x;
+    rot_accel.y = (rot_T.y + rot_T_g.y) / moment_of_inertia.y;
+    rot_accel.z = (rot_T.z + rot_T_g.z) / moment_of_inertia.z;
 
     AP::logger().WriteStreaming("SFTH", "TimeUS,f0,f1,f2,f3",
                                 "Qffff",
