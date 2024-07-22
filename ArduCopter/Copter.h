@@ -84,6 +84,12 @@
  #define MOTOR_CLASS AP_MotorsMulticopter
 #endif
 
+#if FRAME_CONFIG == HELI_FRAME
+// force quicktune off in heli until it has had testing
+#undef QUICKTUNE_ENABLED
+#define QUICKTUNE_ENABLED 0
+#endif
+
 #if MODE_AUTOROTATE_ENABLED == ENABLED
  #include <AC_Autorotation/AC_Autorotation.h> // Autorotation controllers
 #endif
