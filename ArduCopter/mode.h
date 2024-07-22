@@ -193,6 +193,11 @@ public:
     virtual bool allows_weathervaning() const { return false; }
 #endif
 
+#if QUICKTUNE_ENABLED
+    // does this mode support VTOL quicktune?
+    virtual bool supports_quicktune() const { return false; }
+#endif
+
 protected:
 
     // helper functions
@@ -480,6 +485,10 @@ protected:
 
     const char *name() const override { return "ALT_HOLD"; }
     const char *name4() const override { return "ALTH"; }
+
+#if QUICKTUNE_ENABLED
+    bool supports_quicktune() const override { return true; }
+#endif
 
 private:
 
@@ -1131,6 +1140,10 @@ protected:
     int32_t wp_bearing() const override;
     float crosstrack_error() const override;
 
+#if QUICKTUNE_ENABLED
+    bool supports_quicktune() const override { return true; }
+#endif
+
 private:
 
     // enum for GUID_OPTIONS parameter
@@ -1277,6 +1290,10 @@ protected:
 #if AC_PRECLAND_ENABLED
     bool do_precision_loiter();
     void precision_loiter_xy();
+#endif
+
+#if QUICKTUNE_ENABLED
+    bool supports_quicktune() const override { return true; }
 #endif
 
 private:

@@ -72,6 +72,7 @@
 #include <AP_OpticalFlow/AP_OpticalFlow.h>
 #include <AP_Winch/AP_Winch_config.h>
 #include <AP_SurfaceDistance/AP_SurfaceDistance.h>
+#include <AP_Quicktune/AP_Quicktune.h>
 
 // Configuration
 #include "defines.h"
@@ -485,6 +486,10 @@ private:
 
 #if MODE_CIRCLE_ENABLED == ENABLED
     AC_Circle *circle_nav;
+#endif
+
+#if QUICKTUNE_ENABLED
+    AP_Quicktune *quicktune;
 #endif
 
     // System Timers

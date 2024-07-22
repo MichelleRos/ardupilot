@@ -425,6 +425,12 @@ void Copter::update_flight_mode()
 #endif
 
     flightmode->run();
+
+#if QUICKTUNE_ENABLED
+    if (quicktune != nullptr && flightmode->supports_quicktune()) {
+        quicktune->update();
+    }
+#endif
 }
 
 // exit_mode - high level call to organise cleanup as a flight mode is exited
