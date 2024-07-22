@@ -3,21 +3,21 @@
 #if QUICKTUNE_ENABLED
 
 const AP_Param::GroupInfo AP_Quicktune::var_info[] = {
-    // @Param: QUIK_ENABLE
+    // @Param: ENABLE
     // @DisplayName: Quicktune enable
     // @Description: Enable quicktune system
     // @Values: 0:Disabled,1:Enabled
     // @User: Standard
     AP_GROUPINFO_FLAGS("ENABLE", 1, AP_Quicktune, enable, 0, AP_PARAM_FLAG_ENABLE),
 
-    // @Param: QUIK_AXES
+    // @Param: AXES
     // @DisplayName: Quicktune axes
     // @Description: Axes to tune
     // @Bitmask: 0:Roll,1:Pitch,2:Yaw
     // @User: Standard
     AP_GROUPINFO("AXES", 2, AP_Quicktune, axes_enabled, 7),
 
-    // @Param: QUIK_DOUBLE_TIME
+    // @Param: DOUBLE_TIME
     // @DisplayName: Quicktune doubling time
     // @Description: Time to double a tuning parameter. Raise this for a slower tune.
     // @Range: 5 20
@@ -25,7 +25,7 @@ const AP_Param::GroupInfo AP_Quicktune::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("DOUBLE_TIME", 3, AP_Quicktune, double_time, 10),
 
-    // @Param: QUIK_GAIN_MARGIN
+    // @Param: GAIN_MARGIN
     // @DisplayName: Quicktune gain margin
     // @Description: Reduction in gain after oscillation detected. Raise this number to get a more conservative tune
     // @Range: 20 80
@@ -33,64 +33,64 @@ const AP_Param::GroupInfo AP_Quicktune::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("GAIN_MARGIN", 4, AP_Quicktune, gain_margin, 60),
 
-    // @Param: QUIK_OSC_SMAX
+    // @Param: OSC_SMAX
     // @DisplayName: Quicktune oscillation rate threshold
     // @Description: Threshold for oscillation detection. A lower value will lead to a more conservative tune.
     // @Range: 1 10
     // @User: Standard
     AP_GROUPINFO("OSC_SMAX", 5, AP_Quicktune, osc_smax, 5),
 
-    // @Param: QUIK_YAW_P_MAX
+    // @Param: YAW_P_MAX
     // @DisplayName: Quicktune Yaw P max
     // @Description: Maximum value for yaw P gain
     // @Range: 0.1 3
     // @User: Standard
     AP_GROUPINFO("YAW_P_MAX", 6, AP_Quicktune, yaw_p_max, 0.5),
 
-    // @Param: QUIK_YAW_D_MAX
+    // @Param: YAW_D_MAX
     // @DisplayName: Quicktune Yaw D max
     // @Description: Maximum value for yaw D gain
     // @Range: 0.001 1
     // @User: Standard
     AP_GROUPINFO("YAW_D_MAX", 7, AP_Quicktune, yaw_d_max, 0.01),
 
-    // @Param: QUIK_RP_PI_RATIO
+    // @Param: RP_PI_RATIO
     // @DisplayName: Quicktune roll/pitch PI ratio
     // @Description: Ratio between P and I gains for roll and pitch. Raise this to get a lower I gain
     // @Range: 0.5 1.0
     // @User: Standard
     AP_GROUPINFO("RP_PI_RATIO", 8, AP_Quicktune, rp_pi_ratio, 1.0),
 
-    // @Param: QUIK_Y_PI_RATIO
+    // @Param: Y_PI_RATIO
     // @DisplayName: Quicktune Yaw PI ratio
     // @Description: Ratio between P and I gains for yaw. Raise this to get a lower I gain
     // @Range: 0.5 20
     // @User: Standard
     AP_GROUPINFO("Y_PI_RATIO", 9, AP_Quicktune, y_pi_ratio, 10),
 
-    // @Param: QUIK_AUTO_FILTER
+    // @Param: AUTO_FILTER
     // @DisplayName: Quicktune auto filter enable
     // @Description: When enabled the PID filter settings are automatically set based on INS_GYRO_FILTER
     // @Values: 0:Disabled,1:Enabled
     // @User: Standard
     AP_GROUPINFO("AUTO_FILTER", 10, AP_Quicktune, auto_filter, 1),
 
-    // @Param: QUIK_AUTO_SAVE
+    // @Param: AUTO_SAVE
     // @DisplayName: Quicktune auto save
     // @Description: Number of seconds after completion of tune to auto-save. This is useful when using a 2 position switch for quicktune
     // @Units: s
     // @User: Standard
     AP_GROUPINFO("AUTO_SAVE", 11, AP_Quicktune, auto_save, 0),
 
-    // @Param: QUIK_MAX_REDUCE
+    // @Param: MAX_REDUCE
     // @DisplayName: Quicktune maximum gain reduction
     // @Description: This controls how much quicktune is allowed to lower gains from the original gains. If the vehicle already has a reasonable tune and is not oscillating then you can set this to zero to prevent gain reductions. The default of 20% is reasonable for most vehicles. Using a maximum gain reduction lowers the chance of an angle P oscillation happening if quicktune gets a false positive oscillation at a low gain, which can result in very low rate gains and a dangerous angle P oscillation.
     // @Units: %
     // @Range: 0 100
-    // @User: Standardd
+    // @User: Standard
     AP_GROUPINFO("MAX_REDUCE", 12, AP_Quicktune, max_reduce, 20),
 
-    // @Param: QUIK_OPTIONS
+    // @Param: OPTIONS
     // @DisplayName: Quicktune options
     // @Description: Additional options. When the Two Position Switch option is enabled then a high switch position will start the tune, low will disable the tune. you should also set a QUIK_AUTO_SAVE time so that you will be able to save the tune.
     // @Bitmask: 0:UseTwoPositionSwitch
