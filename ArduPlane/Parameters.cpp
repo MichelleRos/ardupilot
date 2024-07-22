@@ -997,6 +997,12 @@ const AP_Param::Info Plane::var_info[] = {
     // @Path: ../libraries/AP_Vehicle/AP_Vehicle.cpp
     PARAM_VEHICLE_INFO,
 
+#if QUICKTUNE_ENABLED == ENABLED
+    // @Group: QUIK_
+    // @Path: ../libraries/AP_Quicktune/AP_Quicktune.cpp
+    GOBJECTPTR(quicktune, "QUIK_",  AP_Quicktune),
+#endif
+    
     AP_VAREND
 };
 

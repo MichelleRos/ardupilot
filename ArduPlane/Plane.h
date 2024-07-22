@@ -86,6 +86,7 @@
 #if AP_EXTERNAL_CONTROL_ENABLED
 #include "AP_ExternalControl_Plane.h"
 #endif
+#include <AP_Quicktune/AP_Quicktune.h>
 
 #include <AC_PrecLand/AC_PrecLand_config.h>
 #if AC_PRECLAND_ENABLED
@@ -305,6 +306,10 @@ private:
     ModeThermal mode_thermal;
 #endif
 
+#if QUICKTUNE_ENABLED
+    AP_Quicktune *quicktune;
+#endif
+    
     // This is the state of the flight control system
     // There are multiple states defined such as MANUAL, FBW-A, AUTO
     Mode *control_mode = &mode_initializing;

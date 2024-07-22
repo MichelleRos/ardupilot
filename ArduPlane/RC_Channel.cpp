@@ -169,6 +169,7 @@ void RC_Channel_Plane::init_aux_function(const RC_Channel::AUX_FUNC ch_option,
     case AUX_FUNC::FW_AUTOTUNE:
     case AUX_FUNC::VFWD_THR_OVERRIDE:
     case AUX_FUNC::PRECISION_LOITER:
+    case AUX_FUNC::QUICKTUNE:
         break;
 
     case AUX_FUNC::SOARING:
@@ -439,9 +440,38 @@ bool RC_Channel_Plane::do_aux_function(const AUX_FUNC ch_option, const AuxSwitch
         // handled by lua scripting, just ignore here
         break;
 
+#if QUICKTUNE_ENABLED
+    case AUX_FUNC::QUICKTUNE:
+        do_aux_function_quicktune(ch_flag);
+        break;
+#endif
+
     default:
         return RC_Channel::do_aux_function(ch_option, ch_flag);
     }
 
     return true;
 }
+
+#if QUICKTUNE_ENABLED
+// called on any Quicktune Aux function change
+void RC_Channel_Plane::do_aux_function_quicktune(const AuxSwitchPos ch_flag)
+{
+    if (plane.quicktune == nullptr && !plane.arming.is_armed()) {
+        //first call, allocate quicktune object
+        GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Quicktune: Initialised.");
+        plane.quicktune = NEW_NOTHROW AP_Quicktune();
+        if (plane.quicktune == nullptr) {
+            // Can't use BoardConfig error as this might happen while flying.
+            GCS_SEND_TEXT(MAV_SEVERITY_ERROR, "Quicktune: unable to allocate.");
+            return;
+        }
+        AP_Param::load_object_from_eeprom(plane.quicktune, plane.quicktune->var_info);
+    } else if (plane.quicktune == nullptr && plane.arming.is_armed()){
+        GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Quicktune: Must be disarmed to initialise.");
+    }
+    if (plane.quicktune != nullptr) {
+        plane.quicktune->update_switch_pos(ch_flag);
+    }
+}
+#endif
