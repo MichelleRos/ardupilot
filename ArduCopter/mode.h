@@ -1140,10 +1140,6 @@ protected:
     int32_t wp_bearing() const override;
     float crosstrack_error() const override;
 
-#if QUICKTUNE_ENABLED
-    bool supports_quicktune() const override { return true; }
-#endif
-
 private:
 
     // enum for GUID_OPTIONS parameter
