@@ -6,26 +6,9 @@
 
 #if AP_QUICKTUNE_ENABLED
 
-#include <AP_Vehicle/AP_Vehicle.h>
-#include <AP_Common/AP_Common.h>
-#include <AP_Param/AP_Param.h>
-#include <AP_Logger/AP_Logger.h>
-#include <AP_Arming/AP_Arming.h>
 #include <AC_AttitudeControl/AC_AttitudeControl.h>
-#include <GCS_MAVLink/GCS.h>
+#include <AP_Param/AP_Param.h>
 #include <RC_Channel/RC_Channel.h>
-#include <AP_RCMapper/AP_RCMapper.h>
-
-#define UPDATE_RATE_HZ 40
-#define UPDATE_PERIOD_MS (1000U/UPDATE_RATE_HZ)
-#define STAGE_DELAY 4000
-#define PILOT_INPUT_DELAY 4000
-#define YAW_FLTE_MAX 2.0
-#define FLTD_MUL 0.5
-#define FLTT_MUL 0.5
-#define DEFAULT_SMAX 50.0
-
-#define OPTIONS_TWO_POSITION (1<<0)
 
 class AP_Quicktune {
 public:
@@ -44,7 +27,7 @@ public:
     static const struct AP_Param::GroupInfo var_info[];
 
     void update();
-    void update_switch_pos(const  RC_Channel::AuxSwitchPos ch_flag);
+    void update_switch_pos(const RC_Channel::AuxSwitchPos ch_flag);
 
 private:
 
