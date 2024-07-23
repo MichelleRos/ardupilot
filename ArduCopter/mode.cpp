@@ -426,7 +426,7 @@ void Copter::update_flight_mode()
 
     flightmode->run();
 
-#if QUICKTUNE_ENABLED
+#if AP_QUICKTUNE_ENABLED
     if (quicktune != nullptr && flightmode->supports_quicktune()) {
         quicktune->update();
     }

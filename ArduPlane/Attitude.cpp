@@ -424,7 +424,7 @@ void Plane::stabilize()
 #endif
     } else {
         plane.control_mode->run();
-#if QUICKTUNE_ENABLED
+#if AP_QUICKTUNE_ENABLED
         if (plane.quicktune != nullptr && control_mode->supports_quicktune()) {
             plane.quicktune->update();
         }

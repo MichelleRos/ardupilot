@@ -20,7 +20,7 @@ private:
                                      const AuxSwitchPos ch_flag);
     void do_aux_function_change_air_mode(const AuxSwitchPos ch_flag);
     void do_aux_function_change_force_flying(const AuxSwitchPos ch_flag);
-#if QUICKTUNE_ENABLED
+#if AP_QUICKTUNE_ENABLED
     void do_aux_function_quicktune(const AuxSwitchPos ch_flag);
 #endif
 

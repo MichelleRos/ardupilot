@@ -649,7 +649,7 @@ bool RC_Channel_Copter::do_aux_function(const AUX_FUNC ch_option, const AuxSwitc
         break;
     }
 #endif
-#if QUICKTUNE_ENABLED
+#if AP_QUICKTUNE_ENABLED
     case AUX_FUNC::QUICKTUNE:
         do_aux_function_quicktune(ch_flag);
         break;
@@ -691,7 +691,7 @@ void RC_Channel_Copter::do_aux_function_change_force_flying(const AuxSwitchPos c
     }
 }
 
-#if QUICKTUNE_ENABLED
+#if AP_QUICKTUNE_ENABLED
 // called on any Quicktune Aux function change
 void RC_Channel_Copter::do_aux_function_quicktune(const AuxSwitchPos ch_flag)
 {

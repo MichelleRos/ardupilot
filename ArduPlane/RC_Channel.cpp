@@ -440,7 +440,7 @@ bool RC_Channel_Plane::do_aux_function(const AUX_FUNC ch_option, const AuxSwitch
         // handled by lua scripting, just ignore here
         break;
 
-#if QUICKTUNE_ENABLED
+#if AP_QUICKTUNE_ENABLED
     case AUX_FUNC::QUICKTUNE:
         do_aux_function_quicktune(ch_flag);
         break;
@@ -453,7 +453,7 @@ bool RC_Channel_Plane::do_aux_function(const AUX_FUNC ch_option, const AuxSwitch
     return true;
 }
 
-#if QUICKTUNE_ENABLED
+#if AP_QUICKTUNE_ENABLED
 // called on any Quicktune Aux function change
 void RC_Channel_Plane::do_aux_function_quicktune(const AuxSwitchPos ch_flag)
 {

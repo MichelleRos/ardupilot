@@ -193,7 +193,7 @@ public:
     virtual bool allows_weathervaning() const { return false; }
 #endif
 
-#if QUICKTUNE_ENABLED
+#if AP_QUICKTUNE_ENABLED
     // does this mode support VTOL quicktune?
     virtual bool supports_quicktune() const { return false; }
 #endif
@@ -486,7 +486,7 @@ protected:
     const char *name() const override { return "ALT_HOLD"; }
     const char *name4() const override { return "ALTH"; }
 
-#if QUICKTUNE_ENABLED
+#if AP_QUICKTUNE_ENABLED
     bool supports_quicktune() const override { return true; }
 #endif
 
@@ -1288,7 +1288,7 @@ protected:
     void precision_loiter_xy();
 #endif
 
-#if QUICKTUNE_ENABLED
+#if AP_QUICKTUNE_ENABLED
     bool supports_quicktune() const override { return true; }
 #endif
 

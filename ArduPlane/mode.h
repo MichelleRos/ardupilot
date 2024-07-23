@@ -142,7 +142,7 @@ public:
     // true if voltage correction should be applied to throttle
     virtual bool use_battery_compensation() const;
 
-#if QUICKTUNE_ENABLED
+#if AP_QUICKTUNE_ENABLED
     // does this mode support VTOL quicktune?
     virtual bool supports_quicktune() const { return false; }
 #endif
@@ -318,7 +318,7 @@ protected:
 
     bool _enter() override;
     bool _pre_arm_checks(size_t buflen, char *buffer) const override { return true; }
-#if QUICKTUNE_ENABLED
+#if AP_QUICKTUNE_ENABLED
     bool supports_quicktune() const override { return true; }
 #endif
 
@@ -658,7 +658,7 @@ public:
 protected:
 
     bool _enter() override;
-#if QUICKTUNE_ENABLED
+#if AP_QUICKTUNE_ENABLED
     bool supports_quicktune() const override { return true; }
 #endif
 };
@@ -688,7 +688,7 @@ protected:
     bool _enter() override;
     uint32_t last_target_loc_set_ms;
 
-#if QUICKTUNE_ENABLED
+#if AP_QUICKTUNE_ENABLED
     bool supports_quicktune() const override { return true; }
 #endif
 };

@@ -1,10 +1,10 @@
 #pragma once
 
-#ifndef QUICKTUNE_ENABLED
- #define QUICKTUNE_ENABLED 1
+#ifndef AP_QUICKTUNE_ENABLED
+ #define AP_QUICKTUNE_ENABLED 1
 #endif
 
-#if QUICKTUNE_ENABLED
+#if AP_QUICKTUNE_ENABLED
 
 #include <AP_Vehicle/AP_Vehicle.h>
 #include <AP_Common/AP_Common.h>
@@ -171,4 +171,4 @@ private:
     AC_AttitudeControl &attitude_control = *AC_AttitudeControl::get_singleton();
 };
 
-#endif  // QUICKTUNE_ENABLED
+#endif  // AP_QUICKTUNE_ENABLED

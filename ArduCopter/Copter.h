@@ -86,8 +86,8 @@
 
 #if FRAME_CONFIG == HELI_FRAME
 // force quicktune off in heli until it has had testing
-#undef QUICKTUNE_ENABLED
-#define QUICKTUNE_ENABLED 0
+#undef AP_QUICKTUNE_ENABLED
+#define AP_QUICKTUNE_ENABLED 0
 #endif
 
 #if MODE_AUTOROTATE_ENABLED == ENABLED
@@ -494,7 +494,7 @@ private:
     AC_Circle *circle_nav;
 #endif
 
-#if QUICKTUNE_ENABLED
+#if AP_QUICKTUNE_ENABLED
     AP_Quicktune *quicktune;
 #endif
 

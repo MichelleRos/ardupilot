@@ -306,7 +306,7 @@ private:
     ModeThermal mode_thermal;
 #endif
 
-#if QUICKTUNE_ENABLED
+#if AP_QUICKTUNE_ENABLED
     AP_Quicktune *quicktune;
 #endif
     
