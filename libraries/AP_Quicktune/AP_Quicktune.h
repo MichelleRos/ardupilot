@@ -14,6 +14,7 @@
 #include <AC_AttitudeControl/AC_AttitudeControl.h>
 #include <GCS_MAVLink/GCS.h>
 #include <RC_Channel/RC_Channel.h>
+#include <AP_RCMapper/AP_RCMapper.h>
 
 #define UPDATE_RATE_HZ 40
 #define UPDATE_PERIOD_MS (1000U/UPDATE_RATE_HZ)
@@ -59,11 +60,11 @@ private:
     AP_Float y_pi_ratio;
     AP_Int8 auto_filter;
     AP_Float auto_save;
-    AP_Float max_reduce;
+    AP_Float reduce_max;
     AP_Int16 options;
 
     // Low, Mid and High must be in the same positions as they are in RC_Channel::AuxSwitchPos
-    enum class qt_switch_pos : uint8_t {
+    enum class SwitchPos : uint8_t {
         LOW,
         MID,
         HIGH,
@@ -71,7 +72,7 @@ private:
     };
 
 
-    enum class axis_names : uint8_t {
+    enum class AxisName : uint8_t {
         RLL,
         PIT,
         YAW,
@@ -79,7 +80,7 @@ private:
         END,
     };
 
-    enum class param_s : uint8_t {
+    enum class Param : uint8_t {
         RLL_P,
         RLL_I,
         RLL_D,
@@ -108,7 +109,7 @@ private:
     };
 
     // Also the gains
-    enum class stages : uint8_t {
+    enum class Stage : uint8_t {
         D,
         P,
         DONE,
@@ -133,39 +134,39 @@ private:
     uint32_t filters_done;
     uint32_t param_changed; //Bitmask of changed parameters
 
-    stages current_stage = stages::D;
-    param_s slew_parm = param_s::END;
+    Stage current_stage = Stage::D;
+    Param slew_parm = Param::END;
     float slew_target;
     uint8_t slew_steps;
     float slew_delta;
     uint32_t last_update;
-    qt_switch_pos sw_pos; //Switch pos to be set by aux func
+    SwitchPos sw_pos; //Switch pos to be set by aux func
     bool need_restore;
-    float param_saved[uint8_t(param_s::END)]; //Saved values of the parameters
+    float param_saved[uint8_t(Param::END)]; //Saved values of the parameters
 
     void reset_axes_done();
-    void setup_filters(axis_names axis);
+    void setup_filters(AxisName axis);
     bool have_pilot_input();
-    axis_names get_current_axis();
-    float get_slew_rate(axis_names axis);
-    void advance_stage(axis_names axis);
-    void adjust_gain(param_s param, float value);
-    void adjust_gain_limited(param_s param, float value);
+    AxisName get_current_axis();
+    float get_slew_rate(AxisName axis);
+    void advance_stage(AxisName axis);
+    void adjust_gain(Param param, float value);
+    void adjust_gain_limited(Param param, float value);
     float get_gain_mul();
     void restore_all_params();
     void save_all_params();
-    param_s get_pname(axis_names axis, stages stage);
-    AP_Float *get_param_pointer(param_s param);
-    float get_param_value(param_s param);
-    void set_param_value(param_s param, float value);
-    void set_and_save_param_value(param_s param, float value);
-    float gain_limit(param_s param);
-    axis_names get_axis(param_s param);
-    float limit_gain(param_s param, float value);
-    const char* get_param_name(param_s param);
-    stages get_stage(param_s param);
-    const char* get_axis_name(axis_names axis);
-    void write_quik(float SRate, float Gain, param_s param);
+    Param get_pname(AxisName axis, Stage stage);
+    AP_Float *get_param_pointer(Param param);
+    float get_param_value(Param param);
+    void set_param_value(Param param, float value);
+    void set_and_save_param_value(Param param, float value);
+    float gain_limit(Param param);
+    AxisName get_axis(Param param);
+    float limit_gain(Param param, float value);
+    const char* get_param_name(Param param);
+    Stage get_stage(Param param);
+    const char* get_axis_name(AxisName axis);
+    void Write_QUIK(float SRate, float Gain, Param param);
 
     AC_AttitudeControl &attitude_control = *AC_AttitudeControl::get_singleton();
 };
