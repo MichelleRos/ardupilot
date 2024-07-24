@@ -120,7 +120,6 @@ const AP_Param::GroupInfo AP_Quicktune::var_info[] = {
 // Call at loop rate
 void AP_Quicktune::update()
 {
-
     if (enable < 1) {
         return;
     }
@@ -385,13 +384,13 @@ void AP_Quicktune::adjust_gain(AP_Quicktune::Param param, float value)
     if (get_stage(param) == Stage::P) {
         // Also change I gain
         Param iname = Param(uint8_t(param)+1);
-        // Param ffname = Param(uint8_t(param)+7);
-        // float FF = get_param_value(ffname);
-        // if (FF > 0) {
-        //     // If we have any FF on an axis then we don't couple I to P,
-        //     // usually we want I = FF for a one second time constant for trim
-        //     return;
-        // }
+        Param ffname = Param(uint8_t(param)+7);
+        float FF = get_param_value(ffname);
+        if (FF > 0) {
+            // If we have any FF on an axis then we don't couple I to P,
+            // usually we want I = FF for a one second time constant for trim
+            return;
+        }
         BIT_SET(param_changed, uint8_t(iname));
 
         // Work out ratio of P to I that we want
@@ -539,13 +538,9 @@ AP_Quicktune::Param AP_Quicktune::get_pname(AP_Quicktune::AxisName axis, AP_Quic
 AP_Quicktune::Stage AP_Quicktune::get_stage(AP_Quicktune::Param param)
 {
     if (param == Param::RLL_P || param == Param::PIT_P || param == Param::YAW_P) {
-        return Stage::SMAX;
-    } else if (param == Param::RLL_I || param == Param::PIT_I || param == Param::YAW_I) {
-        return Stage::I;
-    } else if (param == Param::RLL_FF || param == Param::PIT_FF || param == Param::YAW_FF) {
-        return Stage::FF;
+        return Stage::P;
     } else {
-        return Stage::END;
+        return Stage::END; //Means "anything but P gain"
     }
 }
 
@@ -683,7 +678,7 @@ float AP_Quicktune::gain_limit(AP_Quicktune::Param param)
 
 void AP_Quicktune::Write_QUIK(float srate, float gain, AP_Quicktune::Param param)
 {
-#ifdef HAL_LOGGING_ENABLED
+#if HAL_LOGGING_ENABLED
     AP::logger().WriteStreaming("QUIK","TimeUS,SRate,Gain,Param,ParamNo", "QffNI", AP_HAL::micros64(), srate, gain, get_param_name(param), int(param));
 #endif
 }
