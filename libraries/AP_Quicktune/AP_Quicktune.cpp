@@ -118,17 +118,21 @@ const AP_Param::GroupInfo AP_Quicktune::var_info[] = {
 };
 
 // Call at loop rate
-void AP_Quicktune::update()
+void AP_Quicktune::update(bool mode_supports_quicktune)
 {
     if (enable < 1) {
         return;
     }
     const uint32_t now = AP_HAL::millis();
 
-    if (now - last_update < UPDATE_PERIOD_MS) {
+    if (!mode_supports_quicktune) {
+        /*
+          user has switched to a non-quicktune mode. If we have
+          pending parameter changes then revert
+         */
+        abort_tune();
         return;
     }
-    last_update = now;
 
     if (have_pilot_input()) {
         last_pilot_input = now;
@@ -288,6 +292,21 @@ void AP_Quicktune::update()
     }
 }
 
+/*
+  abort the tune if it has started
+ */
+void AP_Quicktune::abort_tune(void)
+{
+    if (need_restore) {
+        need_restore = false;
+        restore_all_params();
+        GCS_SEND_TEXT(MAV_SEVERITY_EMERGENCY, "QuickTune aborted");
+    }
+    tune_done_time = 0;
+    reset_axes_done();
+    sw_pos = SwitchPos::LOW;
+}
+
 void AP_Quicktune::update_switch_pos(const  RC_Channel::AuxSwitchPos ch_flag) 
 {
     sw_pos = SwitchPos(ch_flag);
@@ -350,6 +369,7 @@ AP_Quicktune::AxisName AP_Quicktune::get_current_axis()
 
 float AP_Quicktune::get_slew_rate(AP_Quicktune::AxisName axis)
 {
+    auto &attitude_control = *AC_AttitudeControl::get_singleton();
     switch(axis) {
     case AxisName::RLL:
         return attitude_control.get_rate_roll_pid().get_pid_info().slew_rate;
@@ -546,6 +566,7 @@ AP_Quicktune::Stage AP_Quicktune::get_stage(AP_Quicktune::Param param)
 
 AP_Float *AP_Quicktune::get_param_pointer(AP_Quicktune::Param param)
 {
+    auto &attitude_control = *AC_AttitudeControl::get_singleton();
     switch (param)
     {
         case Param::RLL_P:

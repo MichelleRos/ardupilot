@@ -26,7 +26,7 @@ public:
     // Parameter block
     static const struct AP_Param::GroupInfo var_info[];
 
-    void update();
+    void update(bool mode_supports_quicktune);
     void update_switch_pos(const RC_Channel::AuxSwitchPos ch_flag);
 
 private:
@@ -122,7 +122,6 @@ private:
     float slew_target;
     uint8_t slew_steps;
     float slew_delta;
-    uint32_t last_update;
     SwitchPos sw_pos; //Switch pos to be set by aux func
     bool need_restore;
     float param_saved[uint8_t(Param::END)]; //Saved values of the parameters
@@ -151,7 +150,7 @@ private:
     const char* get_axis_name(AxisName axis);
     void Write_QUIK(float SRate, float Gain, Param param);
 
-    AC_AttitudeControl &attitude_control = *AC_AttitudeControl::get_singleton();
+    void abort_tune(void);
 };
 
 #endif  // AP_QUICKTUNE_ENABLED
