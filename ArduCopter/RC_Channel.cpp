@@ -651,7 +651,7 @@ bool RC_Channel_Copter::do_aux_function(const AUX_FUNC ch_option, const AuxSwitc
 #endif
 #if AP_QUICKTUNE_ENABLED
     case AUX_FUNC::QUICKTUNE:
-        do_aux_function_quicktune(ch_flag);
+        copter.quicktune.update_switch_pos(ch_flag);
         break;
 #endif
 
@@ -690,29 +690,6 @@ void RC_Channel_Copter::do_aux_function_change_force_flying(const AuxSwitchPos c
         break;
     }
 }
-
-#if AP_QUICKTUNE_ENABLED
-// called on any Quicktune Aux function change
-void RC_Channel_Copter::do_aux_function_quicktune(const AuxSwitchPos ch_flag)
-{
-    if (copter.quicktune == nullptr && !copter.arming.is_armed()) {
-        //first call, allocate quicktune object
-        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Quicktune: Initialised.");
-        copter.quicktune = NEW_NOTHROW AP_Quicktune();
-        if (copter.quicktune == nullptr) {
-            // Can't use BoardConfig error as this might happen while flying.
-            GCS_SEND_TEXT(MAV_SEVERITY_ERROR, "Quicktune: unable to allocate.");
-            return;
-        }
-        AP_Param::load_object_from_eeprom(copter.quicktune, copter.quicktune->var_info);
-    } else if (copter.quicktune == nullptr && copter.arming.is_armed()){
-        GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Quicktune: Must be disarmed to initialise.");
-    }
-    if (copter.quicktune != nullptr) {
-        copter.quicktune->update_switch_pos(ch_flag);
-    }
-}
-#endif
 
 // save_trim - adds roll and pitch trims from the radio to ahrs
 void Copter::save_trim()

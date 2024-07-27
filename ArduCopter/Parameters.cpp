@@ -496,7 +496,7 @@ const AP_Param::Info Copter::var_info[] = {
 #if AP_QUICKTUNE_ENABLED == ENABLED
     // @Group: QUIK_
     // @Path: ../libraries/AP_Quicktune/AP_Quicktune.cpp
-    GOBJECTPTR(quicktune, "QUIK_",  AP_Quicktune),
+    GOBJECT(quicktune, "QUIK_",  AP_Quicktune),
 #endif
 
     // @Group: ATC_

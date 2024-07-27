@@ -495,7 +495,7 @@ private:
 #endif
 
 #if AP_QUICKTUNE_ENABLED
-    AP_Quicktune *quicktune;
+    AP_Quicktune quicktune;
 #endif
 
     // System Timers
@@ -726,6 +726,9 @@ private:
     bool get_wp_bearing_deg(float &bearing) const override;
     bool get_wp_crosstrack_error_m(float &xtrack_error) const override;
     bool get_rate_ef_targets(Vector3f& rate_ef_targets) const override;
+#if AP_QUICKTUNE_ENABLED
+    void update_quicktune(void);
+#endif
 
     // Attitude.cpp
     void update_throttle_hover();
