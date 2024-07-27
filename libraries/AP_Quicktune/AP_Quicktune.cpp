@@ -12,6 +12,12 @@
 #define DEFAULT_SMAX 50.0
 #define OPTIONS_TWO_POSITION (1<<0)
 
+/*
+  if while tuning the attitude error goes over 25 degrees then abort
+  the tune
+ */
+#define MAX_ATTITUDE_ERROR 25.0
+
 #include <AP_Common/AP_Common.h>
 #include <AP_Vehicle/AP_Vehicle.h>
 #include <AP_RCMapper/AP_RCMapper.h>
@@ -121,6 +127,10 @@ const AP_Param::GroupInfo AP_Quicktune::var_info[] = {
 void AP_Quicktune::update(bool mode_supports_quicktune)
 {
     if (enable < 1) {
+        if (need_restore) {
+            GCS_SEND_TEXT(MAV_SEVERITY_EMERGENCY, "QuickTune disabled");
+            abort_tune();
+        }
         return;
     }
     const uint32_t now = AP_HAL::millis();
@@ -130,8 +140,20 @@ void AP_Quicktune::update(bool mode_supports_quicktune)
           user has switched to a non-quicktune mode. If we have
           pending parameter changes then revert
          */
+        if (need_restore) {
+            GCS_SEND_TEXT(MAV_SEVERITY_EMERGENCY, "QuickTune aborted");
+        }
         abort_tune();
         return;
+    }
+
+    if (need_restore) {
+        const float att_error = AC_AttitudeControl::get_singleton()->get_att_error_angle_deg();
+        if (att_error > MAX_ATTITUDE_ERROR) {
+            GCS_SEND_TEXT(MAV_SEVERITY_EMERGENCY, "Tuning: attitude error %.1fdeg - ABORTING", att_error);
+            abort_tune();
+            return;
+        }
     }
 
     if (have_pilot_input()) {
@@ -295,12 +317,11 @@ void AP_Quicktune::update(bool mode_supports_quicktune)
 /*
   abort the tune if it has started
  */
-void AP_Quicktune::abort_tune(void)
+void AP_Quicktune::abort_tune()
 {
     if (need_restore) {
         need_restore = false;
         restore_all_params();
-        GCS_SEND_TEXT(MAV_SEVERITY_EMERGENCY, "QuickTune aborted");
     }
     tune_done_time = 0;
     reset_axes_done();
