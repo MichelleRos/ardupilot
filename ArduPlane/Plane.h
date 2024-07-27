@@ -307,7 +307,7 @@ private:
 #endif
 
 #if AP_QUICKTUNE_ENABLED
-    AP_Quicktune *quicktune;
+    AP_Quicktune quicktune;
 #endif
     
     // This is the state of the flight control system
@@ -844,6 +844,10 @@ private:
        terrain_bitmask bitmask;
     };
     static const TerrainLookupTable Terrain_lookup[];
+#endif
+
+#if AP_QUICKTUNE_ENABLED
+    void update_quicktune(void);
 #endif
 
     // Attitude.cpp

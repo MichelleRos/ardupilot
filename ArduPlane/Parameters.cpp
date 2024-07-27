@@ -1000,7 +1000,7 @@ const AP_Param::Info Plane::var_info[] = {
 #if AP_QUICKTUNE_ENABLED == ENABLED
     // @Group: QUIK_
     // @Path: ../libraries/AP_Quicktune/AP_Quicktune.cpp
-    GOBJECTPTR(quicktune, "QUIK_",  AP_Quicktune),
+    GOBJECT(quicktune, "QUIK_",  AP_Quicktune),
 #endif
     
     AP_VAREND

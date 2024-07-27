@@ -30,9 +30,6 @@ private:
     void do_aux_function_soaring_3pos(AuxSwitchPos ch_flag);
 
     void do_aux_function_flare(AuxSwitchPos ch_flag);
-#if AP_QUICKTUNE_ENABLED
-    void do_aux_function_quicktune(const AuxSwitchPos ch_flag);
-#endif
 };
 
 class RC_Channels_Plane : public RC_Channels
