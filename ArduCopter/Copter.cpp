@@ -262,6 +262,9 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] = {
 #if HAL_BUTTON_ENABLED
     SCHED_TASK_CLASS(AP_Button,            &copter.button,              update,           5, 100, 168),
 #endif
+#if AP_QUICKTUNE_ENABLED
+    SCHED_TASK(update_quicktune,       40, 100, 171),
+#endif
 #if AP_INERTIALSENSOR_FAST_SAMPLE_WINDOW_ENABLED
     // don't delete this, there is an equivalent (virtual) in AP_Vehicle for the non-rate loop case
     SCHED_TASK(update_dynamic_notch_at_specified_rate_main,                       LOOP_RATE, 200, 215),
@@ -925,6 +928,18 @@ void Copter::update_altitude()
     }
 #endif
 }
+
+#if AP_QUICKTUNE_ENABLED
+/*
+  update AP_Quicktune object. We pass the supports_quicktune() method
+  in so that quicktune can detect if the user changes to a
+  non-quicktune capable mode while tuning and the gains can be reverted
+ */
+void Copter::update_quicktune(void)
+{
+    quicktune.update(flightmode->supports_quicktune());
+}
+#endif
 
 // vehicle specific waypoint info helpers
 bool Copter::get_wp_distance_m(float &distance) const
