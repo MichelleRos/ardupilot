@@ -718,10 +718,23 @@ float AP_Quicktune::gain_limit(AP_Quicktune::Param param)
    return 0.0;
 }
 
+
+// @LoggerMessage: QUIK
+// @Description: Quicktune
+// @Field: TimeUS: Time since system startup
+// @Field: SRate: slew rate
+// @Field: Gain: test gain for current axis and PID element
+// @Field: Param: name of parameter being being tuned
+// @Field: ParamNo: number of parameter being tuned
 void AP_Quicktune::Write_QUIK(float srate, float gain, AP_Quicktune::Param param)
 {
 #if HAL_LOGGING_ENABLED
-    AP::logger().WriteStreaming("QUIK","TimeUS,SRate,Gain,Param,ParamNo", "QffNI", AP_HAL::micros64(), srate, gain, get_param_name(param), int(param));
+    AP::logger().WriteStreaming("QUIK","TimeUS,SRate,Gain,Param,ParamNo", "QffNI",
+                                AP_HAL::micros64(),
+                                srate,
+                                gain,
+                                get_param_name(param),
+                                unsigned(param));
 #endif
 }
 
