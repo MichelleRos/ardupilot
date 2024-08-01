@@ -746,56 +746,56 @@ const AP_Param::GroupInfo Loiter::var_info[] = {
     // @User: Advanced
     AP_SUBGROUPINFO(pid_pos_yaw, "POSYAW_", 7, Loiter, AC_PID),
 
-    // @Param: MAX_VEL_X
+    // @Param: MAX_VELX
     // @DisplayName: Max X Velocity
     // @Description: Sets the maximum X velocity, in m/s
     // @Range: 0.2 5
     // @User: Standard
     AP_GROUPINFO("MAX_VELX", 8, Loiter, max_vel_x, 0.5),
 
-    // @Param: MAX_VEL_Y
+    // @Param: MAX_VELY
     // @DisplayName: Max Y Velocity
     // @Description: Sets the maximum Y velocity, in m/s
     // @Range: 0.2 5
     // @User: Standard
     AP_GROUPINFO("MAX_VELY", 9, Loiter, max_vel_y, 0.5),
 
-    // @Param: MAX_VEL_Z
+    // @Param: MAX_VELZ
     // @DisplayName: Max Z Velocity
     // @Description: Sets the maximum Z velocity, in m/s
     // @Range: 0.2 5
     // @User: Standard
     AP_GROUPINFO("MAX_VELZ", 10, Loiter, max_vel_z, 0.4),
 
-    // @Param: MAX_VEL_YAW
+    // @Param: MAX_VELYAW
     // @DisplayName: Max yaw Velocity
     // @Description: Sets the maximum yaw velocity, in rad/s
     // @Range: 0.2 5
     // @User: Standard
     AP_GROUPINFO("MAX_VELYAW", 11, Loiter, max_vel_yaw, 0.5),
 
-    // @Param: MAX_POS_X
+    // @Param: MAX_POSX
     // @DisplayName: Max X Position change
     // @Description: Sets the maximum X position change, in m/s
     // @Range: 0.1 5
     // @User: Standard
     AP_GROUPINFO("MAX_POSX", 12, Loiter, max_pos_x, 0.2),
 
-    // @Param: MAX_POS_Y
+    // @Param: MAX_POSY
     // @DisplayName: Max Y Position change
     // @Description: Sets the maximum Y position change, in m/s
     // @Range: 0.1 5
     // @User: Standard
     AP_GROUPINFO("MAX_POSY", 13, Loiter, max_pos_y, 0.2),
 
-    // @Param: MAX_POS_Z
+    // @Param: MAX_POSZ
     // @DisplayName: Max Z Position change
     // @Description: Sets the maximum Z position change, in m/s
     // @Range: 0.1 5
     // @User: Standard
     AP_GROUPINFO("MAX_POSZ", 14, Loiter, max_pos_z, 0.15),
 
-    // @Param: MAX_POS_YAW
+    // @Param: MAX_POSYAW
     // @DisplayName: Max Yaw Position change
     // @Description: Sets the maximum Yaw position change, in rad/s
     // @Range: 0.1 5
