@@ -98,7 +98,8 @@ public:
     //Run Loiter controller with target velocity and yaw velocity in body frame. Expects to be called at loop rate.
     void run_vel(Vector3f& target_vel, float& target_vel_yaw, Vector4b axes_disabled, bool log);
 
-    void run_level(float& out_right_com, float& out_front_com);
+    void run_level_roll(float& out_right_com);
+    void run_level_pitch(float& out_front_com);
 
     bool target_within(float distance){
         return (targ_dist <= distance);
