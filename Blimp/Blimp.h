@@ -53,7 +53,7 @@
 #include <Filter/NotchFilter.h>
 
 #include <AP_Mission/AP_Mission.h>                              // Mission command library
-#include <AP_Mission/AP_Mission_ChangeDetector.h>               // Mission command change detection 
+#include <AP_Mission/AP_Mission_ChangeDetector.h>               // Mission command change detection
 
 // Configuration
 #include "defines.h"

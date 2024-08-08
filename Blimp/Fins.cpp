@@ -127,7 +127,7 @@ void Fins::output()
 #endif
 
     if (!is_equal(float(blimp.g.stream_rate), 0.0f) && AP_HAL::millis() % int((1 / blimp.g.stream_rate) * 1000) < 30){
-        gcs().send_named_float("FINIR", right_out); 
+        gcs().send_named_float("FINIR", right_out);
         gcs().send_named_float("FINIF", front_out);
         gcs().send_named_float("FINID", down_out);
         gcs().send_named_float("FINIY", yaw_out);

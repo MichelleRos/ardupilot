@@ -466,7 +466,7 @@ const AP_Param::GroupInfo Loiter::var_info[] = {
     // @Range: 1 8
     // @User: Advanced
     AP_SUBGROUPINFO(pid_pos_x, "POSX_", 4, Loiter, AC_PID),
- 
+
     // @Param: POSY_P
     // @DisplayName: Y axis position controller P gain
     // @Description: Y axis position controller P gain.  Corrects in proportion to the difference between the desired Y position vs actual Y position
@@ -843,7 +843,7 @@ const AP_Param::GroupInfo Loiter::var_info[] = {
 void Loiter::run(Vector3f& target_pos, float& target_yaw, Vector4b axes_disabled)
 {
     targ_dist = sqrtf(blimp.pos_ned.distance_squared(target_pos));
-    
+
     const float dt = blimp.scheduler.get_last_loop_time_s();
 
     float yaw_ef = blimp.ahrs.get_yaw();
@@ -950,7 +950,7 @@ void Loiter::run_vel(Vector3f& target_vel_ef, float& target_vel_yaw, Vector4b ax
                                 scaler_x, scaler_y, scaler_z, scaler_yaw, scaler_x_n, scaler_y_n, scaler_z_n, scaler_yaw_n);
 #endif
     if (!is_equal(float(blimp.g.stream_rate), 0.0f) && AP_HAL::millis() % int((1 / blimp.g.stream_rate) * 1000) < 30){
-        gcs().send_named_float("BSCXN", scaler_x_n); 
+        gcs().send_named_float("BSCXN", scaler_x_n);
         gcs().send_named_float("BSCYN", scaler_y_n);
         gcs().send_named_float("BSCZN", scaler_z_n);
         gcs().send_named_float("BSCYAWN", scaler_yaw_n);
@@ -1057,7 +1057,7 @@ void Loiter::run_vel(Vector3f& target_vel_ef, float& target_vel_yaw, Vector4b ax
 void Loiter::run_level_roll(float& out_right_com)
 {
     const float dt = blimp.scheduler.get_last_loop_time_s();
-    
+
     float level_roll = -blimp.loiter->pid_lvl_roll.update_all(0, blimp.ahrs.get_roll(), dt, 0);
 
     float out_right_lvl = constrain_float(level_roll, level_max, -level_max);
@@ -1074,7 +1074,7 @@ void Loiter::run_level_roll(float& out_right_com)
     blimp.motors->right_out = out_right_com + out_right_lvl;
 
     if (!is_equal(float(blimp.g.stream_rate), 0.0f) && AP_HAL::millis() % int((1 / blimp.g.stream_rate) * 1000) < 30){
-        gcs().send_named_float("LVLRl", level_roll); 
+        gcs().send_named_float("LVLRl", level_roll);
         gcs().send_named_float("LVLRol", out_right_lvl);
         gcs().send_named_float("LVLRoc", out_right_com);
     }
@@ -1090,7 +1090,7 @@ void Loiter::run_level_roll(float& out_right_com)
 void Loiter::run_level_pitch(float& out_front_com)
 {
     const float dt = blimp.scheduler.get_last_loop_time_s();
-    
+
     float level_pitch = -blimp.loiter->pid_lvl_pitch.update_all(0, blimp.ahrs.get_pitch(), dt, 0);
 
     float out_front_lvl = constrain_float(level_pitch, level_max, -level_max);
@@ -1107,7 +1107,7 @@ void Loiter::run_level_pitch(float& out_front_com)
     blimp.motors->front_out = out_front_com + out_front_lvl;
 
     if (!is_equal(float(blimp.g.stream_rate), 0.0f) && AP_HAL::millis() % int((1 / blimp.g.stream_rate) * 1000) < 30){
-        gcs().send_named_float("LVLPl", level_pitch); 
+        gcs().send_named_float("LVLPl", level_pitch);
         gcs().send_named_float("LVLPol", out_front_lvl);
         gcs().send_named_float("LVLPoc", out_front_com);
     }
