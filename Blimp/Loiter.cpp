@@ -1060,7 +1060,7 @@ void Loiter::run_level_roll(float& out_right_com)
 
     float level_roll = -blimp.loiter->pid_lvl_roll.update_all(0, blimp.ahrs.get_roll(), dt, 0);
 
-    float out_right_lvl = constrain_float(level_roll, level_max, -level_max);
+    float out_right_lvl = constrain_float(level_roll, -level_max, level_max);
 
     float totalr = out_right_lvl + out_right_com;
     if (totalr > blimp.motors->thr_max) {
@@ -1093,7 +1093,7 @@ void Loiter::run_level_pitch(float& out_front_com)
 
     float level_pitch = -blimp.loiter->pid_lvl_pitch.update_all(0, blimp.ahrs.get_pitch(), dt, 0);
 
-    float out_front_lvl = constrain_float(level_pitch, level_max, -level_max);
+    float out_front_lvl = constrain_float(level_pitch, -level_max, level_max);
 
     float totalf = out_front_lvl + out_front_com;
     if (totalf > blimp.motors->thr_max) {
