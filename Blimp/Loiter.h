@@ -78,6 +78,7 @@ public:
     AC_PID pid_lvl_roll{1, 0.2, 0, 0, 0.5, 0, 0, 0};
     AP_Float level_max;
     AP_Float level_dz;
+    AP_Float max_vel_yaw_s;
 
     AP_Float    max_vel_x;
     AP_Float    max_vel_y;
@@ -93,7 +94,6 @@ public:
     AP_Float    scaler_spd;
     AP_Float    pos_lag;
 
-
     //Run Loiter controller with target position and yaw in global frame. Expects to be called at loop rate.
     void run(Vector3f& target_pos, float& target_yaw, Vector4b axes_disabled);
     //Run Loiter controller with target velocity and yaw velocity in body frame. Expects to be called at loop rate.
@@ -101,6 +101,7 @@ public:
 
     void run_level_roll(float& out_right_com);
     void run_level_pitch(float& out_front_com);
+    void run_yaw_stab(float& out_yaw_com);
 
     bool target_within(float distance){
         return (targ_dist <= distance);

@@ -837,6 +837,7 @@ const AP_Param::GroupInfo Loiter::var_info[] = {
     AP_SUBGROUPINFO(pid_lvl_roll, "LVLRLL_", 21, Loiter, AC_PID),
     AP_GROUPINFO("LVLMAX", 22, Loiter, level_max, 0), //Max throttle output to level, use 0 to disable
     AP_GROUPINFO("LVLDZ", 23, Loiter, level_dz, 0), //Deadzone in degrees (no level output when roll/pitch below this amount from zero, 0 to disable
+    AP_GROUPINFO("MAX_VELYAWS", 24, Loiter, max_vel_yaw_s, 0), //max yaw velocity in level mode, in rad/s
 
     AP_GROUPEND
 };
@@ -1016,21 +1017,13 @@ void Loiter::run_vel(Vector3f& target_vel_ef, float& target_vel_yaw, Vector4b ax
         blimp.motors->front_out = 0;
     } else if (axes_disabled.x);
     else {
-        if (is_zero(level_max)) {
-            blimp.motors->front_out = actuator.x;
-        } else {
-            run_level_pitch(actuator.x);
-        }
+        run_level_pitch(actuator.x);
     }
     if (zero.y) {
         blimp.motors->right_out = 0;
     } else if (axes_disabled.y);
     else {
-        if (is_zero(level_max)) {
-            blimp.motors->right_out = actuator.y;
-        } else {
-            run_level_roll(actuator.y);
-        }
+        run_level_roll(actuator.y);
     }
     if (zero.z) {
         blimp.motors->down_out = 0;
@@ -1056,78 +1049,103 @@ void Loiter::run_vel(Vector3f& target_vel_ef, float& target_vel_yaw, Vector4b ax
 
 void Loiter::run_level_roll(float& out_right_com)
 {
-    const float dt = blimp.scheduler.get_last_loop_time_s();
-
-    float roll = blimp.ahrs.get_roll();
-    float level_roll = -blimp.loiter->pid_lvl_roll.update_all(0, roll, dt, 0);
-
-    float out_right_lvl;
-    if (fabsf(roll) < level_dz) {
-        out_right_lvl = 0;
+    if (is_zero(level_max)) {
+            blimp.motors->right_out = out_right_com;
     } else {
-        out_right_lvl = constrain_float(level_roll, -level_max, level_max);
-    }
+        const float dt = blimp.scheduler.get_last_loop_time_s();
 
-    float totalr = out_right_lvl + out_right_com;
-    if (totalr > blimp.motors->thr_max) {
-        out_right_com = out_right_com - (totalr - blimp.motors->thr_max);
-    }
+        float roll = blimp.ahrs.get_roll();
+        float level_roll = -blimp.loiter->pid_lvl_roll.update_all(0, roll, dt, 0);
 
-    if (!blimp.motors->armed()) {
-        blimp.loiter->pid_lvl_roll.set_integrator(0);
-    }
+        float out_right_lvl;
+        if (fabsf(roll) < level_dz) {
+            out_right_lvl = 0;
+        } else {
+            out_right_lvl = constrain_float(level_roll, -level_max, level_max);
+        }
 
-    blimp.motors->right_out = out_right_com + out_right_lvl;
+        float totalr = out_right_lvl + out_right_com;
+        if (totalr > blimp.motors->thr_max) {
+            out_right_com = out_right_com - (totalr - blimp.motors->thr_max);
+        }
 
-    if (!is_equal(float(blimp.g.stream_rate), 0.0f) && AP_HAL::millis() % int((1 / blimp.g.stream_rate) * 1000) < 30){
-        gcs().send_named_float("LVLRl", level_roll);
-        gcs().send_named_float("LVLRol", out_right_lvl);
-        gcs().send_named_float("LVLRoc", out_right_com);
+        if (!blimp.motors->armed()) {
+            blimp.loiter->pid_lvl_roll.set_integrator(0);
+        }
+
+        blimp.motors->right_out = out_right_com + out_right_lvl;
+
+        if (!is_equal(float(blimp.g.stream_rate), 0.0f) && AP_HAL::millis() % int((1 / blimp.g.stream_rate) * 1000) < 30){
+            gcs().send_named_float("LVLRl", level_roll);
+            gcs().send_named_float("LVLRol", out_right_lvl);
+            gcs().send_named_float("LVLRoc", out_right_com);
+        }
+    #if HAL_LOGGING_ENABLED
+        AP::logger().WriteStreaming("LVLR", "TimeUS,l,ol,oc", "Qfff",
+                                                AP_HAL::micros64(),
+                                                level_roll,
+                                                out_right_lvl,
+                                                out_right_com);
+    #endif
     }
-#if HAL_LOGGING_ENABLED
-    AP::logger().WriteStreaming("LVLR", "TimeUS,l,ol,oc", "Qfff",
-                                               AP_HAL::micros64(),
-                                               level_roll,
-                                               out_right_lvl,
-                                               out_right_com);
-#endif
 }
 
 void Loiter::run_level_pitch(float& out_front_com)
 {
-    const float dt = blimp.scheduler.get_last_loop_time_s();
-
-    float pitch = blimp.ahrs.get_pitch();
-    float level_pitch = -blimp.loiter->pid_lvl_pitch.update_all(0, pitch, dt, 0);
-
-    float out_front_lvl;
-    if (fabsf(pitch) < level_dz) {
-        out_front_lvl = 0;
+    if (is_zero(level_max)) {
+            blimp.motors->front_out = out_front_com;
     } else {
-        out_front_lvl = constrain_float(level_pitch, -level_max, level_max);
-    }
+        const float dt = blimp.scheduler.get_last_loop_time_s();
 
-    float totalf = out_front_lvl + out_front_com;
-    if (totalf > blimp.motors->thr_max) {
-        out_front_com = out_front_com - (totalf - blimp.motors->thr_max);
-    }
+        float pitch = blimp.ahrs.get_pitch();
+        float level_pitch = pid_lvl_pitch.update_all(0, pitch, dt, 0);
 
-    if (!blimp.motors->armed()) {
-        blimp.loiter->pid_lvl_roll.set_integrator(0);
-    }
+        float out_front_lvl;
+        if (fabsf(pitch) < level_dz) {
+            out_front_lvl = 0;
+        } else {
+            out_front_lvl = constrain_float(level_pitch, -level_max, level_max);
+        }
 
-    blimp.motors->front_out = out_front_com + out_front_lvl;
+        float totalf = out_front_lvl + out_front_com;
+        if (totalf > blimp.motors->thr_max) {
+            out_front_com = out_front_com - (totalf - blimp.motors->thr_max);
+        }
 
-    if (!is_equal(float(blimp.g.stream_rate), 0.0f) && AP_HAL::millis() % int((1 / blimp.g.stream_rate) * 1000) < 30){
-        gcs().send_named_float("LVLPl", level_pitch);
-        gcs().send_named_float("LVLPol", out_front_lvl);
-        gcs().send_named_float("LVLPoc", out_front_com);
+        if (!blimp.motors->armed()) {
+            blimp.loiter->pid_lvl_roll.set_integrator(0);
+        }
+
+        blimp.motors->front_out = out_front_com + out_front_lvl;
+
+        if (!is_equal(float(blimp.g.stream_rate), 0.0f) && AP_HAL::millis() % int((1 / blimp.g.stream_rate) * 1000) < 30){
+            gcs().send_named_float("LVLPl", level_pitch);
+            gcs().send_named_float("LVLPol", out_front_lvl);
+            gcs().send_named_float("LVLPoc", out_front_com);
+        }
+    #if HAL_LOGGING_ENABLED
+        AP::logger().WriteStreaming("LVLP", "TimeUS,l,ol,oc", "Qfff",
+                                                AP_HAL::micros64(),
+                                                level_pitch,
+                                                out_front_lvl,
+                                                out_front_com);
+    #endif
     }
-#if HAL_LOGGING_ENABLED
-    AP::logger().WriteStreaming("LVLP", "TimeUS,l,ol,oc", "Qfff",
-                                               AP_HAL::micros64(),
-                                               level_pitch,
-                                               out_front_lvl,
-                                               out_front_com);
-#endif
+}
+
+void Loiter::run_yaw_stab(float& out_yaw_com)
+{
+    if (is_zero(max_vel_yaw_s)) {
+        blimp.motors->yaw_out = out_yaw_com;
+    } else {
+        const float dt = blimp.scheduler.get_last_loop_time_s();
+
+        float out = pid_vel_yaw.update_all(out_yaw_com, blimp.vel_yaw_filtd, dt);
+
+        if (!blimp.motors->armed()) {
+            pid_vel_yaw.set_integrator(0);
+        }
+
+        blimp.motors->yaw_out = out;
+    }
 }
