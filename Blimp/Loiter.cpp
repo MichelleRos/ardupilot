@@ -836,6 +836,7 @@ const AP_Param::GroupInfo Loiter::var_info[] = {
     AP_SUBGROUPINFO(pid_lvl_pitch, "LVLPIT_", 20, Loiter, AC_PID),
     AP_SUBGROUPINFO(pid_lvl_roll, "LVLRLL_", 21, Loiter, AC_PID),
     AP_GROUPINFO("LVLMAX", 22, Loiter, level_max, 0), //Max throttle output to level, use 0 to disable
+    AP_GROUPINFO("LVLDZ", 23, Loiter, level_dz, 0), //Deadzone in degrees (no level output when roll/pitch below this amount from zero, 0 to disable
 
     AP_GROUPEND
 };
@@ -1051,16 +1052,21 @@ void Loiter::run_vel(Vector3f& target_vel_ef, float& target_vel_yaw, Vector4b ax
         AC_PosControl::Write_PSCD(0.0, -blimp.pos_ned.z * 100.0, 0.0, -target_vel_bf_c.z * 100.0, -vel_bf_filtd.z * 100.0, 0.0, 0.0, 0.0);
     }
 #endif
-
 }
 
 void Loiter::run_level_roll(float& out_right_com)
 {
     const float dt = blimp.scheduler.get_last_loop_time_s();
 
-    float level_roll = -blimp.loiter->pid_lvl_roll.update_all(0, blimp.ahrs.get_roll(), dt, 0);
+    float roll = blimp.ahrs.get_roll();
+    float level_roll = -blimp.loiter->pid_lvl_roll.update_all(0, roll, dt, 0);
 
-    float out_right_lvl = constrain_float(level_roll, -level_max, level_max);
+    float out_right_lvl;
+    if (fabsf(roll) < level_dz) {
+        out_right_lvl = 0;
+    } else {
+        out_right_lvl = constrain_float(level_roll, -level_max, level_max);
+    }
 
     float totalr = out_right_lvl + out_right_com;
     if (totalr > blimp.motors->thr_max) {
@@ -1091,9 +1097,15 @@ void Loiter::run_level_pitch(float& out_front_com)
 {
     const float dt = blimp.scheduler.get_last_loop_time_s();
 
-    float level_pitch = -blimp.loiter->pid_lvl_pitch.update_all(0, blimp.ahrs.get_pitch(), dt, 0);
+    float pitch = blimp.ahrs.get_pitch();
+    float level_pitch = -blimp.loiter->pid_lvl_pitch.update_all(0, pitch, dt, 0);
 
-    float out_front_lvl = constrain_float(level_pitch, -level_max, level_max);
+    float out_front_lvl;
+    if (fabsf(pitch) < level_dz) {
+        out_front_lvl = 0;
+    } else {
+        out_front_lvl = constrain_float(level_pitch, -level_max, level_max);
+    }
 
     float totalf = out_front_lvl + out_front_com;
     if (totalf > blimp.motors->thr_max) {
