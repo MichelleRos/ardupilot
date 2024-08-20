@@ -79,6 +79,7 @@ public:
     AP_Float level_max;
     AP_Float level_dz;
     AP_Float max_vel_yaws;
+    AP_Float max_vel_zs;
 
     AP_Float    max_vel_x;
     AP_Float    max_vel_y;
@@ -102,6 +103,7 @@ public:
     void run_level_roll(float& out_right_com);
     void run_level_pitch(float& out_front_com);
     void run_yaw_stab(float& out_yaw_com);
+    void run_down_stab(float& out_down_com);
 
     bool target_within(float distance){
         return (targ_dist <= distance);

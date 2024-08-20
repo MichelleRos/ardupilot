@@ -838,6 +838,7 @@ const AP_Param::GroupInfo Loiter::var_info[] = {
     AP_GROUPINFO("LVLMAX", 22, Loiter, level_max, 0), //Max throttle output to level, use 0 to disable
     AP_GROUPINFO("LVLDZ", 23, Loiter, level_dz, 0), //Deadzone in degrees (no level output when roll/pitch below this amount from zero, 0 to disable)
     AP_GROUPINFO("MAX_VELYAWS", 24, Loiter, max_vel_yaws, 0), //max yaw velocity in level mode, in rad/s
+    AP_GROUPINFO("MAX_VELZS", 25, Loiter, max_vel_zs, 0), //max z velocity in level mode, in rad/s
 
     AP_GROUPEND
 };
@@ -1147,5 +1148,24 @@ void Loiter::run_yaw_stab(float& out_yaw_com)
         }
 
         blimp.motors->yaw_out = out;
+    }
+}
+
+void Loiter::run_down_stab(float& out_down_com)
+{
+    float velD;
+    bool valid = blimp.ahrs.get_vert_pos_rate_D(velD);
+    if (is_zero(max_vel_zs) || !valid) {
+        blimp.motors->yaw_out = out_down_com;
+    } else {
+        const float dt = blimp.scheduler.get_last_loop_time_s();
+
+        float out = pid_vel_z.update_all(out_down_com, velD, dt);
+
+        if (!blimp.motors->armed()) {
+            pid_vel_z.set_integrator(0);
+        }
+
+        blimp.motors->down_out = out;
     }
 }
