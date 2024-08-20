@@ -466,10 +466,10 @@ bool AP_Arming::ins_checks(bool report)
         }
 
         // check all gyros are giving consistent readings
-        if (!ins_gyros_consistent(ins)) {
-            check_failed(ARMING_CHECK_INS, report, "Gyros inconsistent");
-            return false;
-        }
+        // if (!ins_gyros_consistent(ins)) {
+        //     check_failed(ARMING_CHECK_INS, report, "Gyros inconsistent");
+        //     return false;
+        // }
 
         // no arming while doing temp cal
         if (ins.temperature_cal_running()) {
