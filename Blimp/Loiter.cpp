@@ -1156,7 +1156,7 @@ void Loiter::run_down_stab(float& out_down_com)
     float velD;
     bool valid = blimp.ahrs.get_vert_pos_rate_D(velD);
     if (is_zero(max_vel_zs) || !valid) {
-        blimp.motors->yaw_out = out_down_com;
+        blimp.motors->down_out = out_down_com;
     } else {
         const float dt = blimp.scheduler.get_last_loop_time_s();
 
