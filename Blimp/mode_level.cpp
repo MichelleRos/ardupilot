@@ -8,8 +8,8 @@ bool ModeLevel::init(bool ignore_checks)
     if (is_zero(blimp.loiter->level_max)){
         GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "LOIT_LVLMAX is zero. Leveling is disabled.");
     }
-    if (is_zero(blimp.loiter->max_vel_yaw_s)){
-        GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "LOIT_MAX_VEL_YAW_S is zero. Yaw rate stabilization is manual.");
+    if (is_zero(blimp.loiter->max_vel_yaws)){
+        GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "LOIT_MAX_VEL_YAWS is zero. Yaw rate stabilization is manual.");
     }
     return true;
 }

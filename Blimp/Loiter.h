@@ -78,7 +78,7 @@ public:
     AC_PID pid_lvl_roll{1, 0.2, 0, 0, 0.5, 0, 0, 0};
     AP_Float level_max;
     AP_Float level_dz;
-    AP_Float max_vel_yaw_s;
+    AP_Float max_vel_yaws;
 
     AP_Float    max_vel_x;
     AP_Float    max_vel_y;

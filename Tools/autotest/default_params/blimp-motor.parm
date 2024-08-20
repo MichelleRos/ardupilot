@@ -15,7 +15,7 @@ SERVO4_TRIM      1500
 
 FINS_THR_MAX 0.4
 
-LOIT_POS_LAG         0.1
+LOIT_POS_LAG         1.0
 
 # default PID params for position and velocity-controlled modes
 LOIT_MAX_POS_X   2.0
