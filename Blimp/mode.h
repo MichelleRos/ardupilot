@@ -86,7 +86,7 @@ public:
 
     void update_navigation();
 
-    // pilot input processing
+    // pilot input processing - returns -1 to 1 form of pilot input
     void get_pilot_input(Vector3f &pilot, float &yaw);
 
 protected:

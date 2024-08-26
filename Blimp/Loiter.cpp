@@ -1123,12 +1123,12 @@ void Loiter::run_level_pitch(float& out_front_com)
 void Loiter::run_yaw_stab(float& out_yaw_com)
 {
     if (is_zero(max_vel_yaws)) {
-        blimp.motors->yaw_out = out_yaw_com;
+        blimp.motors->yaw_out = out_yaw_com*blimp.g.max_man_thr;
         return;
     }
     const float dt = blimp.scheduler.get_last_loop_time_s();
 
-    float out = pid_vel_yaw.update_all(out_yaw_com, blimp.vel_yaw_filtd, dt);
+    float out = pid_vel_yaw.update_all(out_yaw_com*max_vel_yaws, blimp.vel_yaw_filtd, dt);
 
     if (!blimp.motors->armed()) {
         pid_vel_yaw.set_integrator(0);
@@ -1142,11 +1142,12 @@ void Loiter::run_down_stab(float& out_down_com)
     float velD;
     bool valid = blimp.ahrs.get_vert_pos_rate_D(velD);
     if (is_zero(max_vel_zs) || !valid) {
-        blimp.motors->down_out = out_down_com;
+        blimp.motors->down_out = out_down_com*blimp.g.max_man_thr;
+        return;
     }
     const float dt = blimp.scheduler.get_last_loop_time_s();
 
-    float out = pid_vel_z.update_all(out_down_com, velD, dt);
+    float out = pid_vel_z.update_all(out_down_com*max_vel_zs, velD, dt);
 
     if (!blimp.motors->armed()) {
         pid_vel_z.set_integrator(0);

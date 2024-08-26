@@ -26,8 +26,8 @@ void ModeLevel::run()
 
     float out_right_com = pilot.y*g.max_man_thr;
     float out_front_com = pilot.x*g.max_man_thr;
-    float out_down_com = pilot.z*g.max_man_thr;
-    float out_yaw_com = pilot_yaw*g.max_man_thr;
+    float out_down_com = pilot.z;
+    float out_yaw_com = pilot_yaw;
 
     loiter->run_level_roll(out_right_com);
     loiter->run_level_pitch(out_front_com);
