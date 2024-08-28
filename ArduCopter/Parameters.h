@@ -334,10 +334,10 @@ public:
         k_param_waypoint_radius,     // remove
         k_param_circle_radius,       // remove
         k_param_waypoint_speed_max,  // remove
-        k_param_land_speed,
+        k_param_land_speed_fin,
         k_param_auto_velocity_z_min, // remove
         k_param_auto_velocity_z_max, // remove - 219
-        k_param_land_speed_high,
+        k_param_land_speed_init,
 
         //
         // 220: PI/D Controllers
@@ -422,8 +422,8 @@ public:
 
     // Waypoints
     //
-    AP_Int16        land_speed;
-    AP_Int16        land_speed_high;
+    AP_Float        land_speed_fin;
+    AP_Float        land_speed_init;
     AP_Int16        pilot_speed_up;    // maximum vertical ascending velocity the pilot may request
     AP_Int16        pilot_accel_z;               // vertical acceleration the pilot may request
 

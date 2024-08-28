@@ -185,23 +185,23 @@ const AP_Param::Info Copter::var_info[] = {
     // @User: Standard
     GSCALAR(wp_yaw_behavior,  "WP_YAW_BEHAVIOR",    WP_YAW_BEHAVIOR_DEFAULT),
 
-    // @Param: LAND_SPEED
+    // @Param: LAND_SPEED_FIN
     // @DisplayName: Land speed
-    // @Description: The descent speed for the final stage of landing in cm/s
-    // @Units: cm/s
-    // @Range: 30 200
-    // @Increment: 10
+    // @Description: The descent speed for the final stage of landing in m/s
+    // @Units: m/s
+    // @Range: 0.3 2.0
+    // @Increment: 0.1
     // @User: Standard
-    GSCALAR(land_speed,             "LAND_SPEED",   LAND_SPEED),
+    GSCALAR(land_speed_fin,             "LAND_SPEED_FIN",   LAND_SPEED_FIN),
 
-    // @Param: LAND_SPEED_HIGH
+    // @Param: LAND_SPEED_INIT
     // @DisplayName: Land speed high
-    // @Description: The descent speed for the first stage of landing in cm/s. If this is zero then WPNAV_SPEED_DN is used
-    // @Units: cm/s
-    // @Range: 0 500
-    // @Increment: 10
+    // @Description: The descent speed for the first stage of landing in m/s. If this is zero then WPNAV_SPEED_DN is used
+    // @Units: m/s
+    // @Range: 0 5
+    // @Increment: 0.1
     // @User: Standard
-    GSCALAR(land_speed_high,        "LAND_SPEED_HIGH",   0),
+    GSCALAR(land_speed_init,        "LAND_SPEED_INIT",   0),
     
     // @Param: PILOT_SPEED_UP
     // @DisplayName: Pilot maximum vertical speed ascending
@@ -873,7 +873,7 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
 
     // @Param: LAND_ALT_LOW
     // @DisplayName: Land alt low
-    // @Description: Altitude during Landing at which vehicle slows to LAND_SPEED
+    // @Description: Altitude during Landing at which vehicle slows to LAND_SPEED_FIN
     // @Units: cm
     // @Range: 100 10000
     // @Increment: 10
@@ -1194,7 +1194,7 @@ const AP_Param::GroupInfo ParametersG2::var_info2[] = {
 
     // @Param: PLDP_SPEED_DN
     // @DisplayName: Payload Place decent speed
-    // @Description: The maximum vertical decent velocity in m/s. If 0 LAND_SPEED value is used.
+    // @Description: The maximum vertical decent velocity in m/s. If 0 LAND_SPEED_FIN value is used.
     // @Units: m/s
     // @Range: 0 5
     // @User: Standard

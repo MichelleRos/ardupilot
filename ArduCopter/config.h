@@ -318,8 +318,8 @@
 //////////////////////////////////////////////////////////////////////////////
 // Landing
 //
-#ifndef LAND_SPEED
- # define LAND_SPEED    50          // the descent speed for the final stage of landing in cm/s
+#ifndef LAND_SPEED_FIN
+ # define LAND_SPEED_FIN    0.5          // the descent speed for the final stage of landing in cm/s
 #endif
 #ifndef LAND_REPOSITION_DEFAULT
  # define LAND_REPOSITION_DEFAULT   1   // by default the pilot can override roll/pitch during landing

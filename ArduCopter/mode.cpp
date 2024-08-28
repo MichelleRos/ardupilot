@@ -661,20 +661,20 @@ void Mode::land_run_vertical_control(bool pause_descent)
         ignore_descent_limit = (MAX(g2.land_alt_low,100) > get_alt_above_ground_cm()) || copter.ap.land_complete_maybe;
 
         float max_land_descent_velocity;
-        if (g.land_speed_high > 0) {
-            max_land_descent_velocity = -g.land_speed_high;
+        if (g.land_speed_init > 0) {
+            max_land_descent_velocity = -g.land_speed_init*100;
         } else {
             max_land_descent_velocity = pos_control->get_max_speed_down_cms();
         }
 
         // Don't speed up for landing.
-        max_land_descent_velocity = MIN(max_land_descent_velocity, -abs(g.land_speed));
+        max_land_descent_velocity = MIN(max_land_descent_velocity, -abs(g.land_speed_fin/100));
 
         // Compute a vertical velocity demand such that the vehicle approaches g2.land_alt_low. Without the below constraint, this would cause the vehicle to hover at g2.land_alt_low.
         cmb_rate = sqrt_controller(MAX(g2.land_alt_low,100)-get_alt_above_ground_cm(), pos_control->get_pos_z_p().kP(), pos_control->get_max_accel_z_cmss(), G_Dt);
 
         // Constrain the demanded vertical velocity so that it is between the configured maximum descent speed and the configured minimum descent speed.
-        cmb_rate = constrain_float(cmb_rate, max_land_descent_velocity, -abs(g.land_speed));
+        cmb_rate = constrain_float(cmb_rate, max_land_descent_velocity, -abs(g.land_speed_fin/100));
 
 #if AC_PRECLAND_ENABLED
         const bool navigating = pos_control->is_active_xy();
@@ -702,7 +702,7 @@ void Mode::land_run_vertical_control(bool pause_descent)
                 // compute desired descent velocity
                 const float precland_acceptable_error_cm = 15.0f;
                 const float precland_min_descent_speed_cms = 10.0f;
-                const float max_descent_speed_cms = abs(g.land_speed)*0.5f;
+                const float max_descent_speed_cms = abs(g.land_speed_fin/100)*0.5f;
                 const float land_slowdown = MAX(0.0f, target_error_cm*(max_descent_speed_cms/precland_acceptable_error_cm));
                 cmb_rate = MIN(-precland_min_descent_speed_cms, -max_descent_speed_cms+land_slowdown);
             }
