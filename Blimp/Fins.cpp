@@ -70,10 +70,10 @@ void Fins::setup_fins()
 
 void Fins::setup_motors()
 {   //   motor#   r   f   d    y
-    add_motor(0,  0,  1,  0,   1); //FrontLeft
-    add_motor(1,  0,  1,  0,  -1); //FrontRight
-    add_motor(2,  0,  0, -1,   0); //Up
-    add_motor(3,  1,  0,   0,  0); //Right
+    add_motor(0,  0,  1,  0,   1); //FrontLeft  33
+    add_motor(1,  0,  1,  0,  -1); //FrontRight 34
+    add_motor(2,  0,  0, -1,   0); //Up         35
+    add_motor(3,  1,  0,   0,  0); //Right      36
 
     SRV_Channels::set_angle(SRV_Channel::k_motor1, RC_SCALE);
     SRV_Channels::set_angle(SRV_Channel::k_motor2, RC_SCALE);
