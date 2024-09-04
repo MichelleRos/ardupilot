@@ -46,7 +46,8 @@ public:
     float scaler_y;
     float scaler_z;
     float scaler_yaw;
-    float lvl_scaler;
+    float lvl_scaler_rll;
+    float lvl_scaler_pit;
 
     float targ_dist;
 
@@ -57,6 +58,8 @@ public:
         scaler_y = 1;
         scaler_z = 1;
         scaler_yaw = 1;
+        lvl_scaler_rll = 1;
+        lvl_scaler_pit = 1;
         AP_Param::setup_object_defaults(this, var_info);
     };
 
@@ -78,9 +81,8 @@ public:
     AC_PID pid_lvl_pitch{1, 0.2, 0, 0, 0.5, 0, 0, 0};
     AC_PID pid_lvl_roll{1, 0.2, 0, 0, 0.5, 0, 0, 0};
     AP_Float level_max;
-    AP_Float level_dz;
-    AP_Float max_vel_yaws;
-    AP_Float max_vel_zs;
+    AP_Float level_dz_cen;
+    AP_Float level_dz_k;
     AP_Float lvl_scaler_spd;
 
     AP_Float    max_vel_x;
@@ -96,6 +98,13 @@ public:
     AP_Float    pid_dz;
     AP_Float    scaler_spd;
     AP_Float    pos_lag;
+    AP_Int16    options;
+
+    enum option {
+        LVL_EN_YAW_RATE= (1 << 0),
+        LVL_EN_YAW_POS=  (1 << 1),
+        LVL_EN_Z_RATE=   (1 << 2),
+    };
 
     //Run Loiter controller with target position and yaw in global frame. Expects to be called at loop rate.
     void run(Vector3f& target_pos, float& target_yaw, Vector4b axes_disabled);
@@ -104,7 +113,7 @@ public:
 
     void run_level_roll(float& out_right_com);
     void run_level_pitch(float& out_front_com);
-    void run_yaw_stab(float& out_yaw_com);
+    void run_yaw_stab(float& out_yaw_com, float& target_yaw);
     void run_down_stab(float& out_down_com);
 
     bool target_within(float distance){

@@ -482,6 +482,8 @@ public:
         return false;
     }
 
+    float target_yaw;
+
 protected:
 
     const char *name() const override

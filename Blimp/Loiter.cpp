@@ -839,9 +839,9 @@ const AP_Param::GroupInfo Loiter::var_info[] = {
     AP_SUBGROUPINFO(pid_lvl_pitch, "LVLPIT_", 20, Loiter, AC_PID),
     AP_SUBGROUPINFO(pid_lvl_roll, "LVLRLL_", 21, Loiter, AC_PID),
     AP_GROUPINFO("LVLMAX", 22, Loiter, level_max, 0), //Max throttle output to level, use 0 to disable
-    AP_GROUPINFO("LVLDZ", 23, Loiter, level_dz, 0), //Deadzone in degrees (no level output when roll/pitch below this amount from zero, 0 to disable)
-    AP_GROUPINFO("MAX_VELYAWS", 24, Loiter, max_vel_yaws, 0), //max yaw velocity in level mode, in rad/s
-    AP_GROUPINFO("MAX_VELZS", 25, Loiter, max_vel_zs, 0), //max z velocity in level mode, in rad/s
+    AP_GROUPINFO("LVLDZ_CEN", 23, Loiter, level_dz_cen, 0.08), //0 to disable
+    AP_GROUPINFO("LVLDZ_K", 24, Loiter, level_dz_k, 150),
+    AP_GROUPINFO("OPTIONS", 25, Loiter, options, 0), //1=Yaw rate,2=Yaw pos,4=Z rate
     AP_GROUPINFO("LVLSCSPD", 26, Loiter, lvl_scaler_spd, 0.5),
 
     AP_GROUPEND
@@ -1059,18 +1059,20 @@ void Loiter::run_level_roll(float& out_right_com)
         return;
     }
     const float dt = blimp.scheduler.get_last_loop_time_s();
+    const float roll = blimp.ahrs.get_roll();
 
-    float roll = blimp.ahrs.get_roll();
-    float level_roll = -blimp.loiter->pid_lvl_roll.update_all(0, roll, dt, 0);
-    
+    float lvl_scaler_n = 1;
+    if (level_dz_cen > 0) {
+        lvl_scaler_n = 1/(1+expf(-level_dz_k*(fabsf(roll)-level_dz_cen)));
+    }
+    lvl_scaler_rll = lvl_scaler_rll*lvl_scaler_spd + lvl_scaler_n*(1-lvl_scaler_spd);
+
+    float level_roll = -blimp.loiter->pid_lvl_roll.update_all(0, roll*lvl_scaler_rll, dt, 0);
     if (!blimp.motors->armed()) {
         blimp.loiter->pid_lvl_roll.set_integrator(0);
     }
 
     float out_right_lvl = constrain_float(level_roll, -level_max, level_max);
-    if (fabsf(roll) < level_dz) {
-        out_right_lvl = 0;
-    }
 
     blimp.motors->right_out = out_right_com + out_right_lvl;
 
@@ -1078,13 +1080,17 @@ void Loiter::run_level_roll(float& out_right_com)
         gcs().send_named_float("LVLRl", level_roll);
         gcs().send_named_float("LVLRol", out_right_lvl);
         gcs().send_named_float("LVLRoc", out_right_com);
+        gcs().send_named_float("LVLRsn", lvl_scaler_n);
+        gcs().send_named_float("LVLRs", lvl_scaler_rll);
     }
 #if HAL_LOGGING_ENABLED
-    AP::logger().WriteStreaming("LVLR", "TimeUS,l,ol,oc", "Qfff",
+    AP::logger().WriteStreaming("LVLR", "TimeUS,l,ol,oc,sn,s", "Qfffff",
                                             AP_HAL::micros64(),
                                             level_roll,
                                             out_right_lvl,
-                                            out_right_com);
+                                            out_right_com,
+                                            lvl_scaler_n,
+                                            lvl_scaler_rll);
 #endif
 }
 
@@ -1095,22 +1101,21 @@ void Loiter::run_level_pitch(float& out_front_com)
         return;
     }
     const float dt = blimp.scheduler.get_last_loop_time_s();
+    const float pitch = blimp.ahrs.get_pitch();
 
-    float pitch = blimp.ahrs.get_pitch();
+    float lvl_scaler_n = 1;
+    if (level_dz_cen > 0) {
+        lvl_scaler_n = 1/(1+expf(-level_dz_k*(fabsf(pitch)-level_dz_cen)));
+        // graph: y=1/(1+e^(−150(x−0.08))) where x is from 0 to 0.4
+        // y=1/\left(1+e^{-150(x-0.08)}\right)
+    }
+    lvl_scaler_pit = lvl_scaler_pit*lvl_scaler_spd + lvl_scaler_n*(1-lvl_scaler_spd);
 
+    float level_pitch = pid_lvl_pitch.update_all(0, pitch*lvl_scaler_pit, dt);
     if (!blimp.motors->armed()) {
         blimp.loiter->pid_lvl_roll.set_integrator(0);
     }
 
-    float lvl_scaler_n = 1;
-    if (level_dz > 0 && fabsf(pitch) < level_dz) {
-        lvl_scaler_n = fabsf(pitch)/level_dz;
-        //Try do do DZ as a scaling thing instead - so that as far as the PIDs know, when they get to the edge of the DZ (i.e. fabsf(pitch) barely greater than level_dz), the angle it's out by is also quite small.
-        //Good idea for Loiter DZ too - so scale down the PIDs as it gets past the DZ part & closer to target.
-    }
-    lvl_scaler = lvl_scaler*lvl_scaler_spd + lvl_scaler_n*(1-lvl_scaler_spd);
-
-    float level_pitch = pid_lvl_pitch.update_all(0, pitch*lvl_scaler, dt);
     float out_front_lvl = constrain_float(level_pitch, -level_max, level_max);
 
     blimp.motors->front_out = out_front_com + out_front_lvl;
@@ -1120,7 +1125,7 @@ void Loiter::run_level_pitch(float& out_front_com)
         gcs().send_named_float("LVLPol", out_front_lvl);
         gcs().send_named_float("LVLPoc", out_front_com);
         gcs().send_named_float("LVLPsn", lvl_scaler_n);
-        gcs().send_named_float("LVLPs", lvl_scaler);
+        gcs().send_named_float("LVLPs", lvl_scaler_pit);
 
     }
 #if HAL_LOGGING_ENABLED
@@ -1130,19 +1135,33 @@ void Loiter::run_level_pitch(float& out_front_com)
                                             out_front_lvl,
                                             out_front_com,
                                             lvl_scaler_n,
-                                            lvl_scaler);
+                                            lvl_scaler_pit);
 #endif
 }
 
-void Loiter::run_yaw_stab(float& out_yaw_com)
+void Loiter::run_yaw_stab(float& out_yaw_com, float& target_yaw)
 {
-    if (is_zero(max_vel_yaws)) {
+    if (!((options & Loiter::LVL_EN_YAW_RATE) || (options & Loiter::LVL_EN_YAW_POS))) {
         blimp.motors->yaw_out = out_yaw_com*blimp.g.max_man_thr;
         return;
     }
     const float dt = blimp.scheduler.get_last_loop_time_s();
 
-    float out = pid_vel_yaw.update_all(out_yaw_com*max_vel_yaws, blimp.vel_yaw_filtd, dt);
+    float target_vel_yaw;
+    if (options & Loiter::LVL_EN_YAW_POS) {
+        const float yaw = blimp.ahrs.get_yaw();
+        const float pilot_yaw = out_yaw_com * max_pos_yaw * dt;
+        if (fabsf(wrap_PI(target_yaw-yaw)) < max_pos_yaw*pos_lag) {
+            target_yaw = wrap_PI(target_yaw + pilot_yaw);
+        }
+        target_vel_yaw = pid_pos_yaw.update_error(wrap_PI(target_yaw - yaw), dt);
+        pid_pos_yaw.set_target_rate(target_yaw);
+        pid_pos_yaw.set_actual_rate(yaw);
+        target_vel_yaw = constrain_float(target_vel_yaw, -max_vel_yaw, max_vel_yaw);
+    } else {
+        target_vel_yaw = out_yaw_com*max_vel_yaw;
+    }
+    float out = pid_vel_yaw.update_all(target_vel_yaw, blimp.vel_yaw_filtd, dt);
 
     if (!blimp.motors->armed()) {
         pid_vel_yaw.set_integrator(0);
@@ -1155,13 +1174,13 @@ void Loiter::run_down_stab(float& out_down_com)
 {
     float velD;
     bool valid = blimp.ahrs.get_vert_pos_rate_D(velD);
-    if (is_zero(max_vel_zs) || !valid) {
+    if (!(options & Loiter::LVL_EN_Z_RATE) || !valid) {
         blimp.motors->down_out = out_down_com*blimp.g.max_man_thr;
         return;
     }
     const float dt = blimp.scheduler.get_last_loop_time_s();
 
-    float out = pid_vel_z.update_all(out_down_com*max_vel_zs, velD, dt);
+    float out = pid_vel_z.update_all(out_down_com*max_vel_z, velD, dt);
 
     if (!blimp.motors->armed()) {
         pid_vel_z.set_integrator(0);
