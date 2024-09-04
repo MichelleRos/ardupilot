@@ -103,6 +103,7 @@ public:
         k_param_wp_jerk,
         k_param_wp_vel,
         k_param_wp_rad,
+        k_param_wp_fin_dist,
 
         //50 to 55, 57 to60 were used by the max vel and max pos parameters, disable mask and pid deadzone before they were moved to Loiter class.
         k_param_simple_mode = 56,
@@ -245,6 +246,7 @@ public:
     AP_Float        wp_jerk;
     AP_Float        wp_vel;
     AP_Float        wp_rad;
+    AP_Float        wp_fin_dist;
     AP_Float        stream_rate;
     AP_Int8         simple_mode;
     AP_Float        max_man_thr;

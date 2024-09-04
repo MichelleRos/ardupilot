@@ -378,6 +378,7 @@ public:
     Vector3f origin;
     Vector3f destination;
     bool fast_wp;
+    bool mission_finished;
 
     AP_Mission mission{
         FUNCTOR_BIND_MEMBER(&ModeAuto::start_command, bool, const AP_Mission::Mission_Command &),

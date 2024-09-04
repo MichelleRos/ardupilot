@@ -15,6 +15,8 @@ bool ModeAuto::init(bool ignore_checks)
     scurve_this_leg.init();
     scurve_next_leg.init();
 
+    mission_finished = false;
+
     return true;
 }
 
@@ -52,6 +54,13 @@ void ModeAuto::run()
     blimp.loiter->run(target_pos, target_yaw, Vector4b{false,false,false,false});
     gcs().send_named_float("TarX", target_pos.x);
     gcs().send_named_float("TarY", target_pos.y);
+
+    if (mission_finished) {
+        GCS_SEND_TEXT(MAV_SEVERITY_NOTICE, "End of mission.");
+        if (blimp.loiter->target_within(g.wp_fin_dist)) {
+            set_mode(Mode::Number::LOITER, ModeReason::MISSION_END);
+        }
+    }
 }
 
 Location ModeAuto::loc_from_cmd(const AP_Mission::Mission_Command& cmd, const Location& default_loc) const
@@ -151,11 +160,8 @@ void ModeAuto::exit_mission()
 {
     // play a tone
     AP_Notify::events.mission_complete = 1;
-    // switch to mode loiter
-
-    //need to do a delay or check for 0 velocity here.
+    mission_finished = true;
     //show alt & spd to 2dp
-    set_mode(Mode::Number::LOITER, ModeReason::MISSION_END);
 }
 
 // get waypoint's location from command and send to scurves
