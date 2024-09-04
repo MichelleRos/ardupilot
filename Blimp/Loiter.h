@@ -46,6 +46,7 @@ public:
     float scaler_y;
     float scaler_z;
     float scaler_yaw;
+    float lvl_scaler;
 
     float targ_dist;
 
@@ -80,6 +81,7 @@ public:
     AP_Float level_dz;
     AP_Float max_vel_yaws;
     AP_Float max_vel_zs;
+    AP_Float lvl_scaler_spd;
 
     AP_Float    max_vel_x;
     AP_Float    max_vel_y;

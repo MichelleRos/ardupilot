@@ -842,6 +842,7 @@ const AP_Param::GroupInfo Loiter::var_info[] = {
     AP_GROUPINFO("LVLDZ", 23, Loiter, level_dz, 0), //Deadzone in degrees (no level output when roll/pitch below this amount from zero, 0 to disable)
     AP_GROUPINFO("MAX_VELYAWS", 24, Loiter, max_vel_yaws, 0), //max yaw velocity in level mode, in rad/s
     AP_GROUPINFO("MAX_VELZS", 25, Loiter, max_vel_zs, 0), //max z velocity in level mode, in rad/s
+    AP_GROUPINFO("LVLSCSPD", 26, Loiter, lvl_scaler_spd, 0.5),
 
     AP_GROUPEND
 };
@@ -1101,14 +1102,15 @@ void Loiter::run_level_pitch(float& out_front_com)
         blimp.loiter->pid_lvl_roll.set_integrator(0);
     }
 
-    float scaler = 1;
+    float lvl_scaler_n = 1;
     if (level_dz > 0 && fabsf(pitch) < level_dz) {
-        scaler = fabsf(pitch)/level_dz;
+        lvl_scaler_n = fabsf(pitch)/level_dz;
         //Try do do DZ as a scaling thing instead - so that as far as the PIDs know, when they get to the edge of the DZ (i.e. fabsf(pitch) barely greater than level_dz), the angle it's out by is also quite small.
         //Good idea for Loiter DZ too - so scale down the PIDs as it gets past the DZ part & closer to target.
     }
+    lvl_scaler = lvl_scaler*lvl_scaler_spd + lvl_scaler_n*(1-lvl_scaler_spd);
 
-    float level_pitch = pid_lvl_pitch.update_all(0, pitch*scaler, dt);
+    float level_pitch = pid_lvl_pitch.update_all(0, pitch*lvl_scaler, dt);
     float out_front_lvl = constrain_float(level_pitch, -level_max, level_max);
 
     blimp.motors->front_out = out_front_com + out_front_lvl;
@@ -1117,13 +1119,18 @@ void Loiter::run_level_pitch(float& out_front_com)
         gcs().send_named_float("LVLPl", level_pitch);
         gcs().send_named_float("LVLPol", out_front_lvl);
         gcs().send_named_float("LVLPoc", out_front_com);
+        gcs().send_named_float("LVLPsn", lvl_scaler_n);
+        gcs().send_named_float("LVLPs", lvl_scaler);
+
     }
 #if HAL_LOGGING_ENABLED
-    AP::logger().WriteStreaming("LVLP", "TimeUS,l,ol,oc", "Qfff",
+    AP::logger().WriteStreaming("LVLP", "TimeUS,l,ol,oc,sn,s", "Qfffff",
                                             AP_HAL::micros64(),
                                             level_pitch,
                                             out_front_lvl,
-                                            out_front_com);
+                                            out_front_com,
+                                            lvl_scaler_n,
+                                            lvl_scaler);
 #endif
 }
 
