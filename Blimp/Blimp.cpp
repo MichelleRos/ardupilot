@@ -231,6 +231,7 @@ void Blimp::read_AHRS(void)
 
     IGNORE_RETURN(ahrs.get_velocity_NED(vel_ned));
     IGNORE_RETURN(ahrs.get_relative_position_NED_origin(pos_ned));
+    
     vel_yaw = ahrs.get_yaw_rate_earth();
 
     if (g2.frame_class.get() == Fins::MOTOR_FRAME_FISHBLIMP) {

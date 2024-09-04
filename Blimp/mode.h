@@ -89,6 +89,9 @@ public:
     // pilot input processing - returns -1 to 1 form of pilot input
     void get_pilot_input(Vector3f &pilot, float &yaw);
 
+    Vector3f target_pos;
+    float target_yaw;
+
 protected:
 
     // navigation support functions
@@ -246,10 +249,6 @@ protected:
     {
         return "LOIT";
     }
-
-private:
-    Vector3f target_pos;
-    float target_yaw;
 };
 
 class ModeLand : public Mode
@@ -364,10 +363,8 @@ public:
         //TODO
     }
 
-    Vector3f target_pos;
     Vector3f target_vel;
     Vector3f target_accel;
-    float target_yaw;
     bool waiting_to_start;
 
     SCurve scurve_prev_leg;            // previous scurve trajectory used to blend with current scurve trajectory
@@ -481,8 +478,6 @@ public:
     {
         return false;
     }
-
-    float target_yaw;
 
 protected:
 
