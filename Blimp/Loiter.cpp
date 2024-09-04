@@ -1096,18 +1096,20 @@ void Loiter::run_level_pitch(float& out_front_com)
     const float dt = blimp.scheduler.get_last_loop_time_s();
 
     float pitch = blimp.ahrs.get_pitch();
-    float level_pitch = pid_lvl_pitch.update_all(0, pitch, dt, 0);
 
     if (!blimp.motors->armed()) {
         blimp.loiter->pid_lvl_roll.set_integrator(0);
     }
 
-    float out_front_lvl = constrain_float(level_pitch, -level_max, level_max);
-    if (fabsf(pitch) < level_dz) {
+    float scaler = 1;
+    if (level_dz > 0 && fabsf(pitch) < level_dz) {
+        scaler = fabsf(pitch)/level_dz;
         //Try do do DZ as a scaling thing instead - so that as far as the PIDs know, when they get to the edge of the DZ (i.e. fabsf(pitch) barely greater than level_dz), the angle it's out by is also quite small.
         //Good idea for Loiter DZ too - so scale down the PIDs as it gets past the DZ part & closer to target.
-        out_front_lvl = 0;
     }
+
+    float level_pitch = pid_lvl_pitch.update_all(0, pitch*scaler, dt);
+    float out_front_lvl = constrain_float(level_pitch, -level_max, level_max);
 
     blimp.motors->front_out = out_front_com + out_front_lvl;
 

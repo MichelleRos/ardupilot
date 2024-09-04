@@ -55,11 +55,8 @@ void ModeAuto::run()
     gcs().send_named_float("TarX", target_pos.x);
     gcs().send_named_float("TarY", target_pos.y);
 
-    if (mission_finished) {
-        GCS_SEND_TEXT(MAV_SEVERITY_NOTICE, "End of mission.");
-        if (blimp.loiter->target_within(g.wp_fin_dist)) {
-            set_mode(Mode::Number::LOITER, ModeReason::MISSION_END);
-        }
+    if (mission_finished && blimp.loiter->target_within(g.wp_fin_dist)) {
+        set_mode(Mode::Number::LOITER, ModeReason::MISSION_END);
     }
 }
 
