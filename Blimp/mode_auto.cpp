@@ -152,6 +152,9 @@ void ModeAuto::exit_mission()
     // play a tone
     AP_Notify::events.mission_complete = 1;
     // switch to mode loiter
+
+    //need to do a delay or check for 0 velocity here.
+    //show alt & spd to 2dp
     set_mode(Mode::Number::LOITER, ModeReason::MISSION_END);
 }
 

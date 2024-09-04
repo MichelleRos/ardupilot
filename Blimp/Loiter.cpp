@@ -1104,6 +1104,8 @@ void Loiter::run_level_pitch(float& out_front_com)
 
     float out_front_lvl = constrain_float(level_pitch, -level_max, level_max);
     if (fabsf(pitch) < level_dz) {
+        //Try do do DZ as a scaling thing instead - so that as far as the PIDs know, when they get to the edge of the DZ (i.e. fabsf(pitch) barely greater than level_dz), the angle it's out by is also quite small.
+        //Good idea for Loiter DZ too - so scale down the PIDs as it gets past the DZ part & closer to target.
         out_front_lvl = 0;
     }
 
