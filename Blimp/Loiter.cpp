@@ -838,11 +838,12 @@ const AP_Param::GroupInfo Loiter::var_info[] = {
 
     AP_SUBGROUPINFO(pid_lvl_pitch, "LVLPIT_", 20, Loiter, AC_PID),
     AP_SUBGROUPINFO(pid_lvl_roll, "LVLRLL_", 21, Loiter, AC_PID),
-    AP_GROUPINFO("LVLMAX", 22, Loiter, level_max, 0), //Max throttle output to level, use 0 to disable
-    AP_GROUPINFO("LVLDZ_CEN", 23, Loiter, level_dz_cen, 0.08), //0 to disable
-    AP_GROUPINFO("LVLDZ_K", 24, Loiter, level_dz_k, 150),
+    AP_GROUPINFO("LVLMAX", 22, Loiter, lvl_max, 0), //Max throttle output to level, use 0 to disable
+    AP_GROUPINFO("LVLDZ_CEN", 23, Loiter, lvl_dz_cen, 0.08), //0 to disable
+    AP_GROUPINFO("LVLDZ_K", 24, Loiter, lvl_dz_k, 150),
     AP_GROUPINFO("OPTIONS", 25, Loiter, options, 0), //1=Yaw rate,2=Yaw pos,4=Z rate
     AP_GROUPINFO("LVLSCSPD", 26, Loiter, lvl_scaler_spd, 0.5),
+    AP_GROUPINFO("LVLRELTC", 27, Loiter, lvl_relax_tc, 0.16), //0 to disable
 
     AP_GROUPEND
 };
@@ -1054,7 +1055,7 @@ void Loiter::run_vel(Vector3f& target_vel_ef, float& target_vel_yaw, Vector4b ax
 
 void Loiter::run_level_roll(float& out_right_com)
 {
-    if (is_zero(level_max)) {
+    if (is_zero(lvl_max)) {
         blimp.motors->right_out = out_right_com;
         return;
     }
@@ -1062,8 +1063,8 @@ void Loiter::run_level_roll(float& out_right_com)
     const float roll = blimp.ahrs.get_roll();
 
     float lvl_scaler_n = 1;
-    if (level_dz_cen > 0) {
-        lvl_scaler_n = 1/(1+expf(-level_dz_k*(fabsf(roll)-level_dz_cen)));
+    if (lvl_dz_cen > 0) {
+        lvl_scaler_n = 1/(1+expf(-lvl_dz_k*(fabsf(roll)-lvl_dz_cen)));
     }
     lvl_scaler_rll = lvl_scaler_rll*lvl_scaler_spd + lvl_scaler_n*(1-lvl_scaler_spd);
 
@@ -1071,8 +1072,11 @@ void Loiter::run_level_roll(float& out_right_com)
     if (!blimp.motors->armed()) {
         blimp.loiter->pid_lvl_roll.set_integrator(0);
     }
+    if(!is_zero(lvl_relax_tc)) {
+        pid_lvl_roll.relax_integrator(0.0, dt, lvl_relax_tc);
+    }
 
-    float out_right_lvl = constrain_float(level_roll, -level_max, level_max);
+    float out_right_lvl = constrain_float(level_roll, -lvl_max, lvl_max);
 
     blimp.motors->right_out = out_right_com + out_right_lvl;
 
@@ -1096,7 +1100,7 @@ void Loiter::run_level_roll(float& out_right_com)
 
 void Loiter::run_level_pitch(float& out_front_com)
 {
-    if (is_zero(level_max)) {
+    if (is_zero(lvl_max)) {
         blimp.motors->front_out = out_front_com;
         return;
     }
@@ -1104,8 +1108,8 @@ void Loiter::run_level_pitch(float& out_front_com)
     const float pitch = blimp.ahrs.get_pitch();
 
     float lvl_scaler_n = 1;
-    if (level_dz_cen > 0) {
-        lvl_scaler_n = 1/(1+expf(-level_dz_k*(fabsf(pitch)-level_dz_cen)));
+    if (lvl_dz_cen > 0) {
+        lvl_scaler_n = 1/(1+expf(-lvl_dz_k*(fabsf(pitch)-lvl_dz_cen)));
         // graph: y=1/(1+e^(−150(x−0.08))) where x is from 0 to 0.4
         // y=1/\left(1+e^{-150(x-0.08)}\right)
     }
@@ -1115,8 +1119,11 @@ void Loiter::run_level_pitch(float& out_front_com)
     if (!blimp.motors->armed()) {
         blimp.loiter->pid_lvl_roll.set_integrator(0);
     }
+    if(!is_zero(lvl_relax_tc)) {
+        pid_lvl_pitch.relax_integrator(0.0, dt, lvl_relax_tc);
+    }
 
-    float out_front_lvl = constrain_float(level_pitch, -level_max, level_max);
+    float out_front_lvl = constrain_float(level_pitch, -lvl_max, lvl_max);
 
     blimp.motors->front_out = out_front_com + out_front_lvl;
 

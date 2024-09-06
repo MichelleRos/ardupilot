@@ -5,7 +5,7 @@
 
 bool ModeLevel::init(bool ignore_checks)
 {
-    if (is_zero(blimp.loiter->level_max)){
+    if (is_zero(blimp.loiter->lvl_max)){
         GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "LOIT_LVLMAX is zero. Leveling is disabled.");
     }
     if (loiter->options & Loiter::LVL_EN_YAW_RATE){

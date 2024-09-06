@@ -80,10 +80,11 @@ public:
 
     AC_PID pid_lvl_pitch{1, 0.2, 0, 0, 0.5, 0, 0, 0};
     AC_PID pid_lvl_roll{1, 0.2, 0, 0, 0.5, 0, 0, 0};
-    AP_Float level_max;
-    AP_Float level_dz_cen;
-    AP_Float level_dz_k;
+    AP_Float lvl_max;
+    AP_Float lvl_dz_cen;
+    AP_Float lvl_dz_k;
     AP_Float lvl_scaler_spd;
+    AP_Float lvl_relax_tc;
 
     AP_Float    max_vel_x;
     AP_Float    max_vel_y;
