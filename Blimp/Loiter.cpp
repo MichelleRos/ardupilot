@@ -838,12 +838,12 @@ const AP_Param::GroupInfo Loiter::var_info[] = {
 
     AP_SUBGROUPINFO(pid_lvl_pitch, "LVLPIT_", 20, Loiter, AC_PID),
     AP_SUBGROUPINFO(pid_lvl_roll, "LVLRLL_", 21, Loiter, AC_PID),
-    AP_GROUPINFO("LVLMAX", 22, Loiter, lvl_max, 0), //Max throttle output to level, use 0 to disable
-    AP_GROUPINFO("LVLDZ_CEN", 23, Loiter, lvl_dz_cen, 0.08), //0 to disable
+    AP_GROUPINFO("LVLMAX", 22, Loiter, lvl_max, 0), //Max throttle output to level, 0 to disable. Use only for prop blimp.
+    AP_GROUPINFO("LVLDZ_CEN", 23, Loiter, lvl_dz_cen, 0.08), //0 to disable. 
     AP_GROUPINFO("LVLDZ_K", 24, Loiter, lvl_dz_k, 150),
     AP_GROUPINFO("OPTIONS", 25, Loiter, options, 0), //1=Yaw rate,2=Yaw pos,4=Z rate
     AP_GROUPINFO("LVLSCSPD", 26, Loiter, lvl_scaler_spd, 0.5),
-    AP_GROUPINFO("LVLRELTC", 27, Loiter, lvl_relax_tc, 0.16), //0 to disable
+    AP_GROUPINFO("LVLRELTC", 27, Loiter, lvl_relax_tc, 0.16), //0 to disable.
 
     AP_GROUPEND
 };
