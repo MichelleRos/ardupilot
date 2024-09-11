@@ -51,6 +51,13 @@ void ModeAuto::run()
 
         mission.update();
     }
+
+    // Target Yaw to automatically look ahead.
+    const float speed_sq = blimp.vel_ned_filtd.xy().length_squared();
+    if (blimp.position_ok() && (speed_sq > sq(g.wp_yaw_vel))) {
+        target_yaw = atan2f(blimp.vel_ned_filtd.y,blimp.vel_ned_filtd.x);
+    }
+
     blimp.loiter->run(target_pos, target_yaw, Vector4b{false,false,false,false});
     gcs().send_named_float("TarX", target_pos.x);
     gcs().send_named_float("TarY", target_pos.y);
@@ -91,10 +98,7 @@ Vector3f ModeAuto::vec_from_loc(const Location& loc)
         vec.x = vec.x * 0.01;
         vec.y = vec.y * 0.01;
         vec.z = - vec.z * 0.01;
-    } else {
-        GCS_SEND_TEXT(MAV_SEVERITY_EMERGENCY, "get_vector_from_origin_NEU() returned false.");
     }
-
     return vec;
 }
 
@@ -161,14 +165,12 @@ void ModeAuto::exit_mission()
     //show alt & spd to 2dp
 }
 
-// get waypoint's location from command and send to scurves
-// only called with each new nav wp command
+// Get waypoint's location from command and send to scurves
+// Only called with each new nav wp command
 void ModeAuto::do_nav_wp(const AP_Mission::Mission_Command& cmd)
 {
-    Location default_loc = blimp.current_loc;
-
     origin = destination;
-    destination = vec_from_cmd(cmd, default_loc);
+    destination = vec_from_cmd(cmd, blimp.current_loc);
 
     scurve_prev_leg = scurve_this_leg;
     scurve_this_leg.calculate_track(origin, destination,
@@ -182,7 +184,7 @@ void ModeAuto::do_nav_wp(const AP_Mission::Mission_Command& cmd)
         GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "MIR: Last leg.");
         return;
     }
-    const Location dest_loc = loc_from_cmd(cmd, default_loc);
+    const Location dest_loc = loc_from_cmd(cmd, blimp.current_loc);
     Vector3f next_dest = vec_from_cmd(next_cmd, dest_loc);
     scurve_next_leg.calculate_track(destination, next_dest,
                                 g.wp_vel, loiter->max_vel_z, loiter->max_vel_z,
