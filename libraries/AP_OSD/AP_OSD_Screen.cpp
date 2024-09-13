@@ -1045,6 +1045,22 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info[] = {
 	AP_SUBGROUPINFO(rrpm, "RPM", 62, AP_OSD_Screen, AP_OSD_Setting),
 #endif
 
+    // @Param: LOGNUM_EN
+    // @DisplayName: LOGNUM_EN
+    // @Description: 
+    // @Values: 0:Disabled,1:Enabled
+
+    // @Param: LOGNUM_X
+    // @DisplayName: LOGNUM_X
+    // @Description: Horizontal position on screen
+    // @Range: 0 59
+
+    // @Param: LOGNUM_Y
+    // @DisplayName: LOGNUM_Y
+    // @Description: Vertical position on screen
+    // @Range: 0 21
+    AP_SUBGROUPINFO(lognum, "LOGNUM", 63, AP_OSD_Screen, AP_OSD_Setting),
+
     AP_GROUPEND
 };
 
@@ -1825,6 +1841,11 @@ void AP_OSD_Screen::draw_rrpm(uint8_t x, uint8_t y)
     backend->write(x, y, false, "%4d%c", (int)r_rpm, SYMBOL(SYM_RPM));
 }
 #endif
+
+void AP_OSD_Screen::draw_lognum(uint8_t x, uint8_t y)
+{
+    backend->write(x, y, false, "%3d%c", gcs().get_hud_throttle(), SYMBOL(SYM_PCNT));
+}
 
 void AP_OSD_Screen::draw_throttle(uint8_t x, uint8_t y)
 {

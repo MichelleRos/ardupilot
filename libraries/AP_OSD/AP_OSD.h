@@ -236,6 +236,7 @@ private:
     AP_OSD_Setting pluscode;
 #endif
     AP_OSD_Setting sidebars{false, 4, 5};
+    AP_OSD_Setting lognum{false, 22, 4};
 
 #if AP_OSD_EXTENDED_LNK_STATS
     // Extended link stats data panels
@@ -299,6 +300,7 @@ private:
 #if HAL_PLUSCODE_ENABLE
     void draw_pluscode(uint8_t x, uint8_t y);
 #endif
+    void draw_lognum(uint8_t x, uint8_t y);
     //helper functions
     void draw_speed(uint8_t x, uint8_t y, float angle_rad, float magnitude);
     void draw_distance(uint8_t x, uint8_t y, float distance);
