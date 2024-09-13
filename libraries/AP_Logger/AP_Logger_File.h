@@ -49,6 +49,7 @@ public:
     uint16_t get_num_logs() override;
     void start_new_log(void) override;
     uint16_t find_oldest_log() override;
+    uint16_t get_current_log_num() override { return _current_log_num;}
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_SITL || CONFIG_HAL_BOARD == HAL_BOARD_LINUX
     void flush(void) override;
@@ -84,6 +85,7 @@ private:
     volatile uint32_t _open_error_ms;
     const char *_log_directory;
     bool _last_write_failed;
+    uint16_t _current_log_num;
 
     uint32_t _io_timer_heartbeat;
     bool io_thread_alive() const;

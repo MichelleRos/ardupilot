@@ -79,6 +79,7 @@ public:
     virtual void end_log_transfer() = 0;
     virtual uint16_t get_num_logs() = 0;
     virtual uint16_t find_oldest_log();
+    virtual uint16_t get_current_log_num() = 0;
 
     virtual bool logging_started(void) const = 0;
 

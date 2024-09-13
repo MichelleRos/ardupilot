@@ -824,6 +824,13 @@ uint16_t AP_Logger::get_num_logs(void) {
     return backends[0]->get_num_logs();
 }
 
+uint16_t AP_Logger::get_current_log_num(void) {
+    if (_next_backend == 0) {
+        return 0;
+    }
+    return backends[0]->get_current_log_num();
+}
+
 uint16_t AP_Logger::get_max_num_logs() {
     const auto max_logs = constrain_uint16(_params.max_log_files.get(), MIN_LOG_FILES, MAX_LOG_FILES);
     if (_params.max_log_files.get() != max_logs) {

@@ -808,6 +808,7 @@ void AP_Logger_File::start_new_log(void)
         _write_filename = nullptr;        
     }
     _write_filename = _log_file_name(log_num);
+    _current_log_num = log_num;
     if (_write_filename == nullptr) {
         write_fd_semaphore.give();
         return;

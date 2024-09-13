@@ -33,6 +33,7 @@ public:
     bool logging_failed() const override;
     bool logging_started(void) const override { return log_write_started; }
     void io_timer(void) override;
+    uint16_t get_current_log_num() override { return df_FileNumber;}
 
 protected:
     /* Write a block of data at current offset */
