@@ -3,6 +3,8 @@
  * Init and run calls for auto flight mode
  */
 
+#define B_WPNAV_SNAP_MAX 15.0f
+
 bool ModeAuto::init(bool ignore_checks)
 {
     target_pos = blimp.pos_ned;
@@ -54,7 +56,7 @@ void ModeAuto::run()
 
     // Target Yaw to automatically look ahead.
     const float speed_sq = blimp.vel_ned_filtd.xy().length_squared();
-    if (blimp.position_ok() && (speed_sq > sq(g.wp_yaw_vel))) {
+    if (blimp.position_ok() && (speed_sq > sq(g.wp_yaw_min_vel))) {
         target_yaw = atan2f(blimp.vel_ned_filtd.y,blimp.vel_ned_filtd.x);
     }
 
@@ -71,7 +73,7 @@ Location ModeAuto::loc_from_cmd(const AP_Mission::Mission_Command& cmd, const Lo
 {
     Location ret(cmd.content.location);
 
-    // use current lat, lon if zero
+    // use default lat, lon if zero
     if (ret.lat == 0 && ret.lng == 0) {
         ret.lat = default_loc.lat;
         ret.lng = default_loc.lng;
@@ -116,16 +118,16 @@ bool ModeAuto::start_command(const AP_Mission::Mission_Command& cmd)
     switch(cmd.id) {
 
         // case MAV_CMD_NAV_VTOL_TAKEOFF:
-        // case MAV_CMD_NAV_TAKEOFF:                   // 22
+        // case MAV_CMD_NAV_TAKEOFF:
         //     do_takeoff(cmd);
         //     break;
 
-        case MAV_CMD_NAV_WAYPOINT:                  // 16  Navigate to Waypoint
+        case MAV_CMD_NAV_WAYPOINT:
             do_nav_wp(cmd);
             break;
 
         // case MAV_CMD_NAV_VTOL_LAND:
-        // case MAV_CMD_NAV_LAND:              // 21 LAND to Waypoint
+        // case MAV_CMD_NAV_LAND:
         //     do_land(cmd);
         //     break;
 
@@ -162,7 +164,6 @@ void ModeAuto::exit_mission()
     // play a tone
     AP_Notify::events.mission_complete = 1;
     mission_finished = true;
-    //show alt & spd to 2dp
 }
 
 // Get waypoint's location from command and send to scurves
@@ -173,15 +174,12 @@ void ModeAuto::do_nav_wp(const AP_Mission::Mission_Command& cmd)
     destination = vec_from_cmd(cmd, blimp.current_loc);
 
     scurve_prev_leg = scurve_this_leg;
-    scurve_this_leg.calculate_track(origin, destination,
-                                g.wp_vel, loiter->max_vel_z, loiter->max_vel_z,
-                                g.wp_accel, g.wp_accel,
-                                g.wp_snap, g.wp_jerk);
+    scurve_this_leg = scurve_next_leg;
+    scurve_next_leg.init();
     scurve_this_leg_origin = origin;
     AP_Mission::Mission_Command next_cmd;
     if (!mission.get_next_nav_cmd(cmd.index+1, next_cmd)) {
         fast_wp = false;
-        GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "MIR: Last leg.");
         return;
     }
     const Location dest_loc = loc_from_cmd(cmd, blimp.current_loc);
@@ -189,8 +187,10 @@ void ModeAuto::do_nav_wp(const AP_Mission::Mission_Command& cmd)
     scurve_next_leg.calculate_track(destination, next_dest,
                                 g.wp_vel, loiter->max_vel_z, loiter->max_vel_z,
                                 g.wp_accel, g.wp_accel,
-                                g.wp_snap, g.wp_jerk);
+                                B_WPNAV_SNAP_MAX, g.wp_accel);
     fast_wp = true;
+    //Rover: Jerk = Accel, Snap = 15.
+    //Copter (default SITL): Accel = 2.5, Snap = 5.24, Jerk = 1.
 }
 
 // Advances along the waypoint and returns whether or not it has reached the waypoint
@@ -199,14 +199,23 @@ bool ModeAuto::verify_nav_wp(const AP_Mission::Mission_Command& cmd)
 {
     const float dt = blimp.scheduler.get_last_loop_time_s();
     bool s_finished = false;
-    if (blimp.loiter->target_within(g.wp_rad)){
+    if (blimp.loiter->target_within(g.wp_rad*0.5)){
         s_finished = scurve_this_leg.advance_target_along_track(scurve_prev_leg, scurve_next_leg, g.wp_rad, g.wp_accel, fast_wp, dt, scurve_this_leg_origin, target_vel, target_accel);
         target_pos = scurve_this_leg_origin;
         scurve_this_leg_origin = origin;
     }
 
-    if (s_finished){
-        return true;
+    if (s_finished) {
+        // "fast" waypoints are complete once the intermediate point reaches the destination
+        if (fast_wp) {
+            return true;
+        } else {
+            // regular waypoints also require the copter to be within the waypoint radius
+            const Vector3f dist_to_dest = blimp.pos_ned - destination;
+            if (dist_to_dest.length_squared() <= sq(g.wp_rad)) {
+                return true;
+            }
+        }
     }
     return false;
 }
