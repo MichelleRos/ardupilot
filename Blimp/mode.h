@@ -105,6 +105,8 @@ protected:
     void land_run_horizontal_control();
     void land_run_vertical_control(bool pause_descent = false);
 
+    void yaw_forward();
+
     // convenience references to avoid code churn in conversion:
     Parameters &g;
     ParametersG2 &g2;

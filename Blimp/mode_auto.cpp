@@ -54,12 +54,7 @@ void ModeAuto::run()
         mission.update();
     }
 
-    // Target Yaw to automatically look ahead.
-    const float speed_sq = blimp.vel_ned_filtd.xy().length_squared();
-    if (blimp.position_ok() && (speed_sq > sq(g.wp_yaw_min_vel))) {
-        target_yaw = atan2f(blimp.vel_ned_filtd.y,blimp.vel_ned_filtd.x);
-    }
-
+    yaw_forward();
     blimp.loiter->run(target_pos, target_yaw, Vector4b{false,false,false,false});
     gcs().send_named_float("TarX", target_pos.x);
     gcs().send_named_float("TarY", target_pos.y);
