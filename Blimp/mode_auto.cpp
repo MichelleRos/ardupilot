@@ -43,10 +43,10 @@ void ModeAuto::run()
             // if mission is running restart the current command if it is a waypoint or spline command
             if ((mission.state() == AP_Mission::MISSION_RUNNING)) {
                 if (mission.restart_current_nav_cmd()) {
-                    gcs().send_text(MAV_SEVERITY_CRITICAL, "Auto mission changed, restarted command");
+                    GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "Auto mission changed, restarted command.");
                 } else {
                     // failed to restart mission for some reason
-                    gcs().send_text(MAV_SEVERITY_CRITICAL, "Auto mission changed but failed to restart command");
+                    GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "Auto mission changed but failed to restart command.");
                 }
             }
         }
@@ -111,23 +111,11 @@ bool ModeAuto::start_command(const AP_Mission::Mission_Command& cmd)
     }
 
     switch(cmd.id) {
-
-        // case MAV_CMD_NAV_VTOL_TAKEOFF:
-        // case MAV_CMD_NAV_TAKEOFF:
-        //     do_takeoff(cmd);
-        //     break;
-
         case MAV_CMD_NAV_WAYPOINT:
             do_nav_wp(cmd);
             break;
-
-        // case MAV_CMD_NAV_VTOL_LAND:
-        // case MAV_CMD_NAV_LAND:
-        //     do_land(cmd);
-        //     break;
-
         default:
-        // unable to use the command, allow the vehicle to try the next command
+        // unable to do the command, allow the vehicle to try the next command
         GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "Command not supported. Skipped.");
         return false;
     }
@@ -147,7 +135,6 @@ bool ModeAuto::verify_command(const AP_Mission::Mission_Command& cmd)
             cmd_complete = verify_nav_wp(cmd);
             break;
         default:
-            GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "Command not supported. Skipped.");
             //Return true so it keeps going.
             return true;
     }
@@ -171,6 +158,7 @@ void ModeAuto::do_nav_wp(const AP_Mission::Mission_Command& cmd)
     scurve_prev_leg = scurve_this_leg;
     scurve_this_leg = scurve_next_leg;
     scurve_next_leg.init();
+
     scurve_this_leg_origin = origin;
     AP_Mission::Mission_Command next_cmd;
     if (!mission.get_next_nav_cmd(cmd.index+1, next_cmd)) {
@@ -184,8 +172,6 @@ void ModeAuto::do_nav_wp(const AP_Mission::Mission_Command& cmd)
                                 g.wp_accel, g.wp_accel,
                                 B_WPNAV_SNAP_MAX, g.wp_accel);
     fast_wp = true;
-    //Rover: Jerk = Accel, Snap = 15.
-    //Copter (default SITL): Accel = 2.5, Snap = 5.24, Jerk = 1.
 }
 
 // Advances along the waypoint and returns whether or not it has reached the waypoint
