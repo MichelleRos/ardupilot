@@ -10,13 +10,14 @@ bool ModeAuto::init(bool ignore_checks)
     target_pos = blimp.pos_ned;
     target_yaw = blimp.ahrs.get_yaw();
     waiting_to_start = true;
-    origin = target_pos;
-    destination = target_pos;
+    origin = blimp.pos_ned;
+    destination = blimp.pos_ned;
 
     scurve_prev_leg.init();
     scurve_this_leg.init();
     scurve_next_leg.init();
 
+    mission_started = false;
     mission_finished = false;
 
     return true;
@@ -59,9 +60,9 @@ void ModeAuto::run()
     gcs().send_named_float("TarX", target_pos.x);
     gcs().send_named_float("TarY", target_pos.y);
 
-    if (mission_finished && blimp.loiter->target_within(g.wp_fin_dist)) {
-        set_mode(Mode::Number::LOITER, ModeReason::MISSION_END);
-    }
+    // if (mission_finished && blimp.loiter->target_within(g.wp_fin_dist)) {
+    //     set_mode(Mode::Number::LOITER, ModeReason::MISSION_END);
+    // }
 }
 
 Location ModeAuto::loc_from_cmd(const AP_Mission::Mission_Command& cmd, const Location& default_loc) const
@@ -160,13 +161,28 @@ void ModeAuto::do_nav_wp(const AP_Mission::Mission_Command& cmd)
     scurve_next_leg.init();
 
     scurve_this_leg_origin = origin;
+
+    if(!mission_started) {
+        AP_Mission::Mission_Command cmd_start;
+        if (!mission.get_next_nav_cmd(1, cmd_start)) {
+            fast_wp = false;
+            return;
+        }
+        scurve_this_leg.calculate_track(origin, destination,
+                                    g.wp_vel, loiter->max_vel_z, loiter->max_vel_z,
+                                    g.wp_accel, g.wp_accel,
+                                    B_WPNAV_SNAP_MAX, g.wp_accel);
+        mission_started = true;
+    }
+
+
     AP_Mission::Mission_Command next_cmd;
     if (!mission.get_next_nav_cmd(cmd.index+1, next_cmd)) {
         fast_wp = false;
         return;
     }
     const Location dest_loc = loc_from_cmd(cmd, blimp.current_loc);
-    Vector3f next_dest = vec_from_cmd(next_cmd, dest_loc);
+    const Vector3f next_dest = vec_from_cmd(next_cmd, dest_loc);
     scurve_next_leg.calculate_track(destination, next_dest,
                                 g.wp_vel, loiter->max_vel_z, loiter->max_vel_z,
                                 g.wp_accel, g.wp_accel,

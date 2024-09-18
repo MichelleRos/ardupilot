@@ -377,6 +377,7 @@ public:
     Vector3f origin;
     Vector3f destination;
     bool fast_wp;
+    bool mission_started;
     bool mission_finished;
 
     AP_Mission mission{
