@@ -60,9 +60,9 @@ void ModeAuto::run()
     gcs().send_named_float("TarX", target_pos.x);
     gcs().send_named_float("TarY", target_pos.y);
 
-    // if (mission_finished && blimp.loiter->target_within(g.wp_fin_dist)) {
-    //     set_mode(Mode::Number::LOITER, ModeReason::MISSION_END);
-    // }
+    if (mission_finished && !is_zero(g.wp_fin_dist) && blimp.loiter->target_within(g.wp_fin_dist)) {
+        set_mode(Mode::Number::LOITER, ModeReason::MISSION_END);
+    }
 }
 
 Location ModeAuto::loc_from_cmd(const AP_Mission::Mission_Command& cmd, const Location& default_loc) const
