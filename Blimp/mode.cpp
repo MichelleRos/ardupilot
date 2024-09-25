@@ -195,10 +195,17 @@ bool Mode::is_disarmed_or_landed() const
 
 void Mode::yaw_forward()
 {
-    // Set target_yaw to automatically look ahead.
     const float speed_sq = blimp.vel_ned_filtd.xy().length_squared();
-    if (blimp.position_ok() && (speed_sq > sq(g.wp_yaw_min_vel))) {
-        target_yaw = atan2f(blimp.vel_ned_filtd.y,blimp.vel_ned_filtd.x);
+    // Make sure the blimp is keeping up with the target
+    const bool close_yaw = fabsf(wrap_PI(target_yaw-ahrs.get_yaw())) < (loiter->max_pos_yaw*blimp.loiter->pos_lag);
+    if (blimp.position_ok() && (speed_sq > sq(g.wp_yaw_min_vel)) && close_yaw) {
+        const float new_tar = atan2f(blimp.vel_ned_filtd.y,blimp.vel_ned_filtd.x);
+        // Set target_yaw to automatically look ahead
+        if (wrap_PI(new_tar - target_yaw) > 0) {
+            target_yaw = wrap_PI(target_yaw + g.wp_yaw_spd*blimp.scheduler.get_last_loop_time_s());
+        } else if (wrap_PI(new_tar - target_yaw) < 0) {
+            target_yaw = wrap_PI(target_yaw - g.wp_yaw_spd*blimp.scheduler.get_last_loop_time_s());
+        }
     }
 }
 

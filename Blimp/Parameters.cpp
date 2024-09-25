@@ -230,6 +230,7 @@ const AP_Param::Info Blimp::var_info[] = {
     GSCALAR(wp_rad, "WP_RAD", 1.0),
     GSCALAR(wp_fin_dist, "WP_FIN_DIST", 0),
     GSCALAR(wp_yaw_min_vel, "WP_YAW_MIN_VEL", 0.1),
+    GSCALAR(wp_yaw_spd, "WP_YAW_SPD", 0.5),
 
     // @Param: SIMPLE_MODE
     // @DisplayName: Simple mode
