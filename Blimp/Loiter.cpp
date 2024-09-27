@@ -1062,13 +1062,12 @@ void Loiter::run_level_roll(float& out_right_com)
     const float dt = blimp.scheduler.get_last_loop_time_s();
     const float roll = blimp.ahrs.get_roll();
 
-    float lvl_scaler_n = 1;
+    float lvl_scaler_cen = 1;
     if (lvl_dz_cen > 0) {
-        lvl_scaler_n = 1/(1+expf(-lvl_dz_k*(fabsf(roll)-lvl_dz_cen)));
+        lvl_scaler_cen = 1/(1+expf(-lvl_dz_k*(fabsf(roll)-lvl_dz_cen)));
     }
-    lvl_scaler_rll = lvl_scaler_rll*lvl_scaler_spd + lvl_scaler_n*(1-lvl_scaler_spd);
 
-    float level_roll = -blimp.loiter->pid_lvl_roll.update_all(0, roll*lvl_scaler_rll, dt, 0);
+    float lvl_scaler_n = -blimp.loiter->pid_lvl_roll.update_all(0, roll*lvl_scaler_cen, dt, 0);
     if (!blimp.motors->armed()) {
         blimp.loiter->pid_lvl_roll.set_integrator(0);
     }
@@ -1076,21 +1075,22 @@ void Loiter::run_level_roll(float& out_right_com)
         pid_lvl_roll.relax_integrator(0.0, dt, lvl_relax_tc);
     }
 
-    float out_right_lvl = constrain_float(level_roll, -lvl_max, lvl_max);
+    lvl_scaler_rll = lvl_scaler_rll*lvl_scaler_spd + lvl_scaler_n*(1-lvl_scaler_spd);
+    float out_right_lvl = constrain_float(lvl_scaler_rll, -lvl_max, lvl_max);
 
     blimp.motors->right_out = out_right_com + out_right_lvl;
 
     if (!is_equal(float(blimp.g.stream_rate), 0.0f) && AP_HAL::millis() % int((1 / blimp.g.stream_rate) * 1000) < 30){
-        gcs().send_named_float("LVLRl", level_roll);
+        gcs().send_named_float("LVLRc", lvl_scaler_cen);
         gcs().send_named_float("LVLRol", out_right_lvl);
         gcs().send_named_float("LVLRoc", out_right_com);
         gcs().send_named_float("LVLRsn", lvl_scaler_n);
         gcs().send_named_float("LVLRs", lvl_scaler_rll);
     }
 #if HAL_LOGGING_ENABLED
-    AP::logger().WriteStreaming("LVLR", "TimeUS,l,ol,oc,sn,s", "Qfffff",
+    AP::logger().WriteStreaming("LVLR", "TimeUS,c,ol,oc,sn,s", "Qfffff",
                                             AP_HAL::micros64(),
-                                            level_roll,
+                                            lvl_scaler_cen,
                                             out_right_lvl,
                                             out_right_com,
                                             lvl_scaler_n,
@@ -1107,28 +1107,29 @@ void Loiter::run_level_pitch(float& out_front_com)
     const float dt = blimp.scheduler.get_last_loop_time_s();
     const float pitch = blimp.ahrs.get_pitch();
 
-    float lvl_scaler_n = 1;
+    float lvl_scaler_cen = 1;
     if (lvl_dz_cen > 0) {
-        lvl_scaler_n = 1/(1+expf(-lvl_dz_k*(fabsf(pitch)-lvl_dz_cen)));
+        lvl_scaler_cen = 1/(1+expf(-lvl_dz_k*(fabsf(pitch)-lvl_dz_cen)));
         // graph: y=1/(1+e^(−150(x−0.08))) where x is from 0 to 0.4
         // y=1/\left(1+e^{-150(x-0.08)}\right)
     }
-    lvl_scaler_pit = lvl_scaler_pit*lvl_scaler_spd + lvl_scaler_n*(1-lvl_scaler_spd);
 
-    float level_pitch = pid_lvl_pitch.update_all(0, pitch*lvl_scaler_pit, dt);
+    float lvl_scaler_n = pid_lvl_pitch.update_all(0, pitch*lvl_scaler_cen, dt);
     if (!blimp.motors->armed()) {
         blimp.loiter->pid_lvl_roll.set_integrator(0);
     }
+
     if(!is_zero(lvl_relax_tc)) {
         pid_lvl_pitch.relax_integrator(0.0, dt, lvl_relax_tc);
     }
 
-    float out_front_lvl = constrain_float(level_pitch, -lvl_max, lvl_max);
+    lvl_scaler_pit = lvl_scaler_pit*lvl_scaler_spd + lvl_scaler_n*(1-lvl_scaler_spd);
+    float out_front_lvl = constrain_float(lvl_scaler_pit, -lvl_max, lvl_max);
 
     blimp.motors->front_out = out_front_com + out_front_lvl;
 
     if (!is_equal(float(blimp.g.stream_rate), 0.0f) && AP_HAL::millis() % int((1 / blimp.g.stream_rate) * 1000) < 30){
-        gcs().send_named_float("LVLPl", level_pitch);
+        gcs().send_named_float("LVLPc", lvl_scaler_cen);
         gcs().send_named_float("LVLPol", out_front_lvl);
         gcs().send_named_float("LVLPoc", out_front_com);
         gcs().send_named_float("LVLPsn", lvl_scaler_n);
@@ -1136,9 +1137,9 @@ void Loiter::run_level_pitch(float& out_front_com)
 
     }
 #if HAL_LOGGING_ENABLED
-    AP::logger().WriteStreaming("LVLP", "TimeUS,l,ol,oc,sn,s", "Qfffff",
+    AP::logger().WriteStreaming("LVLP", "TimeUS,c,ol,oc,sn,s", "Qfffff",
                                             AP_HAL::micros64(),
-                                            level_pitch,
+                                            lvl_scaler_cen,
                                             out_front_lvl,
                                             out_front_com,
                                             lvl_scaler_n,
