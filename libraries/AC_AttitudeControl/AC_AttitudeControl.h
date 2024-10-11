@@ -323,7 +323,7 @@ public:
     virtual float get_althold_lean_angle_max_cd() const;
 
     // Return configured tilt angle limit in centidegrees
-    float lean_angle_max_cd() const { return _aparm.angle_max; }
+    float lean_angle_max_cd() const { return _aparm.angle_max_deg*100.0; }
 
     // Return tilt angle in degrees
     float lean_angle_deg() const { return degrees(_thrust_angle); }

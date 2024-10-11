@@ -279,7 +279,7 @@ void ModeAutorotate::run()
             // Operator is in control of roll and yaw.  Controls act as if in stabilise flight mode.  Pitch 
             // is controlled by speed-height controller.
             float pilot_roll, pilot_pitch;
-            get_pilot_desired_lean_angles(pilot_roll, pilot_pitch, copter.aparm.angle_max, copter.aparm.angle_max);
+            get_pilot_desired_lean_angles(pilot_roll, pilot_pitch, copter.aparm.angle_max_deg*100.0, copter.aparm.angle_max_deg*100.0);
 
             // Get pilot's desired yaw rate
             float pilot_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->norm_input_dz());

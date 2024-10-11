@@ -48,7 +48,7 @@ void ModeSport::run()
     int32_t pitch_angle = wrap_180_cd(att_target.y);
     target_pitch_rate -= constrain_int32(pitch_angle, -ACRO_LEVEL_MAX_ANGLE, ACRO_LEVEL_MAX_ANGLE) * g.acro_balance_pitch;
 
-    const float angle_max = copter.aparm.angle_max;
+    const float angle_max = copter.aparm.angle_max_deg*100.0;
     if (roll_angle > angle_max){
         target_roll_rate +=  sqrt_controller(angle_max - roll_angle, g2.command_model_acro_rp.get_rate() * 100.0 / ACRO_LEVEL_MAX_OVERSHOOT, attitude_control->get_accel_roll_max_cdss(), G_Dt);
     }else if (roll_angle < -angle_max) {

@@ -20,14 +20,14 @@ const AP_Param::GroupInfo QuadPlane::var_info[] = {
 
     // 3 ~ 8 were used by quadplane attitude control PIDs
 
-    // @Param: ANGLE_MAX
+    // @Param: ANGLE_MAX_DEG
     // @DisplayName: Angle Max
     // @Description: Maximum lean angle in all VTOL flight modes
-    // @Units: cdeg
-    // @Increment: 10
-    // @Range: 1000 8000
+    // @Units: deg
+    // @Increment: 0.1
+    // @Range: 10 80
     // @User: Advanced
-    AP_GROUPINFO("ANGLE_MAX", 10, QuadPlane, aparm.angle_max, 3000),
+    AP_GROUPINFO("ANGLE_MAX_DEG", 10, QuadPlane, aparm.angle_max_deg, 30),
 
     // @Param: TRANSITION_MS
     // @DisplayName: Transition time
@@ -921,7 +921,7 @@ void QuadPlane::multicopter_attitude_rate_update(float yaw_rate_cds)
                 // So it is necessary to also rotate their scaling.
 
                 // Get the roll angle and yaw rate limits
-                int16_t roll_limit = aparm.angle_max;
+                int16_t roll_limit = aparm.angle_max_deg*100.0;
                 // separate limit for tailsitter roll, if set
                 if (tailsitter.max_roll_angle > 0) {
                     roll_limit = tailsitter.max_roll_angle * 100.0f;
@@ -2142,7 +2142,7 @@ void QuadPlane::run_xy_controller(float accel_limit)
     if (!pos_control->is_active_xy()) {
         pos_control->init_xy_controller();
     }
-    pos_control->set_lean_angle_max_cd(MIN(4500, MAX(accel_to_angle(accel_limit)*100, aparm.angle_max)));
+    pos_control->set_lean_angle_max_cd(MIN(4500, MAX(accel_to_angle(accel_limit)*100, aparm.angle_max_deg*100.0)));
     if (q_fwd_throttle > 0.95f) {
         // prevent wind up of the velocity controller I term due to a saturated forward throttle
         pos_control->set_externally_limited_xy();
@@ -2902,12 +2902,12 @@ void QuadPlane::assign_tilt_to_fwd_thr(void) {
     // the forward thrust motor could be failed. Do not do this with tilt rotors because they do not rely on
     // forward throttle during VTOL flight
     if (!tiltrotor.enabled()) {
-        const float fwd_tilt_range_cd = (float)aparm.angle_max - 100.0f * q_fwd_pitch_lim;
+        const float fwd_tilt_range_cd = aparm.angle_max_deg*100.0 - 100.0f * q_fwd_pitch_lim;
         if (is_positive(fwd_tilt_range_cd)) {
             // rate limit the forward tilt change to slew between the motor good and motor failed
             // value over 10 seconds
             const bool fwd_limited = plane.quadplane.pos_control->is_active_xy() and plane.quadplane.pos_control->get_fwd_pitch_is_limited();
-            const float fwd_pitch_lim_cd_tgt = fwd_limited ? (float)aparm.angle_max : 100.0f * q_fwd_pitch_lim;
+            const float fwd_pitch_lim_cd_tgt = fwd_limited ? aparm.angle_max_deg*100.0 : 100.0f * q_fwd_pitch_lim;
             const float delta_max = 0.1f * fwd_tilt_range_cd * plane.G_Dt;
             q_fwd_pitch_lim_cd += constrain_float((fwd_pitch_lim_cd_tgt - q_fwd_pitch_lim_cd), -delta_max, delta_max);
             // Don't let the forward pitch limit be more than the forward pitch demand before limiting to
@@ -2915,7 +2915,7 @@ void QuadPlane::assign_tilt_to_fwd_thr(void) {
             q_fwd_pitch_lim_cd = MIN(q_fwd_pitch_lim_cd, MAX(-(float)plane.nav_pitch_cd, 100.0f * q_fwd_pitch_lim));
         } else {
             // take the lesser of the two limits
-            q_fwd_pitch_lim_cd = (float)aparm.angle_max;
+            q_fwd_pitch_lim_cd = aparm.angle_max_deg*100.0;
         }
     }
 
@@ -2926,7 +2926,7 @@ void QuadPlane::assign_tilt_to_fwd_thr(void) {
         const float reference_speed = MAX(plane.aparm.airspeed_min, MIN_AIRSPEED_MIN);
         float speed_scaler = sq(reference_speed / MAX(aspeed, 0.1f));
         nav_pitch_upper_limit_cd *= speed_scaler;
-        nav_pitch_upper_limit_cd = MIN(nav_pitch_upper_limit_cd, (float)aparm.angle_max);
+        nav_pitch_upper_limit_cd = MIN(nav_pitch_upper_limit_cd, aparm.angle_max_deg*100.0);
 
         const float tconst = 0.5f;
         const float dt = AP_HAL::millis() - q_pitch_limit_update_ms;
@@ -2966,7 +2966,7 @@ void QuadPlane::assign_tilt_to_fwd_thr(void) {
 
     // When reducing forward throttle use, relax lower pitch limit to maintain forward
     // acceleration capability.
-    const float nav_pitch_lower_limit_cd = - (int32_t)((float)aparm.angle_max * (1.0f - fwd_thr_scaler) + q_fwd_pitch_lim_cd * fwd_thr_scaler);
+    const float nav_pitch_lower_limit_cd = - (int32_t)(aparm.angle_max_deg*100.0 * (1.0f - fwd_thr_scaler) + q_fwd_pitch_lim_cd * fwd_thr_scaler);
 
 #if HAL_LOGGING_ENABLED
     // Diagnostics logging - remove when feature is fully flight tested.
@@ -4370,7 +4370,7 @@ bool SLT_Transition::active() const
 bool SLT_Transition::set_VTOL_roll_pitch_limit(int32_t& roll_cd, int32_t& pitch_cd)
 {
     bool ret = false;
-    const int16_t angle_max = quadplane.aparm.angle_max;
+    const int16_t angle_max = quadplane.aparm.angle_max_deg*100.0;
 
     /*
       we always limit roll to Q_ANGLE_MAX

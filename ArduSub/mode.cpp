@@ -235,16 +235,16 @@ void Mode::get_pilot_desired_angle_rates(int16_t roll_in, int16_t pitch_in, int1
 
         // Calculate angle limiting earth frame rate commands
         if (g.acro_trainer == ACRO_TRAINER_LIMITED) {
-            if (roll_angle > sub.aparm.angle_max) {
-                rate_ef_level.x -=  g.acro_balance_roll*(roll_angle-sub.aparm.angle_max);
-            } else if (roll_angle < -sub.aparm.angle_max) {
-                rate_ef_level.x -=  g.acro_balance_roll*(roll_angle+sub.aparm.angle_max);
+            if (roll_angle > sub.aparm.angle_max_deg*100.0) {
+                rate_ef_level.x -=  g.acro_balance_roll*(roll_angle-sub.aparm.angle_max_deg*100.0);
+            } else if (roll_angle < -sub.aparm.angle_max_deg*100.0) {
+                rate_ef_level.x -=  g.acro_balance_roll*(roll_angle+sub.aparm.angle_max_deg*100.0);
             }
 
-            if (pitch_angle > sub.aparm.angle_max) {
-                rate_ef_level.y -=  g.acro_balance_pitch*(pitch_angle-sub.aparm.angle_max);
-            } else if (pitch_angle < -sub.aparm.angle_max) {
-                rate_ef_level.y -=  g.acro_balance_pitch*(pitch_angle+sub.aparm.angle_max);
+            if (pitch_angle > sub.aparm.angle_max_deg*100.0) {
+                rate_ef_level.y -=  g.acro_balance_pitch*(pitch_angle-sub.aparm.angle_max_deg*100.0);
+            } else if (pitch_angle < -sub.aparm.angle_max_deg*100.0) {
+                rate_ef_level.y -=  g.acro_balance_pitch*(pitch_angle+sub.aparm.angle_max_deg*100.0);
             }
         }
 

@@ -1574,5 +1574,8 @@ void Plane::load_parameters(void)
 #endif
     };
 
+    // PARAMETER_CONVERSION - Added: Oct-2024 for Plane-4.6
+    quadplane.aparm.angle_max_deg.convert_centi_parameter(AP_PARAM_INT16);
+
     AP_Param::convert_toplevel_objects(toplevel_conversions, ARRAY_SIZE(toplevel_conversions));
 }

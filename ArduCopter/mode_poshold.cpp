@@ -80,7 +80,7 @@ void ModePosHold::run()
 
     // convert pilot input to lean angles
     float target_roll, target_pitch;
-    get_pilot_desired_lean_angles(target_roll, target_pitch, copter.aparm.angle_max, attitude_control->get_althold_lean_angle_max_cd());
+    get_pilot_desired_lean_angles(target_roll, target_pitch, copter.aparm.angle_max_deg*100.0, attitude_control->get_althold_lean_angle_max_cd());
 
     // get pilot's desired yaw rate
     float target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->norm_input_dz());
@@ -481,7 +481,7 @@ void ModePosHold::run()
     }
 
     // constrain target pitch/roll angles
-    float angle_max = copter.aparm.angle_max;
+    float angle_max = copter.aparm.angle_max_deg*100.0;
     roll = constrain_float(roll, -angle_max, angle_max);
     pitch = constrain_float(pitch, -angle_max, angle_max);
 
@@ -592,7 +592,7 @@ void ModePosHold::update_wind_comp_estimate()
     }
 
     // limit acceleration
-    const float accel_lim_cmss = tanf(radians(POSHOLD_WIND_COMP_LEAN_PCT_MAX * copter.aparm.angle_max * 0.01f)) * 981.0f;
+    const float accel_lim_cmss = tanf(radians(POSHOLD_WIND_COMP_LEAN_PCT_MAX * copter.aparm.angle_max_deg)) * 981.0f;
     const float wind_comp_ef_len = wind_comp_ef.length();
     if (!is_zero(accel_lim_cmss) && (wind_comp_ef_len > accel_lim_cmss)) {
         wind_comp_ef *= accel_lim_cmss / wind_comp_ef_len;

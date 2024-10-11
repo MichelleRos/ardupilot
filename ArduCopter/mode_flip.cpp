@@ -79,7 +79,7 @@ bool ModeFlip::init(bool ignore_checks)
     LOGGER_WRITE_EVENT(LogEvent::FLIP_START);
 
     // capture current attitude which will be used during the FlipState::Recovery stage
-    const float angle_max = copter.aparm.angle_max;
+    const float angle_max = copter.aparm.angle_max_deg*100.0;
     orig_attitude.x = constrain_float(ahrs.roll_sensor, -angle_max, angle_max);
     orig_attitude.y = constrain_float(ahrs.pitch_sensor, -angle_max, angle_max);
     orig_attitude.z = ahrs.yaw_sensor;

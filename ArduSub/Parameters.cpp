@@ -200,14 +200,14 @@ const AP_Param::Info Sub::var_info[] = {
     // @User: Standard
     GSCALAR(log_bitmask,    "LOG_BITMASK",          DEFAULT_LOG_BITMASK),
 
-    // @Param: ANGLE_MAX
+    // @Param: ANGLE_MAX_DEG
     // @DisplayName: Angle Max
     // @Description: Maximum lean angle in all flight modes
-    // @Units: cdeg
-    // @Increment: 10
-    // @Range: 1000 8000
+    // @Units: deg
+    // @Increment: 0.1
+    // @Range: 10 80
     // @User: Advanced
-    ASCALAR(angle_max, "ANGLE_MAX",                 DEFAULT_ANGLE_MAX),
+    ASCALAR(angle_max_deg, "ANGLE_MAX_DEG",                 DEFAULT_ANGLE_MAX_DEG),
 
     // @Param: FS_EKF_ACTION
     // @DisplayName: EKF Failsafe Action
@@ -804,6 +804,9 @@ void Sub::load_parameters()
         { &serial_manager, serial_manager.var_info, Parameters::k_param_serial_manager_old },
 #endif
     };
+
+    // PARAMETER_CONVERSION - Added: Oct-2024 for Sub-4.6
+    aparm.angle_max_deg.convert_centi_parameter(AP_PARAM_INT16);
 
     AP_Param::convert_toplevel_objects(toplevel_conversions, ARRAY_SIZE(toplevel_conversions));
 }

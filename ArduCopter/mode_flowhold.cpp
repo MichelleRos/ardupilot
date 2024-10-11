@@ -190,17 +190,17 @@ void ModeFlowHold::flowhold_flow_to_angle(Vector2f &bf_angles, bool stick_input)
     }
 
     ef_output += xy_I;
-    ef_output *= copter.aparm.angle_max;
+    ef_output *= copter.aparm.angle_max_deg*100.0;
 
     // convert to body frame
     bf_angles += copter.ahrs.earth_to_body2D(ef_output);
 
     // set limited flag to prevent integrator windup
-    limited = fabsf(bf_angles.x) > copter.aparm.angle_max || fabsf(bf_angles.y) > copter.aparm.angle_max;
+    limited = fabsf(bf_angles.x) > copter.aparm.angle_max_deg*100.0 || fabsf(bf_angles.y) > copter.aparm.angle_max_deg*100.0;
 
     // constrain to angle limit
-    bf_angles.x = constrain_float(bf_angles.x, -copter.aparm.angle_max, copter.aparm.angle_max);
-    bf_angles.y = constrain_float(bf_angles.y, -copter.aparm.angle_max, copter.aparm.angle_max);
+    bf_angles.x = constrain_float(bf_angles.x, -copter.aparm.angle_max_deg*100.0, copter.aparm.angle_max_deg*100.0);
+    bf_angles.y = constrain_float(bf_angles.y, -copter.aparm.angle_max_deg*100.0, copter.aparm.angle_max_deg*100.0);
 
 #if HAL_LOGGING_ENABLED
 // @LoggerMessage: FHLD
@@ -318,7 +318,7 @@ void ModeFlowHold::run()
     // calculate alt-hold angles
     int16_t roll_in = copter.channel_roll->get_control_in();
     int16_t pitch_in = copter.channel_pitch->get_control_in();
-    float angle_max = copter.aparm.angle_max;
+    float angle_max = copter.aparm.angle_max_deg*100.0;
     get_pilot_desired_lean_angles(bf_angles.x, bf_angles.y, angle_max, attitude_control->get_althold_lean_angle_max_cd());
 
     if (quality_filtered >= flow_min_quality &&
@@ -336,7 +336,7 @@ void ModeFlowHold::run()
 
 #if AP_AVOIDANCE_ENABLED
     // apply avoidance
-    copter.avoid.adjust_roll_pitch(bf_angles.x, bf_angles.y, copter.aparm.angle_max);
+    copter.avoid.adjust_roll_pitch(bf_angles.x, bf_angles.y, copter.aparm.angle_max_deg*100.0);
 #endif
 
     // call attitude controller

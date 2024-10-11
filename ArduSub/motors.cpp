@@ -143,12 +143,12 @@ void Sub::translate_wpnav_rp(float &lateral_out, float &forward_out)
 
     // constrain target forward/lateral values
     // The outputs of wp_nav.get_roll and get_pitch should already be constrained to these values
-    lateral = constrain_int16(lateral, -aparm.angle_max, aparm.angle_max);
-    forward = constrain_int16(forward, -aparm.angle_max, aparm.angle_max);
+    lateral = constrain_int16(lateral, -aparm.angle_max_deg*100.0, aparm.angle_max_deg*100.0);
+    forward = constrain_int16(forward, -aparm.angle_max_deg*100.0, aparm.angle_max_deg*100.0);
 
     // Normalize
-    lateral_out = (float)lateral/(float)aparm.angle_max;
-    forward_out = (float)forward/(float)aparm.angle_max;
+    lateral_out = (float)lateral/(aparm.angle_max_deg*100.0);
+    forward_out = (float)forward/(aparm.angle_max_deg*100.0);
 }
 
 // translate wpnav roll/pitch outputs to lateral/forward
@@ -159,12 +159,12 @@ void Sub::translate_circle_nav_rp(float &lateral_out, float &forward_out)
     int32_t forward = -circle_nav.get_pitch(); // output is reversed
 
     // constrain target forward/lateral values
-    lateral = constrain_int16(lateral, -aparm.angle_max, aparm.angle_max);
-    forward = constrain_int16(forward, -aparm.angle_max, aparm.angle_max);
+    lateral = constrain_int16(lateral, -aparm.angle_max_deg*100.0, aparm.angle_max_deg*100.0);
+    forward = constrain_int16(forward, -aparm.angle_max_deg*100.0, aparm.angle_max_deg*100.0);
 
     // Normalize
-    lateral_out = (float)lateral/(float)aparm.angle_max;
-    forward_out = (float)forward/(float)aparm.angle_max;
+    lateral_out = (float)lateral/(aparm.angle_max_deg*100.0);
+    forward_out = (float)forward/(aparm.angle_max_deg*100.0);
 }
 
 // translate pos_control roll/pitch outputs to lateral/forward
@@ -175,10 +175,10 @@ void Sub::translate_pos_control_rp(float &lateral_out, float &forward_out)
     int32_t forward = -pos_control.get_pitch_cd(); // output is reversed
 
     // constrain target forward/lateral values
-    lateral = constrain_int16(lateral, -aparm.angle_max, aparm.angle_max);
-    forward = constrain_int16(forward, -aparm.angle_max, aparm.angle_max);
+    lateral = constrain_int16(lateral, -aparm.angle_max_deg*100.0, aparm.angle_max_deg*100.0);
+    forward = constrain_int16(forward, -aparm.angle_max_deg*100.0, aparm.angle_max_deg*100.0);
 
     // Normalize
-    lateral_out = (float)lateral/(float)aparm.angle_max;
-    forward_out = (float)forward/(float)aparm.angle_max;
+    lateral_out = (float)lateral/(aparm.angle_max_deg*100.0);
+    forward_out = (float)forward/(aparm.angle_max_deg*100.0);
 }

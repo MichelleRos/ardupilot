@@ -84,7 +84,7 @@ void ModePoshold::run()
     // convert pilot input to lean angles
     // To-Do: convert get_pilot_desired_lean_angles to return angles as floats
     float target_roll, target_pitch;
-    sub.get_pilot_desired_lean_angles(channel_roll->get_control_in(), channel_pitch->get_control_in(), target_roll, target_pitch, sub.aparm.angle_max);
+    sub.get_pilot_desired_lean_angles(channel_roll->get_control_in(), channel_pitch->get_control_in(), target_roll, target_pitch, sub.aparm.angle_max_deg*100.0);
 
     // update attitude controller targets
     if (!is_zero(target_yaw_rate)) { // call attitude controller with rate yaw determined by pilot input

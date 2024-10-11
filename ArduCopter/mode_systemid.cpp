@@ -173,7 +173,7 @@ void ModeSystemId::run()
         update_simple_mode();
 
         // convert pilot input to lean angles
-        get_pilot_desired_lean_angles(target_roll, target_pitch, copter.aparm.angle_max, copter.aparm.angle_max);
+        get_pilot_desired_lean_angles(target_roll, target_pitch, copter.aparm.angle_max_deg*100.0, copter.aparm.angle_max_deg*100.0);
 
         // get pilot's desired yaw rate
         target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->norm_input_dz());

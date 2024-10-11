@@ -6,5 +6,5 @@
   common parameters for multicopters
 */
 struct AP_MultiCopter {
-    AP_Int16 angle_max;
+    AP_Float angle_max_deg;
 };

@@ -348,11 +348,11 @@ const AP_Param::Info Copter::var_info[] = {
     // @Param: ANGLE_MAX
     // @DisplayName: Angle Max
     // @Description: Maximum lean angle in all flight modes
-    // @Units: cdeg
-    // @Increment: 10
-    // @Range: 1000 8000
+    // @Units: deg
+    // @Increment: 0.1
+    // @Range: 10 80
     // @User: Advanced
-    ASCALAR(angle_max, "ANGLE_MAX",                 DEFAULT_ANGLE_MAX),
+    ASCALAR(angle_max_deg, "ANGLE_MAX_DEG",                 DEFAULT_ANGLE_MAX_DEG),
 
 #if MODE_POSHOLD_ENABLED == ENABLED
     // @Param: PHLD_BRAKE_RATE
@@ -1383,6 +1383,9 @@ void Copter::load_parameters(void)
         { &serial_manager, serial_manager.var_info, Parameters::k_param_serial_manager_old },
 #endif
     };
+
+    // PARAMETER_CONVERSION - Added: Oct-2024 for Copter-4.6
+    aparm.angle_max_deg.convert_centi_parameter(AP_PARAM_INT16);
 
     AP_Param::convert_toplevel_objects(toplevel_conversions, ARRAY_SIZE(toplevel_conversions));
 
