@@ -12168,6 +12168,15 @@ class AutoTestCopter(vehicle_test_suite.TestSuite):
         # restart GPS driver
         self.reboot_sitl()
 
+    def SMART_RTL_repeat(self):
+        """Test whether Smart RTL catches the repeat"""
+        self.takeoff(alt_min=20, mode='GUIDED')  
+        self.set_rc(3, 1500)
+        self.change_mode("CIRCLE")
+        self.delay_sim_time(1300)
+        self.change_mode("SMART_RTL")
+        self.wait_disarmed()
+
     def tests2b(self):  # this block currently around 9.5mins here
         '''return list of all tests'''
         ret = ([
@@ -12194,6 +12203,7 @@ class AutoTestCopter(vehicle_test_suite.TestSuite):
             self.AP_Avoidance,
             self.SMART_RTL,
             self.SMART_RTL_EnterLeave,
+            self.SMART_RTL_repeat,
             self.RTL_TO_RALLY,
             self.FlyEachFrame,
             self.GPSBlending,
