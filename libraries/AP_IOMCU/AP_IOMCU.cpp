@@ -58,11 +58,12 @@ AP_IOMCU::AP_IOMCU(AP_HAL::UARTDriver &_uart) :
     singleton = this;
 }
 
-#define IOMCU_DEBUG_ENABLE 0
+#define IOMCU_DEBUG_ENABLE 1
 
 #if IOMCU_DEBUG_ENABLE
 #include <stdio.h>
-#define debug(fmt, args ...)  do {printf("%s:%d: " fmt "\n", __FUNCTION__, __LINE__, ## args); } while(0)
+#include "GCS_MAVLink/GCS.h"
+#define debug(fmt, args ...)  do {GCS_SEND_TEXT(MAV_SEVERITY_INFO,"%s:%d: " fmt "\n", __FUNCTION__, __LINE__, ## args); } while(0)
 #else
 #define debug(fmt, args ...)
 #endif
@@ -638,7 +639,7 @@ bool AP_IOMCU::read_registers(uint8_t page, uint8_t offset, uint8_t count, uint1
     // wait for the expected number of reply bytes or timeout
     if (!uart.wait_timeout(count*2+4, 10)) {
         debug("t=%lu timeout read page=%u offset=%u count=%u avail=%u\n",
-              AP_HAL::millis(), page, offset, count, uart.available());
+              AP_HAL::millis(), page, offset, count, (unsigned)uart.available());
         protocol_fail_count++;
         return false;
     }
