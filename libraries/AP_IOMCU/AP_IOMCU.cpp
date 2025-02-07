@@ -462,6 +462,7 @@ void AP_IOMCU::read_telem()
  */
 void AP_IOMCU::read_status()
 {
+    gcs().send_named_float("RSERR",read_status_errors);
     uint16_t *r = (uint16_t *)&reg_status;
     if (!read_registers(PAGE_STATUS, 0, sizeof(reg_status)/2, r)) {
         read_status_errors++;
