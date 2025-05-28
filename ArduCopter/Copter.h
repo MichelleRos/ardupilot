@@ -74,10 +74,10 @@
 #include <AP_SurfaceDistance/AP_SurfaceDistance.h>
 
 /*
-  default quicktune off in copter except for SITL
+  default quicktune on
  */
 #ifndef AP_QUICKTUNE_ENABLED
-#define AP_QUICKTUNE_ENABLED CONFIG_HAL_BOARD == HAL_BOARD_SITL
+#define AP_QUICKTUNE_ENABLED 1
 #endif
 
 #include <AP_Quicktune/AP_Quicktune.h>
