@@ -324,7 +324,6 @@ class TestBuildOptions(object):
             feature_define_whitelist.add('AP_BATTERY_WATT_MAX_ENABLED')
             feature_define_whitelist.add('MODE_AUTOLAND_ENABLED')
             feature_define_whitelist.add('AP_PLANE_GLIDER_PULLUP_ENABLED')
-            feature_define_whitelist.add('AP_QUICKTUNE_ENABLED')
             feature_define_whitelist.add('AP_PLANE_SYSTEMID_ENABLED')
 
         if target.lower() not in ["plane", "copter"]:
@@ -332,6 +331,7 @@ class TestBuildOptions(object):
             feature_define_whitelist.add('AP_LANDINGGEAR_ENABLED')
             # only Plane and Copter instantiate Parachute
             feature_define_whitelist.add('HAL_PARACHUTE_ENABLED')
+            feature_define_whitelist.add('AP_QUICKTUNE_ENABLED')
             # only Plane and Copter have AP_Motors:
 
         if target.lower() not in ["rover", "copter"]:
