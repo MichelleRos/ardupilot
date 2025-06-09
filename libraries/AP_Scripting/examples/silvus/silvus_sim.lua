@@ -150,8 +150,23 @@ end
 
 local function send_noise_level()
    -- gcs:send_text(MAV_SEVERITY.INFO, string.format("SilvusSim: send_noise_level"))
-   noise_level = 17
+   noise_level = 17 + math.random(-5,5)
    local json = string.format([[{"result" : [%s],"id" : "sbkb5u0c", "jsonrpc" : "2.0"}]], noise_level)
+   send_json(json)
+end
+
+local function send_nbr_rssi()
+   r1 = 2+math.random(-1,1)
+   r2 = 4+math.random(-1,1)
+   r3 = 6+math.random(-1,1)
+   r4 = 8+math.random(-1,1)
+   local json = string.format([[{"result" : [%s,%s,%s,%s],"id" : "sbkb5u0c", "jsonrpc" : "2.0"}]], r1,r2,r3,r4)
+   send_json(json)
+end
+
+local function send_link_throughput()
+   link_throughput = 5 + math.random(-5,5)
+   local json = string.format([[{"result" : [%s],"id" : "sbkb5u0c", "jsonrpc" : "2.0"}]], link_throughput)
    send_json(json)
 end
 
@@ -251,6 +266,14 @@ local function parse_request()
    end
    if method == "noise_level" then
       send_noise_level()
+      return
+   end
+   if method == "nbr_rssi" then
+      send_nbr_rssi()
+      return
+   end
+   if method == "link_throughput" then
+      send_link_throughput()
       return
    end
    gcs:send_text(0, "Unknown method (" .. method .. ")")
