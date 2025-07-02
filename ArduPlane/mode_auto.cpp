@@ -14,6 +14,10 @@ bool ModeAuto::_enter()
             return false;
         }
     }
+
+    if (plane.previous_mode == &plane.mode_rtl) {
+        plane.mission.set_in_failsafe(true);
+    }
     
     if (plane.quadplane.available() && plane.quadplane.enable == 2) {
         plane.auto_state.vtol_mode = true;
@@ -58,11 +62,14 @@ void ModeAuto::_exit()
         }
     }
     plane.auto_state.started_flying_in_auto_ms = 0;
+    plane.mission.set_in_failsafe(false);
 }
 
 void ModeAuto::update()
 {
-    plane.mission.set_in_failsafe(plane.any_failsafe_triggered()); // GCS, RC, BATTERY, ADSB.
+    if (plane.any_failsafe_triggered()){ // GCS, RC, BATTERY, ADSB.
+        plane.mission.set_in_failsafe(true);
+    }
     
     if (plane.mission.state() != AP_Mission::MISSION_RUNNING) {
         // this could happen if AP_Landing::restart_landing_sequence() returns false which would only happen if:
