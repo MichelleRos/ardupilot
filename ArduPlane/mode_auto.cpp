@@ -62,6 +62,8 @@ void ModeAuto::_exit()
 
 void ModeAuto::update()
 {
+    plane.mission.set_in_failsafe(plane.any_failsafe_triggered()); // GCS, RC, BATTERY, ADSB.
+    
     if (plane.mission.state() != AP_Mission::MISSION_RUNNING) {
         // this could happen if AP_Landing::restart_landing_sequence() returns false which would only happen if:
         // restart_landing_sequence() is called when not executing a NAV_LAND or there is no previous nav point

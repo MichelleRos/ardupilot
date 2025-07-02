@@ -66,7 +66,7 @@ public:
     // jump command structure
     struct PACKED Jump_Command {
         uint16_t target;        // target command id
-        int16_t num_times;      // num times to repeat.  -1 = repeat forever
+        int16_t num_times;      // num times to repeat.  -1 = repeat forever; or condition bitmask for jump if condition.
     };
 
     // condition delay command structure
@@ -781,6 +781,10 @@ public:
     void set_log_start_mission_item_bit(uint32_t bit) { log_start_mission_item_bit = bit; }
 #endif
 
+    void set_in_failsafe(bool in_failsafe) {
+        _in_failsafe = in_failsafe;
+    }
+
 private:
     static AP_Mission *_singleton;
 
@@ -908,7 +912,8 @@ private:
     uint16_t                _prev_nav_cmd_id;       // id of the previous "navigation" command. (WAYPOINT, LOITER_TO_ALT, ect etc)
     uint16_t                _prev_nav_cmd_index;    // index of the previous "navigation" command.  Rarely used which is why we don't store the whole command
     uint16_t                _prev_nav_cmd_wp_index; // index of the previous "navigation" command that contains a waypoint.  Rarely used which is why we don't store the whole command
-    Location         _exit_position;  // the position in the mission that the mission was exited
+    Location                _exit_position;  // the position in the mission that the mission was exited
+    bool                    _in_failsafe; // vehicle is currently in failsafe.
 
     // jump related variables
     struct jump_tracking_struct {

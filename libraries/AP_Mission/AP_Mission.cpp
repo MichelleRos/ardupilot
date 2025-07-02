@@ -428,6 +428,7 @@ bool AP_Mission::start_command(const Mission_Command& cmd)
     case MAV_CMD_DO_JUMP:
     case MAV_CMD_JUMP_TAG:
     case MAV_CMD_DO_JUMP_TAG:
+    case MAV_CMD_DO_JUMP_IF_CONDITION:
         GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Mission: %u %s %u", cmd.index, cmd.type(), (unsigned)cmd.p1);
         break;
 
@@ -1202,6 +1203,7 @@ MAV_MISSION_RESULT AP_Mission::mavlink_int_to_mission_cmd(const mavlink_mission_
 
     case MAV_CMD_DO_JUMP:                               // MAV ID: 177
     case MAV_CMD_DO_JUMP_TAG:                           // MAV ID: 601
+    case MAV_CMD_DO_JUMP_IF_CONDITION:                  // MAV ID: 602
         cmd.content.jump.target = packet.param1;        // jump-to command/tag number
         cmd.content.jump.num_times = packet.param2;     // repeat count
         break;
@@ -1717,6 +1719,7 @@ bool AP_Mission::mission_cmd_to_mavlink_int(const AP_Mission::Mission_Command& c
 
     case MAV_CMD_DO_JUMP:                               // MAV ID: 177
     case MAV_CMD_DO_JUMP_TAG:                           // MAV ID: 601
+    case MAV_CMD_DO_JUMP_IF_CONDITION:                  // MAV ID: 602
         packet.param1 = cmd.content.jump.target;        // jump-to command/tag number
         packet.param2 = cmd.content.jump.num_times;     // repeat count
         break;
@@ -2189,6 +2192,17 @@ bool AP_Mission::get_next_cmd(uint16_t start_index, Mission_Command& cmd, bool i
             // convert tmp_cmd target from a target tag to a target index
             temp_cmd.content.jump.target = get_index_of_jump_tag(temp_cmd.content.jump.target);
             temp_cmd.id = MAV_CMD_DO_JUMP;
+        }
+
+        if (temp_cmd.id == MAV_CMD_DO_JUMP_IF_CONDITION) {
+            if (_in_failsafe && temp_cmd.content.jump.num_times == 1) {
+                GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "Mission: In failsafe. Doing jump.");
+                temp_cmd.id = MAV_CMD_DO_JUMP;
+            } else {
+                GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Mission: Skipping jump.");
+                cmd_index++;
+                continue; //go to next command
+            }
         }
 
         // check for do-jump command
