@@ -111,6 +111,7 @@ void ModeRTL::navigate()
                 if (plane.have_position && plane.mission.jump_to_landing_sequence(plane.current_loc)) {
                     // switch from RTL -> AUTO
                     plane.mission.set_force_resume(true);
+                    plane.mission.set_in_failsafe(true);
                     if (plane.set_mode(plane.mode_auto, ModeReason::RTL_COMPLETE_SWITCHING_TO_FIXEDWING_AUTOLAND)) {
                         // return here so we don't change the radius and don't run the rtl update_loiter()
                         return;
@@ -126,6 +127,7 @@ void ModeRTL::navigate()
         } else if (plane.g.rtl_autoland == RtlAutoland::DO_RETURN_PATH_START) {
             if (plane.have_position && plane.mission.jump_to_closest_mission_leg(plane.current_loc)) {
                 plane.mission.set_force_resume(true);
+                plane.mission.set_in_failsafe(true);
                 if (plane.set_mode(plane.mode_auto, ModeReason::RTL_COMPLETE_SWITCHING_TO_FIXEDWING_AUTOLAND)) {
                     // return here so we don't change the radius and don't run the rtl update_loiter()
                     return;

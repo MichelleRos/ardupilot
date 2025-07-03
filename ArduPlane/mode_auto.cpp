@@ -15,10 +15,6 @@ bool ModeAuto::_enter()
         }
     }
 
-    if (plane.previous_mode == &plane.mode_rtl) {
-        plane.mission.set_in_failsafe(true);
-    }
-    
     if (plane.quadplane.available() && plane.quadplane.enable == 2) {
         plane.auto_state.vtol_mode = true;
     } else {

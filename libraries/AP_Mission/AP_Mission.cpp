@@ -264,6 +264,7 @@ void AP_Mission::reset()
     _flags.do_cmd_all_done = false;
     _flags.in_landing_sequence = false;
     _flags.in_return_path = false;
+    _in_failsafe = false;
     _nav_cmd.index         = AP_MISSION_CMD_INDEX_NONE;
     _do_cmd.index          = AP_MISSION_CMD_INDEX_NONE;
     _prev_nav_cmd_index    = AP_MISSION_CMD_INDEX_NONE;
@@ -421,7 +422,14 @@ bool AP_Mission::start_command(const Mission_Command& cmd)
         // Clear landing and return path flags on takeoff
         _flags.in_landing_sequence = false;
         _flags.in_return_path = false;
-
+    }
+    
+    if (cmd.id == MAV_CMD_DO_JUMP_IF_CONDITION) {
+        if (_in_failsafe && cmd.content.jump_if.condition == 1) {
+            GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "Mission: In failsafe. Doing jump.");
+        } else {
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Mission: Skipping jump.");
+        }
     }
 
     switch (cmd.id) {
@@ -1203,9 +1211,13 @@ MAV_MISSION_RESULT AP_Mission::mavlink_int_to_mission_cmd(const mavlink_mission_
 
     case MAV_CMD_DO_JUMP:                               // MAV ID: 177
     case MAV_CMD_DO_JUMP_TAG:                           // MAV ID: 601
-    case MAV_CMD_DO_JUMP_IF_CONDITION:                  // MAV ID: 602
         cmd.content.jump.target = packet.param1;        // jump-to command/tag number
         cmd.content.jump.num_times = packet.param2;     // repeat count
+        break;
+
+    case MAV_CMD_DO_JUMP_IF_CONDITION:                  // MAV ID: 602
+        cmd.content.jump_if.target = packet.param1;     // jump-to command number
+        cmd.content.jump_if.condition = packet.param2;  // condition to jump on
         break;
 
     case MAV_CMD_JUMP_TAG:                              // MAV ID: 600
@@ -1719,9 +1731,13 @@ bool AP_Mission::mission_cmd_to_mavlink_int(const AP_Mission::Mission_Command& c
 
     case MAV_CMD_DO_JUMP:                               // MAV ID: 177
     case MAV_CMD_DO_JUMP_TAG:                           // MAV ID: 601
-    case MAV_CMD_DO_JUMP_IF_CONDITION:                  // MAV ID: 602
         packet.param1 = cmd.content.jump.target;        // jump-to command/tag number
         packet.param2 = cmd.content.jump.num_times;     // repeat count
+        break;
+
+    case MAV_CMD_DO_JUMP_IF_CONDITION:                  // MAV ID: 602
+        packet.param1 = cmd.content.jump_if.target;     // jump-to command number
+        packet.param2 = cmd.content.jump_if.condition;  // condition to jump on
         break;
 
     case MAV_CMD_JUMP_TAG:                              // MAV ID: 600
@@ -2195,11 +2211,9 @@ bool AP_Mission::get_next_cmd(uint16_t start_index, Mission_Command& cmd, bool i
         }
 
         if (temp_cmd.id == MAV_CMD_DO_JUMP_IF_CONDITION) {
-            if (_in_failsafe && temp_cmd.content.jump.num_times == 1) {
-                GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "Mission: In failsafe. Doing jump.");
+            if (_in_failsafe && temp_cmd.content.jump_if.condition == 1) {
                 temp_cmd.id = MAV_CMD_DO_JUMP;
             } else {
-                GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Mission: Skipping jump.");
                 cmd_index++;
                 continue; //go to next command
             }
@@ -2932,6 +2946,8 @@ const char *AP_Mission::Mission_Command::type() const
         return "VideoStartCapture";
     case MAV_CMD_VIDEO_STOP_CAPTURE:
         return "VideoStopCapture";
+    case MAV_CMD_DO_JUMP_IF_CONDITION:
+        return "JumpIfCondition";
     default:
 #if CONFIG_HAL_BOARD == HAL_BOARD_SITL
         AP_HAL::panic("Mission command with ID %u has no string", id);

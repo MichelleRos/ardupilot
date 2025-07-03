@@ -66,7 +66,12 @@ public:
     // jump command structure
     struct PACKED Jump_Command {
         uint16_t target;        // target command id
-        int16_t num_times;      // num times to repeat.  -1 = repeat forever; or condition bitmask for jump if condition.
+        int16_t num_times;      // num times to repeat.
+    };
+
+    struct PACKED Jump_If_Command {
+        uint16_t target;        // target command id
+        int16_t condition;      // condition bitmask for jump if condition
     };
 
     // condition delay command structure
@@ -305,6 +310,9 @@ public:
     union Content {
         // jump structure
         Jump_Command jump;
+
+        // Jump If structure
+        Jump_If_Command jump_if;
 
         // conditional delay
         Conditional_Delay_Command delay;
