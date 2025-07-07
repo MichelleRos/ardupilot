@@ -790,7 +790,7 @@ public:
 #endif
 
     void set_in_failsafe(bool in_failsafe) {
-        _in_failsafe = in_failsafe;
+        _flags.in_failsafe = in_failsafe;
     }
 
 private:
@@ -813,6 +813,7 @@ private:
         bool in_landing_sequence;   // true if the mission has jumped to a landing
         bool resuming_mission;      // true if the mission is resuming and set false once the aircraft attains the interrupted WP
         bool in_return_path;        // true if the mission has passed a DO_RETURN_PATH_START waypoint either in the course of the mission or via a `jump_to_closest_mission_leg` call
+        bool in_failsafe;           // true if the vehicle has had a failsafe.
     } _flags;
 
     // mission WP resume history
@@ -921,7 +922,6 @@ private:
     uint16_t                _prev_nav_cmd_index;    // index of the previous "navigation" command.  Rarely used which is why we don't store the whole command
     uint16_t                _prev_nav_cmd_wp_index; // index of the previous "navigation" command that contains a waypoint.  Rarely used which is why we don't store the whole command
     Location                _exit_position;  // the position in the mission that the mission was exited
-    bool                    _in_failsafe; // vehicle is currently in failsafe.
 
     // jump related variables
     struct jump_tracking_struct {

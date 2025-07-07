@@ -264,7 +264,7 @@ void AP_Mission::reset()
     _flags.do_cmd_all_done = false;
     _flags.in_landing_sequence = false;
     _flags.in_return_path = false;
-    _in_failsafe = false;
+    _flags.in_failsafe = false;
     _nav_cmd.index         = AP_MISSION_CMD_INDEX_NONE;
     _do_cmd.index          = AP_MISSION_CMD_INDEX_NONE;
     _prev_nav_cmd_index    = AP_MISSION_CMD_INDEX_NONE;
@@ -425,7 +425,7 @@ bool AP_Mission::start_command(const Mission_Command& cmd)
     }
     
     if (cmd.id == MAV_CMD_DO_JUMP_IF_CONDITION) {
-        if (_in_failsafe && cmd.content.jump_if.condition == 1) {
+        if (_flags.in_failsafe && cmd.content.jump_if.condition == 1) {
             GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "Mission: In failsafe. Doing jump.");
         } else {
             GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Mission: Skipping jump.");
@@ -2211,7 +2211,7 @@ bool AP_Mission::get_next_cmd(uint16_t start_index, Mission_Command& cmd, bool i
         }
 
         if (temp_cmd.id == MAV_CMD_DO_JUMP_IF_CONDITION) {
-            if (_in_failsafe && temp_cmd.content.jump_if.condition == 1) {
+            if (_flags.in_failsafe && temp_cmd.content.jump_if.condition == 1) {
                 temp_cmd.id = MAV_CMD_DO_JUMP;
             } else {
                 cmd_index++;
