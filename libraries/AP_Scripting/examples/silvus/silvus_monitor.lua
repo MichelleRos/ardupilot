@@ -451,9 +451,6 @@ local function handle_dual_range_position()
    ahrs:handle_external_position_estimate(vehicle_loc, accuracy, millis())
 end
 
---[[
-   parse JSON reply from remote radio
---]]
 local function parse_reply()
    sock:close()
    sock = nil
@@ -509,7 +506,7 @@ local function handle_response_TOF(result)
 end
 
 local function handle_response_noise_level(result)
-   gcs:send_named_float("NL", tonumber(result[1]))
+   gcs:send_named_float("SR_REMNSE", tonumber(result[1]))
 end
 
 --[[
