@@ -244,6 +244,12 @@ local function send_heartbeats()
    end
 end
 
+local table = {}
+table = { 
+   { "noise_level", handle_response_noise_level },
+}
+local n = 1
+
 --[[
    update called at 20Hz
 --]]
@@ -251,8 +257,10 @@ local function update()
    if SLV_ENABLE:get() <= 0 then
       return
    end
+   
    if sock then
       check_reply()
+      n = n+1
       return
    end
    local now = millis()
@@ -261,10 +269,14 @@ local function update()
       last_heartbeat_ms = now
       send_heartbeats()
    end
+
+   if n > #table then
+      n = 1
+   end
    local period_ms = 1000.0 / SLV_RATE:get()
    if not last_request_ms or now - last_request_ms >= period_ms then
       last_request_ms = now
-      http_request("noise_level", handle_response_noise_level)
+      http_request(table[n][1], table[n][2])
    end
 end
 
