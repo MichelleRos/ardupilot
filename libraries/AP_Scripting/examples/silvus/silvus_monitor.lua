@@ -451,41 +451,6 @@ local function handle_dual_range_position()
    ahrs:handle_external_position_estimate(vehicle_loc, accuracy, millis())
 end
 
-local function parse_reply()
-   sock:close()
-   sock = nil
-   lines = {}
-   if not http_reply then
-      return
-   end
-   if not json_log then
-      json_log = io.open("json.log",'wb')
-   end
-   if json_log then
-      json_log:write(http_reply)
-   end
-   --save_to_file("json_rep.txt", http_reply)
-   for s in http_reply:gmatch("[^\r\n]+") do
-      table.insert(lines, s)
-   end
-   local success, req = pcall(json.parse, lines[#lines])
-   if not success then
-      return
-   end
-   -- gcs:send_text(0, lines[#lines])
-   local result = req['result']
-   if result == nil then
-      gcs:send_text(0, "nil here")
-      return
-   end
-   if not result then
-      -- badly formatted
-      return
-   end
-
-   handle_response(result)
-end
-
 local function handle_response_TOF(result)
    local num_nodes = math.floor(#result / 3)
    for i = 1, num_nodes do
@@ -510,15 +475,45 @@ local function handle_response_noise_level(result)
 end
 
 --[[
-   see if we have a API reply
+   see if we have a API reply, parse it if so
 --]]
-local function check_reply()
+local function check_reply() 
    if not sock then
       return
    end
    local now = millis()
    if reply_start and now - reply_start > REQUEST_TIMEOUT then
-      parse_reply()
+      sock:close()
+      sock = nil
+      lines = {}
+      if not http_reply then
+         return
+      end
+      if not json_log then
+         json_log = io.open("json.log",'wb')
+      end
+      if json_log then
+         json_log:write(http_reply)
+      end
+      --save_to_file("json_rep.txt", http_reply)
+      for s in http_reply:gmatch("[^\r\n]+") do
+         table.insert(lines, s)
+      end
+      local success, req = pcall(json.parse, lines[#lines])
+      if not success then
+         return
+      end
+      -- gcs:send_text(0, lines[#lines])
+      local result = req['result']
+      if result == nil then
+         gcs:send_text(0, "nil here")
+         return
+      end
+      if not result then
+         -- badly formatted
+         return
+      end
+      handle_response(result)
       return
    end
    sock:set_blocking(true)
