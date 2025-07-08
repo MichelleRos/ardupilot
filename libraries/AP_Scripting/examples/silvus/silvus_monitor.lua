@@ -147,10 +147,10 @@ local function http_request(api, params, http_request_response_handler)
    sock:set_blocking(true)
    local json = ""
    if params == nil then
-      -- gcs:send_text(MAV_SEVERITY.INFO, "Sending request ".. api)
       json = string.format([[{"jsonrpc":"2.0","method":"%s","id":"sbkb5u0c"}]], api)
+   elseif params.num == 1 then
+      json = string.format([[{"jsonrpc":"2.0","method":"%s", "params":["%s"],"id":"sbkb5u0c"}]], api, params.p1)
    elseif params.num == 2 then
-      -- gcs:send_text(MAV_SEVERITY.INFO, "Sending request ".. api .. "with two params: " .. params.p1 .. " " .. params.p2)
       json = string.format([[{"jsonrpc":"2.0","method":"%s", "params":["%s", "%s"],"id":"sbkb5u0c"}]], api, params.p1, params.p2)
    else
       gcs:send_text(MAV_SEVERITY.EMERGENCY,"Error: Unsupported params.")
@@ -181,6 +181,13 @@ end
 
 local function handle_response_throughput(result)
    gcs:send_named_float("SR_REMTPUT", tonumber(result[1]))
+end
+
+local function handle_response_rssi(result)
+   gcs:send_named_float("SR_RXRSSI1", tonumber(result[1]))
+   gcs:send_named_float("SR_RXRSSI2", tonumber(result[2]))
+   gcs:send_named_float("SR_RXRSSI3", tonumber(result[3]))
+   gcs:send_named_float("SR_RXRSSI4", tonumber(result[4]))
 end
 
 --[[
@@ -263,6 +270,7 @@ local table = {}
 table = { 
    { "noise_level", nil, handle_response_noise_level },
    { "link_throughput", { num=2, p1=SLV_GND_NODEID[1]:get(), p2=1 },handle_response_throughput },
+   { "nbr_rssi", { num=1, p1=SLV_GND_NODEID[1]:get()}, handle_response_rssi },
 }
 local n = 1
 
