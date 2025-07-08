@@ -132,7 +132,7 @@ local handle_response = nil
 --[[
    make a silvus API request
 --]]
-local function http_request(api, http_request_response_handler)
+local function http_request(api, params, http_request_response_handler)
    if sock then
       sock:close()
       sock = nil
@@ -145,7 +145,18 @@ local function http_request(api, http_request_response_handler)
       return nil
    end
    sock:set_blocking(true)
-   local json = string.format([[{"jsonrpc":"2.0","method":"%s","id":"sbkb5u0c"}]], api)
+   local json = ""
+   if params == nil then
+      -- gcs:send_text(MAV_SEVERITY.INFO, "Sending request ".. api)
+      json = string.format([[{"jsonrpc":"2.0","method":"%s","id":"sbkb5u0c"}]], api)
+   elseif params.num == 2 then
+      -- gcs:send_text(MAV_SEVERITY.INFO, "Sending request ".. api .. "with two params: " .. params.p1 .. " " .. params.p2)
+      json = string.format([[{"jsonrpc":"2.0","method":"%s", "params":["%s", "%s"],"id":"sbkb5u0c"}]], api, params.p1, params.p2)
+   else
+      gcs:send_text(MAV_SEVERITY.EMERGENCY,"Error: Unsupported params.")
+      return nil
+   end
+   gcs:send_text(MAV_SEVERITY.INFO, "Json: " .. json)
    local cmd = string.format([[POST /streamscape_api HTTP/1.1
 Host: %s
 User-Agent: lua
@@ -166,6 +177,10 @@ end
 
 local function handle_response_noise_level(result)
    gcs:send_named_float("SR_REMNSE", tonumber(result[1]))
+end
+
+local function handle_response_throughput(result)
+   gcs:send_named_float("SR_REMTPUT", tonumber(result[1]))
 end
 
 --[[
@@ -246,7 +261,8 @@ end
 
 local table = {}
 table = { 
-   { "noise_level", handle_response_noise_level },
+   { "noise_level", nil, handle_response_noise_level },
+   { "link_throughput", { num=2, p1=SLV_GND_NODEID[1]:get(), p2=1 },handle_response_throughput },
 }
 local n = 1
 
@@ -257,10 +273,8 @@ local function update()
    if SLV_ENABLE:get() <= 0 then
       return
    end
-   
    if sock then
       check_reply()
-      n = n+1
       return
    end
    local now = millis()
@@ -276,7 +290,9 @@ local function update()
    local period_ms = 1000.0 / SLV_RATE:get()
    if not last_request_ms or now - last_request_ms >= period_ms then
       last_request_ms = now
-      http_request(table[n][1], table[n][2])
+      -- gcs:send_text(MAV_SEVERITY.INFO, "Sending request for n="..n)
+      http_request(table[n][1], table[n][2], table[n][3])
+      n = n+1
    end
 end
 
