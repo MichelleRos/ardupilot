@@ -58,13 +58,13 @@ void ModeAuto::_exit()
         }
     }
     plane.auto_state.started_flying_in_auto_ms = 0;
-    plane.mission.set_in_failsafe(false);
+    plane.mission.set_any_failsafe_triggered(false);
 }
 
 void ModeAuto::update()
 {
     if (plane.any_failsafe_triggered()){ // GCS, RC, BATTERY, ADSB.
-        plane.mission.set_in_failsafe(true);
+        plane.mission.set_any_failsafe_triggered(true);
     }
     
     if (plane.mission.state() != AP_Mission::MISSION_RUNNING) {

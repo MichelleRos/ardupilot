@@ -789,7 +789,7 @@ public:
     void set_log_start_mission_item_bit(uint32_t bit) { log_start_mission_item_bit = bit; }
 #endif
 
-    void set_in_failsafe(bool in_failsafe) {
+    void set_any_failsafe_triggered(bool in_failsafe) {
         _flags.in_failsafe = in_failsafe;
     }
 
