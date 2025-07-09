@@ -54,14 +54,24 @@ local SLV_RATE = bind_add_param('RATE', 6, 1)
 --]]
 local SLV_HTTP_PORT = bind_add_param('HTTP_PORT', 10, 80)
 
-local SLV_LOCAL_NODEID = bind_add_param('LOCAL_NODEID', 14, 0)
+local SLV_LOCAL_NODEID = bind_add_param('LOCAL_NODEID', 14, 42)
+
+local LOG_RATE = 0.1 -- once per 10 sec
 
 local SLV_GND_NODEID = {}
+local TOF_TABLE = {}
+TOF_TABLE[SLV_LOCAL_NODEID:get()] = { tof={-1,-1}, nse={-1,-1}, lt={-1,-1}, rssi = {-1,-1,-1,-1,-1} }
+local TOF_LEN = 1
 
 local radio_ranges = {nil, nil}
 local radio_tstamp_ms = {nil, nil}
 
 gcs:send_text(MAV_SEVERITY.INFO, "Silvus: starting")
+
+
+local function nows()
+   return millis():toint()
+end
 
 --[[
    get IP address of local radio
@@ -81,7 +91,7 @@ local http_reply = nil
 local reply_start = nil
 local REQUEST_TIMEOUT = 250
 local last_request_ms = nil
-local last_heartbeat_ms = nil
+local last_log_ms = nil
 local json = require("json")
 local json_log = nil
 local handle_response = nil
@@ -133,31 +143,44 @@ Content-Length: %u
 end
 
 local function handle_response_noise_level(result)
-   gcs:send_named_float("SR_REMNSE", tonumber(result[1]))
+   local noise = tonumber(result[1])
+   gcs:send_named_float("SR_REMNSE", noise)
+   TOF_TABLE[42].nse = { nows(), noise }
 end
 
 local function handle_response_throughput(result)
-   gcs:send_named_float("SR_REMTPUT", tonumber(result[1]))
+   local link_tput = tonumber(result[1])
+   gcs:send_named_float("SR_REMTPUT", link_tput)
+   TOF_TABLE[42].lt = { nows(), link_tput }
 end
 
 local function handle_response_rssi(result)
-   gcs:send_named_float("SR_RXRSSI1", tonumber(result[1]))
-   gcs:send_named_float("SR_RXRSSI2", tonumber(result[2]))
-   gcs:send_named_float("SR_RXRSSI3", tonumber(result[3]))
-   gcs:send_named_float("SR_RXRSSI4", tonumber(result[4]))
+   local rssi = { tonumber(result[1]), tonumber(result[2]), tonumber(result[3]), tonumber(result[4]) } 
+   gcs:send_named_float("SR_RXRSSI1", rssi[1])
+   gcs:send_named_float("SR_RXRSSI2", rssi[2])
+   gcs:send_named_float("SR_RXRSSI3", rssi[3])
+   gcs:send_named_float("SR_RXRSSI4", rssi[4])
+   TOF_TABLE[42].rssi = { nows(), rssi[1], rssi[2], rssi[3], rssi[4] }
 end
 
 local function handle_response_tof(result)
+   -- gcs:send_text(3, "Handling tof "..result[1])
    for res = 1, #result/3 do
-      index1 = (res-1)*3+1
-      index2 = (res-1)*3+2
-      index3 = (res-1)*3+3
+      local index1 = (res-1)*3+1
+      local index2 = (res-1)*3+2
+      local index3 = (res-1)*3+3
       -- gcs:send_text(MAV_SEVERITY.ERROR, "TOFi "..res.. " is "..index1.." "..index2.." "..index3)
-      gcs:send_text(MAV_SEVERITY.ERROR, "TOF "..res.. " is "..result[index1].." "..result[index2].." "..result[index3])
-      -- logger:write('STOF','n,nid,tof,age','Ifff',res, result[index1],result[index2], result[index3])
+      -- gcs:send_text(MAV_SEVERITY.ERROR, "TOF"..res.. " = "..result[index1].." "..result[index2].." "..result[index3])
+      -- table.insert(TOF_TABLE, { )
+      local idx = tonumber(result[index1])
+      if TOF_TABLE[idx] == nil then
+         TOF_TABLE[idx] = { tof={-1,-1}, nse={-1,-1}, lt={-1,-1}, rssi = {-1,-1,-1,-1,-1} }
+         TOF_LEN = TOF_LEN + 1
+      end
+      TOF_TABLE[idx].tof = { result[index3], result[index2]} --always age first, then data
    end
+   -- gcs:send_text(MAV_SEVERITY.ERROR, "Finished handling tof")
 end
-
 
 --[[
    see if we have a API reply, parse it if so
@@ -209,6 +232,14 @@ local function check_reply()
    end
 end
 
+local function log_data()
+   gcs:send_text(MAV_SEVERITY.INFO, "In log_data, TOF table is "..#TOF_TABLE)
+   for i, TR in pairs(TOF_TABLE) do
+      gcs:send_text(MAV_SEVERITY.INFO, "i is "..i)
+      gcs:send_text(MAV_SEVERITY.INFO, "Log: TOF: ".. TR.tof[1].." "..TR.tof[2])
+      logger:write('STOF','I,ta,t,na,n,la,l,ra,r1,r2,r3,r4','Iiiiiiiiiiii', '#-----------', '------------', i, TR.tof[1], TR.tof[2], TR.nse[1], TR.nse[2], TR.lt[1], TR.lt[2], TR.rssi[1], TR.rssi[2], TR.rssi[3], TR.rssi[4], TR.rssi[5])
+   end
+end
 
 local heartbeat_counter = 0
 
@@ -234,18 +265,38 @@ local function update()
    end
    local now = millis()
 
-   if n > #http_request_table then
-      -- gcs:send_text(MAV_SEVERITY.INFO, "N is "..n..". Resetting")
-      n = 1
-   end
+   -- if n > TOF_LEN then
+   --    -- gcs:send_text(MAV_SEVERITY.INFO, "N is "..n..". Resetting")
+   --    n = 1
+   -- end
+
+   -- local log_period_ms = 1000.0/LOG_RATE
+   -- if not last_log_ms or now - last_log_ms >= log_period_ms then
+   --    last_log_ms = now
+   --    log_data()
+   -- end
+
    local period_ms = 1000.0 / SLV_RATE:get()
    if not last_request_ms or now - last_request_ms >= period_ms then
       last_request_ms = now
       -- gcs:send_text(MAV_SEVERITY.INFO, "Sending request for n="..n)
-      api = http_request_table[n][1]
-      params_layout = http_request_table[n][2]
-      response_handler = http_request_table[n][3]
-      http_request(api, params_layout, response_handler)
+      local quo = (n // 3)+1  -- integer division
+      local rem = (n % 3)+1  
+      if n > TOF_LEN then
+         --call TOF and reset counter
+         gcs:send_text(MAV_SEVERITY.INFO, "TOF - n is "..n.." tot is "..tot.." "..tot2.." quo is "..quo.." rem is "..rem)
+         -- api = http_request_table[4][1]
+         -- params_layout = http_request_table[4][2]
+         -- response_handler = http_request_table[4][3]
+         -- http_request(api, params_layout, response_handler)
+         n = 1
+      else
+         gcs:send_text(MAV_SEVERITY.INFO, "n is "..n.." tot is "..tot.." "..tot2.." quo is "..quo.." rem is "..rem)
+         -- api = http_request_table[quo][rem]
+         -- params_layout = http_request_table[quo][rem]
+         -- response_handler = http_request_table[quo][rem]
+         -- http_request(api, params_layout, response_handler)
+      end
       n = n+1
    end
 end
