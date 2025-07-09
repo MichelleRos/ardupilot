@@ -133,7 +133,7 @@ local function http_request(api, params, http_request_response_handler)
       gcs:send_text(MAV_SEVERITY.EMERGENCY,"Error: Unsupported params.")
       return nil
    end
-   gcs:send_text(MAV_SEVERITY.INFO, "Json: " .. json)
+   -- gcs:send_text(MAV_SEVERITY.INFO, "Json: " .. json)
    local cmd = string.format([[POST /streamscape_api HTTP/1.1
 Host: %s
 User-Agent: lua
@@ -278,10 +278,11 @@ local heartbeat_counter = 0
 
 local http_request_table = {}
 http_request_table = { 
-   { "noise_level", nil, handle_response_noise_level },
-   { "link_throughput", { num=2, p1="RN", p2=1 }, handle_response_throughput },
-   { "nbr_rssi", { num=1, p1="RN"}, handle_response_rssi },
-   { "current_tof", nil, handle_response_tof },
+   -- api          params   response handler          local remote
+   { "noise_level", nil, handle_response_noise_level, true,  false },
+   { "link_throughput", { num=2, p1="RN", p2=1 }, handle_response_throughput, true, true },
+   { "nbr_rssi", { num=1, p1="RN"}, handle_response_rssi, true, true },
+   { "current_tof", nil, handle_response_tof, true, false },
 }
 local n = 0
 
@@ -298,7 +299,10 @@ local function update()
    end
    local now = millis()
 
-   tot = #TOF_TABLE*3-1
+   tot = #TOF_TABLE*#http_request_table-1
+   if n > tot then
+      n = 0
+   end
 
    -- local log_period_ms = 1000.0/LOG_RATE
    -- if not last_log_ms or now - last_log_ms >= log_period_ms then
@@ -310,26 +314,24 @@ local function update()
    if not last_request_ms or now - last_request_ms >= period_ms then
       last_request_ms = now
       -- gcs:send_text(MAV_SEVERITY.INFO, "Sending request for n="..n)
-      local quo = (n // 3)+1  -- integer division
-      local rem = (n % 3)+1
-      if n <= tot then
-         -- call each http request for each node
-         REQUESTED_NODE=TOF_TABLE[quo].id
+      local quo = (n // #http_request_table)+1  -- integer division
+      local rem = (n % #http_request_table)+1
+      -- call each http request for each node
+      REQUESTED_NODE=TOF_TABLE[quo].id
+      local do_local = (http_request_table[rem][4] and (REQUESTED_NODE == SLV_LOCAL_NODEID:get()))
+      local do_remote = (http_request_table[rem][5] and (REQUESTED_NODE ~= SLV_LOCAL_NODEID:get()))
+      if do_local or do_remote then
          local api = http_request_table[rem][1]
          local params_layout = http_request_table[rem][2]
          local response_handler = http_request_table[rem][3]
-         gcs:send_text(MAV_SEVERITY.INFO, "RN is "..REQUESTED_NODE.." for "..api.." n is "..n.." tot is "..tot.." tab is "..#TOF_TABLE.." quo is "..quo.." rem is "..rem)
+         gcs:send_text(MAV_SEVERITY.INFO, "RN is "..REQUESTED_NODE.." for "..api.." n is "..n.." tot is "..tot.." tab is "..#TOF_TABLE.." quo is "..quo)
          http_request(api, params_layout, response_handler)
-         n = n+1
       else
-         -- call TOF and reset counter
-         local api = http_request_table[4][1]
-         local params_layout = http_request_table[4][2]
-         local response_handler = http_request_table[4][3]
-         gcs:send_text(MAV_SEVERITY.INFO, "TOF - RN is "..REQUESTED_NODE.." for "..api.." n is "..n.." tot is "..tot.." tab is "..#TOF_TABLE.." quo is "..quo.." rem is "..rem)
-         http_request(api, params_layout, response_handler)
-         n = 0
+         local api = http_request_table[rem][1]
+         gcs:send_text(MAV_SEVERITY.ERROR, "SKIPPED - RN is "..REQUESTED_NODE.." for "..api.." n is "..n.." tot is "..tot.." tab is "..#TOF_TABLE.." quo is "..quo)
+         last_request_ms = now - period_ms --make sure it gets called again soon
       end
+      n = n+1
    end
 end
 
