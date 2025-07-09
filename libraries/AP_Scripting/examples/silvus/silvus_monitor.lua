@@ -31,10 +31,10 @@ if SLV_ENABLE:get() == 0 then
    return
 end
 
-local SLV_IP = { bind_add_param('IP0', 2, 192),
-                 bind_add_param('IP1', 3, 168),
-                 bind_add_param('IP2', 4, 0),
-                 bind_add_param('IP3', 5, 2) }
+local SLV_LOCAL_IP = { bind_add_param('LOCAL_IP0', 2, 192),
+                 bind_add_param('LOCAL_IP1', 3, 168),
+                 bind_add_param('LOCAL_IP2', 4, 0),
+                 bind_add_param('LOCAL_IP3', 5, 2) }
 
 --[[
   // @Param: SLV_RATE
@@ -54,63 +54,20 @@ local SLV_RATE = bind_add_param('RATE', 6, 1)
 --]]
 local SLV_HTTP_PORT = bind_add_param('HTTP_PORT', 10, 80)
 
---[[
-  // @Param: SLV_NUM_RADIOS
-  // @DisplayName: Silvus number of ground radios
-  // @Description: Silvus number of ground radios
-  // @Range: 1 8
-  // @User: Standard
---]]
-local SLV_NUM_RADIOS = bind_add_param('NUM_RADIOS', 13, 0)
-
---[[
-  // @Param: SLV_GND1_NODEID
-  // @DisplayName: Silvus node ID for first ground radio
-  // @Description: Silvus node ID for first ground radio
-  // @User: Standard
---]]
-
---[[
-  // @Param: SLV_GND1_IP3
-  // @DisplayName: Silvus ground radio 1 IP3
-  // @Description: Silvus ground radio 1 last octet of IP address
-  // @User: Standard
---]]
+local SLV_LOCAL_NODEID = bind_add_param('LOCAL_NODEID', 14, 0)
 
 local SLV_GND_NODEID = {}
-local SLV_GND_IP3 = {}
-
--- clamp number of radios
-if SLV_NUM_RADIOS:get() > MAX_GROUND_RADIOS then
-   SLV_NUM_RADIOS:set(MAX_GROUND_RADIOS)
-end
-
---[[
-   create the parameters per ground radio (beacon)
---]]
-for r = 1, SLV_NUM_RADIOS:get() do
-   SLV_GND_NODEID[r] = bind_add_param(string.format('GND%u_NODEID',r), 20+(r-1)*5, 0)
-   SLV_GND_IP3[r] = bind_add_param(string.format('GND%u_IP3',r),       24+(r-1)*5, 0)
-end
-
 
 local radio_ranges = {nil, nil}
 local radio_tstamp_ms = {nil, nil}
 
-gcs:send_text(MAV_SEVERITY.INFO, string.format("Silvus: starting with %u ground radios", SLV_NUM_RADIOS:get()))
+gcs:send_text(MAV_SEVERITY.INFO, "Silvus: starting")
 
 --[[
-   get IP address of air radio
+   get IP address of local radio
 --]]
-local function silvus_ip()
-   return string.format("%u.%u.%u.%u", SLV_IP[1]:get(), SLV_IP[2]:get(), SLV_IP[3]:get(), SLV_IP[4]:get())
-end
-
---[[
-   get IP address of a ground radio
---]]
-local function ground_radio_ip(radio_index)
-   return string.format("%u.%u.%u.%u", SLV_IP[1]:get(), SLV_IP[2]:get(), SLV_IP[3]:get(), SLV_GND_IP3[radio_index]:get())
+local function local_ip()
+   return string.format("%u.%u.%u.%u", SLV_LOCAL_IP[1]:get(), SLV_LOCAL_IP[2]:get(), SLV_LOCAL_IP[3]:get(), SLV_LOCAL_IP[4]:get())
 end
 
 local function save_to_file(fname, data)
@@ -138,7 +95,7 @@ local function http_request(api, params, http_request_response_handler)
       sock = nil
    end
    sock = Socket(0)
-   local node_ip = silvus_ip()
+   local node_ip = local_ip()
    if not sock:connect(node_ip, SLV_HTTP_PORT:get()) then
       gcs:send_text(MAV_SEVERITY.ERROR, string.format("Silvus: failed to connect to " .. node_ip .. ":" .. SLV_HTTP_PORT:get(), name))
       sock = nil
@@ -190,6 +147,18 @@ local function handle_response_rssi(result)
    gcs:send_named_float("SR_RXRSSI4", tonumber(result[4]))
 end
 
+local function handle_response_tof(result)
+   for res = 1, #result/3 do
+      index1 = (res-1)*3+1
+      index2 = (res-1)*3+2
+      index3 = (res-1)*3+3
+      gcs:send_text(3, "TOFi "..res.. " is "..index1.." "..index2.." "..index3)
+      gcs:send_text(3, "TOF "..res.. " is "..result[index1].." "..result[index2].." "..result[index3])
+      -- logger:write('STOF','n,nid,tof,age','Ifff',res, result[index1],result[index2], result[index3])
+   end
+end
+
+
 --[[
    see if we have a API reply, parse it if so
 --]]
@@ -217,9 +186,10 @@ local function check_reply()
       end
       local success, req = pcall(json.parse, lines[#lines])
       if not success then
+         gcs:send_text(MAV_SEVERITY.ERROR, "request failed")
          return
       end
-      -- gcs:send_text(0, lines[#lines])
+      gcs:send_text(0, lines[#lines])
       local result = req['result']
       if result == nil then
          gcs:send_text(0, "nil here")
@@ -242,35 +212,12 @@ end
 
 local heartbeat_counter = 0
 
---[[
-   send UDP heartbeat messages to all ground radios to ensure we get up to date TOF data.
-   The silvus TOF system is opprtunistic, if no data is flowing it won't update
---]]
-local function send_heartbeats()
-   heartbeat_counter = heartbeat_counter + 1
-   for i = 1, #SLV_GND_IP3 do
-      local ip3 = SLV_GND_IP3[i]:get()
-      if ip3 > 0 and ip3 < 255 then
-         local sock = Socket(1)
-         if not sock then
-            return
-         end
-         local ip = ground_radio_ip(i)
-         if sock:connect(ip, PORT_HEATBEAT) then
-            local msg = ip .. string.format(":HEARTBEAT:%u", heartbeat_counter)
-            sock:send(msg, #msg)
-            -- gcs:send_text(0, msg)
-         end
-         sock:close()
-      end
-   end
-end
-
-local table = {}
-table = { 
+local http_request_table = {}
+http_request_table = { 
    { "noise_level", nil, handle_response_noise_level },
-   { "link_throughput", { num=2, p1=SLV_GND_NODEID[1]:get(), p2=1 },handle_response_throughput },
-   { "nbr_rssi", { num=1, p1=SLV_GND_NODEID[1]:get()}, handle_response_rssi },
+   { "link_throughput", { num=2, p1=SLV_LOCAL_NODEID:get(), p2=1 }, handle_response_throughput },
+   { "nbr_rssi", { num=1, p1=SLV_LOCAL_NODEID:get()}, handle_response_rssi },
+   { "current_tof", nil, handle_response_tof },
 }
 local n = 1
 
@@ -286,20 +233,19 @@ local function update()
       return
    end
    local now = millis()
-   -- heartbeat at 10Hz
-   if not last_heartbeat_ms or now - last_heartbeat_ms >= 100 then
-      last_heartbeat_ms = now
-      send_heartbeats()
-   end
 
-   if n > #table then
+   if n > #http_request_table then
+      -- gcs:send_text(MAV_SEVERITY.INFO, "N is "..n..". Resetting")
       n = 1
    end
    local period_ms = 1000.0 / SLV_RATE:get()
    if not last_request_ms or now - last_request_ms >= period_ms then
       last_request_ms = now
       -- gcs:send_text(MAV_SEVERITY.INFO, "Sending request for n="..n)
-      http_request(table[n][1], table[n][2], table[n][3])
+      api = http_request_table[n][1]
+      params_layout = http_request_table[n][2]
+      response_handler = http_request_table[n][3]
+      http_request(api, params_layout, response_handler)
       n = n+1
    end
 end
