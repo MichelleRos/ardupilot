@@ -61,7 +61,7 @@ local LOG_RATE = 0.1 -- once per 10 sec
 local SLV_GND_NODEID = {}
 local TOF_TABLE = {}
 table.insert(TOF_TABLE, {id=SLV_LOCAL_NODEID:get(), tof={-1,-1}, nse={-1,-1}, lt={-1,-1}, rssi = {-1,-1,-1,-1,-1} })
-local REQUESTED_NODE = 0
+local REQUESTED_NODE = nil
 
 local radio_ranges = {nil, nil}
 local radio_tstamp_ms = {nil, nil}
@@ -113,6 +113,9 @@ local function http_request(api, params, http_request_response_handler)
    end
    sock:set_blocking(true)
    local json = ""
+   if params.p1 == "RN" then
+      params.p1 = REQUESTED_NODE
+   end
    if params == nil then
       json = string.format([[{"jsonrpc":"2.0","method":"%s","id":"sbkb5u0c"}]], api)
    elseif params.num == 1 then
@@ -123,7 +126,7 @@ local function http_request(api, params, http_request_response_handler)
       gcs:send_text(MAV_SEVERITY.EMERGENCY,"Error: Unsupported params.")
       return nil
    end
-   -- gcs:send_text(MAV_SEVERITY.INFO, "Json: " .. json)
+   gcs:send_text(MAV_SEVERITY.INFO, "Json: " .. json)
    local cmd = string.format([[POST /streamscape_api HTTP/1.1
 Host: %s
 User-Agent: lua
@@ -144,22 +147,37 @@ end
 
 local function handle_response_noise_level(result)
    local noise = tonumber(result[1])
-   gcs:send_named_float("SR_REMNSE", noise)
+   if REQUESTED_NODE == SLV_LOCAL_NODEID:get() then
+      gcs:send_named_float("SR_LOCNSE", noise)
+   else
+      gcs:send_named_float("SR_REMNSE", noise)
+   end
    TOF_TABLE[findTOFidx(REQUESTED_NODE)].nse = { nows(), noise }
 end
 
 local function handle_response_throughput(result)
    local link_tput = tonumber(result[1])
-   gcs:send_named_float("SR_REMTPUT", link_tput)
+   if REQUESTED_NODE == SLV_LOCAL_NODEID:get() then
+      gcs:send_named_float("SR_REMTPUT", link_tput)
+   else
+      gcs:send_named_float("SR_LOCTPUT", link_tput)
+   end
    TOF_TABLE[findTOFidx(REQUESTED_NODE)].lt = { nows(), link_tput }
 end
 
 local function handle_response_rssi(result)
    local rssi = { tonumber(result[1]), tonumber(result[2]), tonumber(result[3]), tonumber(result[4]) } 
-   gcs:send_named_float("SR_RXRSSI1", rssi[1])
-   gcs:send_named_float("SR_RXRSSI2", rssi[2])
-   gcs:send_named_float("SR_RXRSSI3", rssi[3])
-   gcs:send_named_float("SR_RXRSSI4", rssi[4])
+   if REQUESTED_NODE == SLV_LOCAL_NODEID:get() then
+      gcs:send_named_float("SR_RXRSSI1", rssi[1])
+      gcs:send_named_float("SR_RXRSSI2", rssi[2])
+      gcs:send_named_float("SR_RXRSSI3", rssi[3])
+      gcs:send_named_float("SR_RXRSSI4", rssi[4])
+   else
+      gcs:send_named_float("SR_TXRSSI1", rssi[1])
+      gcs:send_named_float("SR_TXRSSI2", rssi[2])
+      gcs:send_named_float("SR_TXRSSI3", rssi[3])
+      gcs:send_named_float("SR_TXRSSI4", rssi[4])
+   end
    TOF_TABLE[findTOFidx(REQUESTED_NODE)].rssi = { nows(), rssi[1], rssi[2], rssi[3], rssi[4] }
 end
 
@@ -254,8 +272,8 @@ local heartbeat_counter = 0
 local http_request_table = {}
 http_request_table = { 
    { "noise_level", nil, handle_response_noise_level },
-   { "link_throughput", { num=2, p1=SLV_LOCAL_NODEID:get(), p2=1 }, handle_response_throughput },
-   { "nbr_rssi", { num=1, p1=SLV_LOCAL_NODEID:get()}, handle_response_rssi },
+   { "link_throughput", { num=2, p1="RN", p2=1 }, handle_response_throughput },
+   { "nbr_rssi", { num=1, p1="RN"}, handle_response_rssi },
    { "current_tof", nil, handle_response_tof },
 }
 local n = 0
@@ -288,6 +306,7 @@ local function update()
       local quo = (n // 3)+1  -- integer division
       local rem = (n % 3)+1
       if n <= tot then
+         -- call each http request for each node
          REQUESTED_NODE=TOF_TABLE[quo].id
          gcs:send_text(MAV_SEVERITY.INFO, "RN is "..REQUESTED_NODE.." n is "..n.." tot is "..tot.." tab is "..#TOF_TABLE.." quo is "..quo.." rem is "..rem)
          api = http_request_table[rem][1]
@@ -296,7 +315,7 @@ local function update()
          http_request(api, params_layout, response_handler)
          n = n+1
       else
-         --call TOF and reset counter
+         -- call TOF and reset counter
          gcs:send_text(MAV_SEVERITY.INFO, "TOF - RN is "..REQUESTED_NODE.." n is "..n.." tot is "..tot.." tab is "..#TOF_TABLE.." quo is "..quo.." rem is "..rem)
          api = http_request_table[4][1]
          params_layout = http_request_table[4][2]
