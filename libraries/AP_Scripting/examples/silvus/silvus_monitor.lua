@@ -112,16 +112,23 @@ local function http_request(api, params, http_request_response_handler)
       return nil
    end
    sock:set_blocking(true)
-   local json = ""
-   if params.p1 == "RN" then
-      params.p1 = REQUESTED_NODE
+
+
+   local p1 = nil
+   if params ~= nil then
+      if params.p1 == "RN" then
+         p1 = math.floor(REQUESTED_NODE)
+      else
+         p1 = params.p1
+      end
    end
+   local json = ""
    if params == nil then
       json = string.format([[{"jsonrpc":"2.0","method":"%s","id":"sbkb5u0c"}]], api)
    elseif params.num == 1 then
-      json = string.format([[{"jsonrpc":"2.0","method":"%s", "params":["%s"],"id":"sbkb5u0c"}]], api, params.p1)
+      json = string.format([[{"jsonrpc":"2.0","method":"%s", "params":["%s"],"id":"sbkb5u0c"}]], api, p1)
    elseif params.num == 2 then
-      json = string.format([[{"jsonrpc":"2.0","method":"%s", "params":["%s", "%s"],"id":"sbkb5u0c"}]], api, params.p1, params.p2)
+      json = string.format([[{"jsonrpc":"2.0","method":"%s", "params":["%s", "%s"],"id":"sbkb5u0c"}]], api, p1, params.p2)
    else
       gcs:send_text(MAV_SEVERITY.EMERGENCY,"Error: Unsupported params.")
       return nil
@@ -308,18 +315,18 @@ local function update()
       if n <= tot then
          -- call each http request for each node
          REQUESTED_NODE=TOF_TABLE[quo].id
-         gcs:send_text(MAV_SEVERITY.INFO, "RN is "..REQUESTED_NODE.." n is "..n.." tot is "..tot.." tab is "..#TOF_TABLE.." quo is "..quo.." rem is "..rem)
-         api = http_request_table[rem][1]
-         params_layout = http_request_table[rem][2]
-         response_handler = http_request_table[rem][3]
+         local api = http_request_table[rem][1]
+         local params_layout = http_request_table[rem][2]
+         local response_handler = http_request_table[rem][3]
+         gcs:send_text(MAV_SEVERITY.INFO, "RN is "..REQUESTED_NODE.." for "..api.." n is "..n.." tot is "..tot.." tab is "..#TOF_TABLE.." quo is "..quo.." rem is "..rem)
          http_request(api, params_layout, response_handler)
          n = n+1
       else
          -- call TOF and reset counter
-         gcs:send_text(MAV_SEVERITY.INFO, "TOF - RN is "..REQUESTED_NODE.." n is "..n.." tot is "..tot.." tab is "..#TOF_TABLE.." quo is "..quo.." rem is "..rem)
-         api = http_request_table[4][1]
-         params_layout = http_request_table[4][2]
-         response_handler = http_request_table[4][3]
+         local api = http_request_table[4][1]
+         local params_layout = http_request_table[4][2]
+         local response_handler = http_request_table[4][3]
+         gcs:send_text(MAV_SEVERITY.INFO, "TOF - RN is "..REQUESTED_NODE.." for "..api.." n is "..n.." tot is "..tot.." tab is "..#TOF_TABLE.." quo is "..quo.." rem is "..rem)
          http_request(api, params_layout, response_handler)
          n = 0
       end
