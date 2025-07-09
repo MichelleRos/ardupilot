@@ -197,25 +197,26 @@ end
    get range in TOF units (100ns), given offset of beacon from home
 --]]
 local function get_range_ticks(radio_idx)
-   local gps_loc = gps:location(0)
-   if not gps_loc then
-      return nil
-   end
-   local loc = get_radio_location(radio_idx)
-   if not loc then
-      return nil
-   end
-   local range_2D_m = gps_loc:get_distance(loc)
-   if range_2D_m > 300000 then
-      return nil
-   end
-   local alt_diff = math.abs(loc:alt()*0.01 - gps_loc:alt()*0.01)
-   local range_3D_m = math.sqrt(range_2D_m^2 + alt_diff^2)
-   if range_3D_m < SSIM_DIST_OFS:get() then
-      return 0
-   end
-   local range_ticks = math.floor((range_3D_m - SSIM_DIST_OFS:get()) / SSIM_DIST_MUL:get())
-   return range_ticks
+   return 17+math.random(-2,2)
+   -- local gps_loc = gps:location(0)
+   -- if not gps_loc then
+   --    return nil
+   -- end
+   -- local loc = get_radio_location(radio_idx)
+   -- if not loc then
+   --    return nil
+   -- end
+   -- local range_2D_m = gps_loc:get_distance(loc)
+   -- if range_2D_m > 300000 then
+   --    return nil
+   -- end
+   -- local alt_diff = math.abs(loc:alt()*0.01 - gps_loc:alt()*0.01)
+   -- local range_3D_m = math.sqrt(range_2D_m^2 + alt_diff^2)
+   -- if range_3D_m < SSIM_DIST_OFS:get() then
+   --    return 0
+   -- end
+   -- local range_ticks = math.floor((range_3D_m - SSIM_DIST_OFS:get()) / SSIM_DIST_MUL:get())
+   -- return range_ticks
 end
 
 local function send_ranges()

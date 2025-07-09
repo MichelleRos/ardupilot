@@ -113,7 +113,7 @@ local function http_request(api, params, http_request_response_handler)
       gcs:send_text(MAV_SEVERITY.EMERGENCY,"Error: Unsupported params.")
       return nil
    end
-   gcs:send_text(MAV_SEVERITY.INFO, "Json: " .. json)
+   -- gcs:send_text(MAV_SEVERITY.INFO, "Json: " .. json)
    local cmd = string.format([[POST /streamscape_api HTTP/1.1
 Host: %s
 User-Agent: lua
@@ -152,8 +152,8 @@ local function handle_response_tof(result)
       index1 = (res-1)*3+1
       index2 = (res-1)*3+2
       index3 = (res-1)*3+3
-      gcs:send_text(3, "TOFi "..res.. " is "..index1.." "..index2.." "..index3)
-      gcs:send_text(3, "TOF "..res.. " is "..result[index1].." "..result[index2].." "..result[index3])
+      -- gcs:send_text(MAV_SEVERITY.ERROR, "TOFi "..res.. " is "..index1.." "..index2.." "..index3)
+      gcs:send_text(MAV_SEVERITY.ERROR, "TOF "..res.. " is "..result[index1].." "..result[index2].." "..result[index3])
       -- logger:write('STOF','n,nid,tof,age','Ifff',res, result[index1],result[index2], result[index3])
    end
 end
@@ -189,7 +189,7 @@ local function check_reply()
          gcs:send_text(MAV_SEVERITY.ERROR, "request failed")
          return
       end
-      gcs:send_text(0, lines[#lines])
+      -- gcs:send_text(MAV_SEVERITY.ERROR, lines[#lines])
       local result = req['result']
       if result == nil then
          gcs:send_text(0, "nil here")
