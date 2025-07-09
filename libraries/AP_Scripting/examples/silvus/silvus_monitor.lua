@@ -60,8 +60,8 @@ local LOG_RATE = 0.1 -- once per 10 sec
 
 local SLV_GND_NODEID = {}
 local TOF_TABLE = {}
-TOF_TABLE[SLV_LOCAL_NODEID:get()] = { tof={-1,-1}, nse={-1,-1}, lt={-1,-1}, rssi = {-1,-1,-1,-1,-1} }
-local TOF_LEN = 1
+table.insert(TOF_TABLE, {id=SLV_LOCAL_NODEID:get(), tof={-1,-1}, nse={-1,-1}, lt={-1,-1}, rssi = {-1,-1,-1,-1,-1} })
+local REQUESTED_NODE = 0
 
 local radio_ranges = {nil, nil}
 local radio_tstamp_ms = {nil, nil}
@@ -145,13 +145,13 @@ end
 local function handle_response_noise_level(result)
    local noise = tonumber(result[1])
    gcs:send_named_float("SR_REMNSE", noise)
-   TOF_TABLE[42].nse = { nows(), noise }
+   TOF_TABLE[findTOFidx(REQUESTED_NODE)].nse = { nows(), noise }
 end
 
 local function handle_response_throughput(result)
    local link_tput = tonumber(result[1])
    gcs:send_named_float("SR_REMTPUT", link_tput)
-   TOF_TABLE[42].lt = { nows(), link_tput }
+   TOF_TABLE[findTOFidx(REQUESTED_NODE)].lt = { nows(), link_tput }
 end
 
 local function handle_response_rssi(result)
@@ -160,7 +160,16 @@ local function handle_response_rssi(result)
    gcs:send_named_float("SR_RXRSSI2", rssi[2])
    gcs:send_named_float("SR_RXRSSI3", rssi[3])
    gcs:send_named_float("SR_RXRSSI4", rssi[4])
-   TOF_TABLE[42].rssi = { nows(), rssi[1], rssi[2], rssi[3], rssi[4] }
+   TOF_TABLE[findTOFidx(REQUESTED_NODE)].rssi = { nows(), rssi[1], rssi[2], rssi[3], rssi[4] }
+end
+
+function findTOFidx(val)
+   for i, TR in pairs(TOF_TABLE) do
+       if TR.id == val then
+           return i
+       end
+   end
+   return nil
 end
 
 local function handle_response_tof(result)
@@ -173,11 +182,10 @@ local function handle_response_tof(result)
       -- gcs:send_text(MAV_SEVERITY.ERROR, "TOF"..res.. " = "..result[index1].." "..result[index2].." "..result[index3])
       -- table.insert(TOF_TABLE, { )
       local idx = tonumber(result[index1])
-      if TOF_TABLE[idx] == nil then
-         TOF_TABLE[idx] = { tof={-1,-1}, nse={-1,-1}, lt={-1,-1}, rssi = {-1,-1,-1,-1,-1} }
-         TOF_LEN = TOF_LEN + 1
+      if findTOFidx(idx) == nil then
+         table.insert(TOF_TABLE, {id=idx, tof={-1,-1}, nse={-1,-1}, lt={-1,-1}, rssi = {-1,-1,-1,-1,-1} })
       end
-      TOF_TABLE[idx].tof = { result[index3], result[index2]} --always age first, then data
+      TOF_TABLE[findTOFidx(idx)].tof = { result[index3], result[index2]} --always age first, then data
    end
    -- gcs:send_text(MAV_SEVERITY.ERROR, "Finished handling tof")
 end
@@ -250,7 +258,7 @@ http_request_table = {
    { "nbr_rssi", { num=1, p1=SLV_LOCAL_NODEID:get()}, handle_response_rssi },
    { "current_tof", nil, handle_response_tof },
 }
-local n = 1
+local n = 0
 
 --[[
    update called at 20Hz
@@ -265,10 +273,7 @@ local function update()
    end
    local now = millis()
 
-   -- if n > TOF_LEN then
-   --    -- gcs:send_text(MAV_SEVERITY.INFO, "N is "..n..". Resetting")
-   --    n = 1
-   -- end
+   tot = #TOF_TABLE*3-1
 
    -- local log_period_ms = 1000.0/LOG_RATE
    -- if not last_log_ms or now - last_log_ms >= log_period_ms then
@@ -281,23 +286,24 @@ local function update()
       last_request_ms = now
       -- gcs:send_text(MAV_SEVERITY.INFO, "Sending request for n="..n)
       local quo = (n // 3)+1  -- integer division
-      local rem = (n % 3)+1  
-      if n > TOF_LEN then
-         --call TOF and reset counter
-         gcs:send_text(MAV_SEVERITY.INFO, "TOF - n is "..n.." tot is "..tot.." "..tot2.." quo is "..quo.." rem is "..rem)
-         -- api = http_request_table[4][1]
-         -- params_layout = http_request_table[4][2]
-         -- response_handler = http_request_table[4][3]
-         -- http_request(api, params_layout, response_handler)
-         n = 1
+      local rem = (n % 3)+1
+      if n <= tot then
+         REQUESTED_NODE=TOF_TABLE[quo].id
+         gcs:send_text(MAV_SEVERITY.INFO, "RN is "..REQUESTED_NODE.." n is "..n.." tot is "..tot.." tab is "..#TOF_TABLE.." quo is "..quo.." rem is "..rem)
+         api = http_request_table[rem][1]
+         params_layout = http_request_table[rem][2]
+         response_handler = http_request_table[rem][3]
+         http_request(api, params_layout, response_handler)
+         n = n+1
       else
-         gcs:send_text(MAV_SEVERITY.INFO, "n is "..n.." tot is "..tot.." "..tot2.." quo is "..quo.." rem is "..rem)
-         -- api = http_request_table[quo][rem]
-         -- params_layout = http_request_table[quo][rem]
-         -- response_handler = http_request_table[quo][rem]
-         -- http_request(api, params_layout, response_handler)
+         --call TOF and reset counter
+         gcs:send_text(MAV_SEVERITY.INFO, "TOF - RN is "..REQUESTED_NODE.." n is "..n.." tot is "..tot.." tab is "..#TOF_TABLE.." quo is "..quo.." rem is "..rem)
+         api = http_request_table[4][1]
+         params_layout = http_request_table[4][2]
+         response_handler = http_request_table[4][3]
+         http_request(api, params_layout, response_handler)
+         n = 0
       end
-      n = n+1
    end
 end
 
