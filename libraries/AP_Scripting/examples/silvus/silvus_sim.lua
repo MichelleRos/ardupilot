@@ -303,7 +303,7 @@ local function parse_request()
       return
    end
    if method == "nbr_mcs" then
-      send_nbr_rssi()
+      send_mcs()
       return
    end
    gcs:send_text(0, "Unknown method (" .. method .. ")")
