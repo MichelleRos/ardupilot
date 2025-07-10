@@ -1,5 +1,5 @@
 --[[
-   monitor silvus radio TOF data and give to AHRS for range fusion
+   monitor silvus radio data to stream and log
 --]]
 
 local MAV_SEVERITY = {EMERGENCY=0, ALERT=1, CRITICAL=2, ERROR=3, WARNING=4, NOTICE=5, INFO=6, DEBUG=7}
@@ -60,9 +60,8 @@ local SLV_DEBUG = bind_add_param('DEBUG', 15, 0)
 local LOG_RATE = 0.1 -- once per 10 sec
 
 local SLV_GND_NODEID = {}
-local TOF_TABLE = {}
--- table.insert(TOF_TABLE, { id=SLV_LOCAL_NODEID:get(), tof={-1,-1}, nse={-1,-1}, lt={-1,-1}, rssi = {-1,-1,-1,-1,-1} })
-table.insert(TOF_TABLE, { id=1 , snr={-1,SLV_LOCAL_NODEID:get(),SLV_LOCAL_NODEID:get(),-1}, nse={-1,-1}, lt={-1,-1}, rssi = {-1,-1,-1,-1,-1}, mcs={ -1,-1} })
+local LINK_TABLE = {}
+table.insert(LINK_TABLE, { id=1 , snr={-1,SLV_LOCAL_NODEID:get(),SLV_LOCAL_NODEID:get(),-1}, nse={-1,-1}, lt={-1,-1}, rssi = {-1,-1,-1,-1,-1}, mcs={ -1,-1} })
 local REQUESTED_NODE = nil
 
 local radio_ranges = {nil, nil}
@@ -157,25 +156,25 @@ end
 local function handle_response_noise_level(result)
    local noise = tonumber(result[1])
    send_nvf(REQUESTED_NODE, "SR_LOCNSE", "SR_REMNSE", noise)
-   TOF_TABLE[findTOFibynid(REQUESTED_NODE)].nse = { nows(), noise }
+   LINK_TABLE[findLINKibynid(REQUESTED_NODE)].nse = { nows(), noise }
 end
 
 local function handle_response_throughput(result)
    local link_tput = tonumber(result[1])
    send_nvf(REQUESTED_NODE, "SR_LOCTPUT", "SR_REMTPUT", link_tput)
-   TOF_TABLE[findTOFibynid(REQUESTED_NODE)].lt = { nows(), link_tput }
+   LINK_TABLE[findLINKibynid(REQUESTED_NODE)].lt = { nows(), link_tput }
 end
 
 local function handle_response_rssi(result)
    local rssi = { tonumber(result[1]), tonumber(result[2]), tonumber(result[3]), tonumber(result[4]) } 
    send_nvf(REQUESTED_NODE, "SR_RXRSSI", "SR_TXRSSI", rssi)
-   TOF_TABLE[findTOFibynid(REQUESTED_NODE)].rssi = { nows(), rssi[1], rssi[2], rssi[3], rssi[4] }
+   LINK_TABLE[findLINKibynid(REQUESTED_NODE)].rssi = { nows(), rssi[1], rssi[2], rssi[3], rssi[4] }
 end
 
 local function handle_response_mcs(result)
    local mcs = tonumber(result[1])
    send_nvf(REQUESTED_NODE, "SR_LOCMCS", "SR_REMMCS", mcs)
-   TOF_TABLE[findTOFibynid(REQUESTED_NODE)].mcs = { nows(), mcs }
+   LINK_TABLE[findLINKibynid(REQUESTED_NODE)].mcs = { nows(), mcs }
 end
 
 function send_nvf(nodeid, nvfidloc, nvfidrem, res)
@@ -196,9 +195,9 @@ function send_nvf(nodeid, nvfidloc, nvfidrem, res)
    end
 end
 
--- returns TOF_TABLE index number for the given id
-function findTOFibyidx(idx)
-   for i, TR in pairs(TOF_TABLE) do
+-- returns LINK_TABLE index number for the given id
+function findLINKibyidx(idx)
+   for i, TR in pairs(LINK_TABLE) do
       if TR.id == idx then
          return i
       end
@@ -206,9 +205,9 @@ function findTOFibyidx(idx)
    return nil
 end
 
---returns TOF_TABLE index number where the given node id is in the first spot
-function findTOFibynid(nid)
-   for i, TR in pairs(TOF_TABLE) do
+--returns LINK_TABLE index number where the given node id is in the first spot
+function findLINKibynid(nid)
+   for i, TR in pairs(LINK_TABLE) do
       if TR.snr[2] == nid then
          return i
       end
@@ -216,9 +215,9 @@ function findTOFibynid(nid)
    return nil
 end
 
---returns TOF_TABLE index number where the given node id is in the second spot
-function findTOFibynid2(nid)
-   for i, TR in pairs(TOF_TABLE) do
+--returns LINK_TABLE index number where the given node id is in the second spot
+function findLINKibynid2(nid)
+   for i, TR in pairs(LINK_TABLE) do
       if TR.snr[3] == nid then
          return i
       end
@@ -228,7 +227,7 @@ end
 function getnids()
    local hash = {}
    local res = {}
-   for _,v in pairs(TOF_TABLE) do
+   for _,v in pairs(LINK_TABLE) do
       n1 = v.snr[2]
       n2 = v.snr[3]
       if (not hash[n1]) then
@@ -244,7 +243,7 @@ function getnids()
 end
 
 local function handle_response_network_status(result)
-   -- gcs:send_text(3, "Handling tof "..result[1])
+   -- gcs:send_text(3, "Handling network_status "..result[1])
    for res = 1, #result/3 do
       local nid1i = (res-1)*3+1
       local nid2i = (res-1)*3+2
@@ -252,22 +251,21 @@ local function handle_response_network_status(result)
       local nid1 = tonumber(result[nid2i])
       local nid2 = tonumber(result[nid2i])
       local snr = tonumber(result[snri])
-      -- gcs:send_text(MAV_SEVERITY.WARNING, "TOFi "..res.. " is "..index1.." "..index2.." "..index3)
-      -- gcs:send_text(MAV_SEVERITY.WARNING, "TOF"..res.. " = "..result[index1].." "..result[index2].." "..result[index3])
+      --add new item if needed
       local idx = nid1.." "..nid2
-      if findTOFibyidx(idx) == nil then
-         table.insert(TOF_TABLE, { id=idx, snr={-1,-1,-1,-1}, nse={-1,-1}, lt={-1,-1}, rssi={-1,-1,-1,-1,-1}, mcs={ -1,-1} })
+      if findLINKibyidx(idx) == nil then
+         table.insert(LINK_TABLE, { id=idx, snr={-1,-1,-1,-1}, nse={-1,-1}, lt={-1,-1}, rssi={-1,-1,-1,-1,-1}, mcs={ -1,-1} })
       end
       --always age first, then data
-      TOF_TABLE[findTOFibyidx(idx)].snr = { nows(),nid1, nid2, snr }
+      LINK_TABLE[findLINKibyidx(idx)].snr = { nows(),nid1, nid2, snr }
       -- nid has been added, but in the second spot.
-      if findTOFibynid(nid1) == nil and findTOFibynid2(nid2) ~= nil then
+      if findLINKibynid(nid2) == nil and findLINKibynid2(nid2) ~= nil then
          local idx2 = nid2.." "..nid1
-         table.insert(TOF_TABLE, { id=idx2, snr={-1,nid2,nid1,-1}, nse={-1,-1}, lt={-1,-1}, rssi={-1,-1,-1,-1,-1}, mcs={ -1,-1} })
+         table.insert(LINK_TABLE, { id=idx2, snr={-1,nid2,nid1,-1}, nse={-1,-1}, lt={-1,-1}, rssi={-1,-1,-1,-1,-1}, mcs={ -1,-1} })
          gcs:send_text(MAV_SEVERITY.WARNING, "Added idx2 item: "..idx2.." nid1="..nid1.." nid2="..nid2)
       end
    end
-   -- gcs:send_text(MAV_SEVERITY.WARNING, "Finished handling tof")
+   -- gcs:send_text(MAV_SEVERITY.WARNING, "Finished handling network_status")
 end
 
 --[[
@@ -324,11 +322,10 @@ end
 
 local function log_data()
    if SLV_DEBUG:get() == 1 then
-      gcs:send_text(MAV_SEVERITY.INFO, "In log_data, TOF table is "..#TOF_TABLE.." long")
+      gcs:send_text(MAV_SEVERITY.INFO, "In log_data, LINK table is "..#LINK_TABLE.." long")
    end
-   for i, TR in pairs(TOF_TABLE) do
+   for i, TR in pairs(LINK_TABLE) do
       -- gcs:send_text(MAV_SEVERITY.INFO, "i is "..i)
-      -- gcs:send_text(MAV_SEVERITY.INFO, "Log: TOF: ".. TR.tof[1].." "..TR.tof[2])
       logger:write('SNFO','I,sa,sl,sr,s,na,n,la,l,ra,r1,r2,r3,r4','Iiiiiiiiiiiiii', '#-------------', '--------------', i, TR.nid[1], TR.nid[2], TR.nid[2],TR.nid[4], TR.nse[1], TR.nse[2], TR.lt[1], TR.lt[2], TR.rssi[1], TR.rssi[2], TR.rssi[3], TR.rssi[4], TR.rssi[5])
    end
 end
@@ -378,9 +375,9 @@ local function update()
       local quo = (n // #http_request_table)+1  -- integer division
       local rem = (n % #http_request_table)+1
       -- call each http request for each node
-      local ftn = findTOFibynid(NIDS[quo])
+      local ftn = findLINKibynid(NIDS[quo])
       if ftn == nil then
-         gcs:send_text(MAV_SEVERITY.WARNING, "NIDS["..quo.."] is "..NIDS[quo].." findTOFibynid=nil")
+         gcs:send_text(MAV_SEVERITY.WARNING, "NIDS["..quo.."] is "..NIDS[quo].." findLINKibynid=nil")
          if SLV_DEBUG:get() == 1 then
             for i=1, #NIDS do
                gcs:send_text(MAV_SEVERITY.WARNING, "Quo is "..quo.." NIDS["..i.."] is "..NIDS[i])
@@ -390,7 +387,7 @@ local function update()
          n = n+1
          return
       end
-      REQUESTED_NODE=TOF_TABLE[ftn].snr[2]
+      REQUESTED_NODE=LINK_TABLE[ftn].snr[2]
       local do_local = (http_request_table[rem][4] and (REQUESTED_NODE == SLV_LOCAL_NODEID:get()))
       local do_remote = (http_request_table[rem][5] and (REQUESTED_NODE ~= SLV_LOCAL_NODEID:get()))
       if do_local or do_remote then
