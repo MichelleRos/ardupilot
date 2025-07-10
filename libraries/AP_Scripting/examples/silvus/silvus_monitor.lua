@@ -55,12 +55,14 @@ local SLV_RATE = bind_add_param('RATE', 6, 1)
 local SLV_HTTP_PORT = bind_add_param('HTTP_PORT', 10, 80)
 
 local SLV_LOCAL_NODEID = bind_add_param('LOCAL_NODEID', 14, 42)
+local SLV_DEBUG = bind_add_param('DEBUG', 15, 0)
 
 local LOG_RATE = 0.1 -- once per 10 sec
 
 local SLV_GND_NODEID = {}
 local TOF_TABLE = {}
-table.insert(TOF_TABLE, {id=SLV_LOCAL_NODEID:get(), tof={-1,-1}, nse={-1,-1}, lt={-1,-1}, rssi = {-1,-1,-1,-1,-1} })
+-- table.insert(TOF_TABLE, { id=SLV_LOCAL_NODEID:get(), tof={-1,-1}, nse={-1,-1}, lt={-1,-1}, rssi = {-1,-1,-1,-1,-1} })
+table.insert(TOF_TABLE, { id=SLV_LOCAL_NODEID:get(), snr={-1,-1,-1,-1}, nse={-1,-1}, lt={-1,-1}, rssi = {-1,-1,-1,-1,-1}, mcs={ -1,-1} })
 local REQUESTED_NODE = nil
 
 local radio_ranges = {nil, nil}
@@ -154,38 +156,44 @@ end
 
 local function handle_response_noise_level(result)
    local noise = tonumber(result[1])
-   if REQUESTED_NODE == SLV_LOCAL_NODEID:get() then
-      gcs:send_named_float("SR_LOCNSE", noise)
-   else
-      gcs:send_named_float("SR_REMNSE", noise)
-   end
+   send_nvf(REQUESTED_NODE, "SR_LOCNSE", "SR_REMNSE", noise)
    TOF_TABLE[findTOFidx(REQUESTED_NODE)].nse = { nows(), noise }
 end
 
 local function handle_response_throughput(result)
    local link_tput = tonumber(result[1])
-   if REQUESTED_NODE == SLV_LOCAL_NODEID:get() then
-      gcs:send_named_float("SR_REMTPUT", link_tput)
-   else
-      gcs:send_named_float("SR_LOCTPUT", link_tput)
-   end
+   send_nvf(REQUESTED_NODE, "SR_LOCTPUT", "SR_REMTPUT", link_tput)
    TOF_TABLE[findTOFidx(REQUESTED_NODE)].lt = { nows(), link_tput }
 end
 
 local function handle_response_rssi(result)
    local rssi = { tonumber(result[1]), tonumber(result[2]), tonumber(result[3]), tonumber(result[4]) } 
-   if REQUESTED_NODE == SLV_LOCAL_NODEID:get() then
-      gcs:send_named_float("SR_RXRSSI1", rssi[1])
-      gcs:send_named_float("SR_RXRSSI2", rssi[2])
-      gcs:send_named_float("SR_RXRSSI3", rssi[3])
-      gcs:send_named_float("SR_RXRSSI4", rssi[4])
-   else
-      gcs:send_named_float("SR_TXRSSI1", rssi[1])
-      gcs:send_named_float("SR_TXRSSI2", rssi[2])
-      gcs:send_named_float("SR_TXRSSI3", rssi[3])
-      gcs:send_named_float("SR_TXRSSI4", rssi[4])
-   end
+   send_nvf(REQUESTED_NODE, "SR_RXRSSI", "SR_TXRSSI", rssi)
    TOF_TABLE[findTOFidx(REQUESTED_NODE)].rssi = { nows(), rssi[1], rssi[2], rssi[3], rssi[4] }
+end
+
+local function handle_response_mcs(result)
+   local mcs = tonumber(result[1])
+   send_nvf(REQUESTED_NODE, "SR_LOCMCS", "SR_REMMCS", mcs)
+   TOF_TABLE[findTOFidx(REQUESTED_NODE)].mcs = { nows(), mcs }
+end
+
+function send_nvf(nodeid, nvfidloc, nvfidrem, res)
+   if type(res) == "number" then
+      if nodeid == SLV_LOCAL_NODEID:get() then
+         gcs:send_named_float(nvfidloc, res)
+      else
+         gcs:send_named_float(nvfidrem, res)
+      end
+   else
+      for i = 1, #res do
+         if nodeid == SLV_LOCAL_NODEID:get() then
+            gcs:send_named_float(nvfidloc..i, res[i])
+         else
+            gcs:send_named_float(nvfidrem..i, res[i])
+         end 
+      end
+   end
 end
 
 function findTOFidx(val)
@@ -197,22 +205,26 @@ function findTOFidx(val)
    return nil
 end
 
-local function handle_response_tof(result)
+local function handle_response_network_status(result)
    -- gcs:send_text(3, "Handling tof "..result[1])
    for res = 1, #result/3 do
-      local index1 = (res-1)*3+1
-      local index2 = (res-1)*3+2
-      local index3 = (res-1)*3+3
-      -- gcs:send_text(MAV_SEVERITY.ERROR, "TOFi "..res.. " is "..index1.." "..index2.." "..index3)
-      -- gcs:send_text(MAV_SEVERITY.ERROR, "TOF"..res.. " = "..result[index1].." "..result[index2].." "..result[index3])
-      -- table.insert(TOF_TABLE, { )
-      local idx = tonumber(result[index1])
+      local rad1 = (res-1)*3+1
+      local rad2 = (res-1)*3+2
+      local snr = (res-1)*3+3
+      -- gcs:send_text(MAV_SEVERITY.WARNING, "TOFi "..res.. " is "..index1.." "..index2.." "..index3)
+      -- gcs:send_text(MAV_SEVERITY.WARNING, "TOF"..res.. " = "..result[index1].." "..result[index2].." "..result[index3])
+      local idx = tonumber(result[rad1])
+      local idx2 = tonumber(result[rad2])
       if findTOFidx(idx) == nil then
-         table.insert(TOF_TABLE, {id=idx, tof={-1,-1}, nse={-1,-1}, lt={-1,-1}, rssi = {-1,-1,-1,-1,-1} })
+         table.insert(TOF_TABLE, { id=idx, snr={-1,-1,-1,-1}, nse={-1,-1}, lt={-1,-1}, rssi={-1,-1,-1,-1,-1}, mcs={ -1,-1} })
       end
-      TOF_TABLE[findTOFidx(idx)].tof = { result[index3], result[index2]} --always age first, then data
+      if findTOFidx(idx2) == nil then
+         table.insert(TOF_TABLE, { id=idx2, snr={-1,-1,-1,-1}, nse={-1,-1}, lt={-1,-1}, rssi={-1,-1,-1,-1,-1}, mcs={ -1,-1} })
+      end
+      --always age first, then data
+      TOF_TABLE[findTOFidx(idx)].snr = { nows(), result[rad1], result[rad2], result[snr] }
    end
-   -- gcs:send_text(MAV_SEVERITY.ERROR, "Finished handling tof")
+   -- gcs:send_text(MAV_SEVERITY.WARNING, "Finished handling tof")
 end
 
 --[[
@@ -245,7 +257,9 @@ local function check_reply()
          gcs:send_text(MAV_SEVERITY.ERROR, "request failed")
          return
       end
-      -- gcs:send_text(MAV_SEVERITY.ERROR, lines[#lines])
+      if SLV_DEBUG:get() == 1 then
+         gcs:send_text(MAV_SEVERITY.WARNING, "Reply is "..lines[#lines])
+      end
       local result = req['result']
       if result == nil then
          gcs:send_text(0, "nil here")
@@ -266,10 +280,12 @@ local function check_reply()
 end
 
 local function log_data()
-   gcs:send_text(MAV_SEVERITY.INFO, "In log_data, TOF table is "..#TOF_TABLE)
+   if SLV_DEBUG:get() == 1 then
+      gcs:send_text(MAV_SEVERITY.INFO, "In log_data, TOF table is "..#TOF_TABLE.." long")
+   end
    for i, TR in pairs(TOF_TABLE) do
-      gcs:send_text(MAV_SEVERITY.INFO, "i is "..i)
-      gcs:send_text(MAV_SEVERITY.INFO, "Log: TOF: ".. TR.tof[1].." "..TR.tof[2])
+      -- gcs:send_text(MAV_SEVERITY.INFO, "i is "..i)
+      -- gcs:send_text(MAV_SEVERITY.INFO, "Log: TOF: ".. TR.tof[1].." "..TR.tof[2])
       logger:write('STOF','I,ta,t,na,n,la,l,ra,r1,r2,r3,r4','Iiiiiiiiiiii', '#-----------', '------------', i, TR.tof[1], TR.tof[2], TR.nse[1], TR.nse[2], TR.lt[1], TR.lt[2], TR.rssi[1], TR.rssi[2], TR.rssi[3], TR.rssi[4], TR.rssi[5])
    end
 end
@@ -282,8 +298,8 @@ http_request_table = {
    { "noise_level", nil, handle_response_noise_level, true,  false },
    { "link_throughput", { num=2, p1="RN", p2=1 }, handle_response_throughput, true, true },
    { "nbr_rssi", { num=1, p1="RN"}, handle_response_rssi, true, true },
-   { "current_tof", nil, handle_response_tof, true, false }, --replace with network_status
-   --nbr_mcs
+   { "nbr_mcs", { num=1, p1="RN"}, handle_response_mcs, true, true },
+   { "network_status", nil, handle_response_network_status, true, false },
 }
 local n = 0
 
@@ -325,11 +341,15 @@ local function update()
          local api = http_request_table[rem][1]
          local params_layout = http_request_table[rem][2]
          local response_handler = http_request_table[rem][3]
-         gcs:send_text(MAV_SEVERITY.INFO, "RN is "..REQUESTED_NODE.." for "..api.." n is "..n.." tot is "..tot.." tab is "..#TOF_TABLE.." quo is "..quo)
+         if SLV_DEBUG:get() == 1 then
+            gcs:send_text(MAV_SEVERITY.INFO, "RN is "..REQUESTED_NODE.." for "..api.." n is "..n.." tot is "..tot.." tab is "..#TOF_TABLE.." quo is "..quo)
+         end
          http_request(api, params_layout, response_handler)
       else
          local api = http_request_table[rem][1]
-         gcs:send_text(MAV_SEVERITY.ERROR, "SKIPPED - RN is "..REQUESTED_NODE.." for "..api.." n is "..n.." tot is "..tot.." tab is "..#TOF_TABLE.." quo is "..quo)
+         if SLV_DEBUG:get() == 1 then
+            gcs:send_text(MAV_SEVERITY.WARNING, "SKIPPED - RN is "..REQUESTED_NODE.." for "..api.." n is "..n.." tot is "..tot.." tab is "..#TOF_TABLE.." quo is "..quo)
+         end
          last_request_ms = now - period_ms --make sure it gets called again soon
       end
       n = n+1

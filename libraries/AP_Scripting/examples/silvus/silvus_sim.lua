@@ -170,6 +170,27 @@ local function send_link_throughput()
    send_json(json)
 end
 
+local function send_network_status()
+   -- currently just sending one starting with each node id and ending with a random one
+   local network_str = ""
+   for i = 1, #SSIM_GND_NODEID do
+      local snr = math.random(0,10)
+      local othernode = math.random(1, #SSIM_GND_NODEID)
+      if #network_str > 0 then
+         network_str = network_str .. ","
+      end
+      network_str = network_str .. string.format([["%u","%u","%u"]], SSIM_GND_NODEID[i]:get(), SSIM_GND_NODEID[othernode]:get(), snr)
+   end
+   local json = string.format([[{"result" : [%s],"id" : "sbkb5u0c", "jsonrpc" : "2.0"}]], network_str)
+   send_json(json)
+end
+
+local function send_mcs()
+   mcs = math.random(5,15)
+   local json = string.format([[{"result" : [%s],"id" : "sbkb5u0c", "jsonrpc" : "2.0"}]], mcs)
+   send_json(json)
+end
+
 --[[
    get ground radio location
 --]]
@@ -275,6 +296,14 @@ local function parse_request()
    end
    if method == "link_throughput" then
       send_link_throughput()
+      return
+   end
+   if method == "network_status" then
+      send_network_status()
+      return
+   end
+   if method == "nbr_mcs" then
+      send_nbr_rssi()
       return
    end
    gcs:send_text(0, "Unknown method (" .. method .. ")")
