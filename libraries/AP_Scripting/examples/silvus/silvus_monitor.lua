@@ -282,7 +282,7 @@ http_request_table = {
    { "noise_level", nil, handle_response_noise_level, true,  false },
    { "link_throughput", { num=2, p1="RN", p2=1 }, handle_response_throughput, true, true },
    { "nbr_rssi", { num=1, p1="RN"}, handle_response_rssi, true, true },
-   { "current_tof", nil, handle_response_tof, true, false },
+   { "current_tof", nil, handle_response_tof, true, false }, --replace with network_status
 }
 local n = 0
 
