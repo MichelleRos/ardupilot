@@ -195,10 +195,10 @@ function send_nvf(nodeid, nvfidloc, nvfidrem, res)
    end
 end
 
--- returns LINK_TABLE index number for the given id
+-- returns LINK_TABLE index number for the given idx
 function findLINKibyidx(idx)
    for i, TR in pairs(LINK_TABLE) do
-      if TR.id == idx then
+      if TR.idx == idx then
          return i
       end
    end
@@ -248,20 +248,20 @@ local function handle_response_network_status(result)
       local nid1i = (res-1)*3+1
       local nid2i = (res-1)*3+2
       local snri = (res-1)*3+3
-      local nid1 = tonumber(result[nid2i])
+      local nid1 = tonumber(result[nid1i])
       local nid2 = tonumber(result[nid2i])
       local snr = tonumber(result[snri])
       --add new item if needed
-      local idx = nid1.." "..nid2
-      if findLINKibyidx(idx) == nil then
-         table.insert(LINK_TABLE, { id=idx, snr={-1,-1,-1,-1}, nse={-1,-1}, lt={-1,-1}, rssi={-1,-1,-1,-1,-1}, mcs={ -1,-1} })
+      local idx1 = nid1.." "..nid2
+      if findLINKibyidx(idx1) == nil then
+         table.insert(LINK_TABLE, { idx=idx1, snr={-1,nid1,nid2,-1}, nse={-1,-1}, lt={-1,-1}, rssi={-1,-1,-1,-1,-1}, mcs={ -1,-1} })
       end
       --always age first, then data
-      LINK_TABLE[findLINKibyidx(idx)].snr = { nows(),nid1, nid2, snr }
+      LINK_TABLE[findLINKibyidx(idx1)].snr = { nows(),nid1, nid2, snr }
       -- nid has been added, but in the second spot.
       if findLINKibynid(nid2) == nil and findLINKibynid2(nid2) ~= nil then
          local idx2 = nid2.." "..nid1
-         table.insert(LINK_TABLE, { id=idx2, snr={-1,nid2,nid1,-1}, nse={-1,-1}, lt={-1,-1}, rssi={-1,-1,-1,-1,-1}, mcs={ -1,-1} })
+         table.insert(LINK_TABLE, { idx=idx2, snr={-1,nid2,nid1,-1}, nse={-1,-1}, lt={-1,-1}, rssi={-1,-1,-1,-1,-1}, mcs={ -1,-1} })
          gcs:send_text(MAV_SEVERITY.WARNING, "Added idx2 item: "..idx2.." nid1="..nid1.." nid2="..nid2)
       end
    end
@@ -326,11 +326,13 @@ local function log_data()
    end
    for i, TR in pairs(LINK_TABLE) do
       -- gcs:send_text(MAV_SEVERITY.INFO, "i is "..i)
-      logger:write('SNFO','I,sa,sl,sr,s,na,n,la,l,ra,r1,r2,r3,r4','Iiiiiiiiiiiiii', '#-------------', '--------------', i, TR.nid[1], TR.nid[2], TR.nid[2],TR.nid[4], TR.nse[1], TR.nse[2], TR.lt[1], TR.lt[2], TR.rssi[1], TR.rssi[2], TR.rssi[3], TR.rssi[4], TR.rssi[5])
+      logger:write('SLV1','I,sa,sl,sr,s,na,n,la,l','Iiiiiiiii', '#--------', '---------', i, TR.snr[1], TR.snr[2], TR.snr[3], TR.snr[4], TR.nse[1], TR.nse[2], TR.lt[1], TR.lt[2])
+      logger:write('SLV2','I,ra,r1,r2,r3,r4,ma,m','Iiiiiiii', '#-------', '--------', i, TR.rssi[1], TR.rssi[2], TR.rssi[3], TR.rssi[4], TR.rssi[5],TR.mcs[1],TR.mcs[2])
    end
 end
 
 local heartbeat_counter = 0
+
 
 local http_request_table = {}
 http_request_table = { 
@@ -362,11 +364,11 @@ local function update()
       n = 0
    end
 
-   -- local log_period_ms = 1000.0/LOG_RATE
-   -- if not last_log_ms or now - last_log_ms >= log_period_ms then
-   --    last_log_ms = now
-   --    log_data()
-   -- end
+   local log_period_ms = 1000.0/LOG_RATE
+   if not last_log_ms or now - last_log_ms >= log_period_ms then
+      last_log_ms = now
+      log_data()
+   end
 
    local period_ms = 1000.0 / SLV_RATE:get()
    if not last_request_ms or now - last_request_ms >= period_ms then
