@@ -108,12 +108,11 @@ local function http_request(api, params, http_request_response_handler)
    sock = Socket(0)
    local node_ip = local_ip()
    if not sock:connect(node_ip, SLV_HTTP_PORT:get()) then
-      gcs:send_text(MAV_SEVERITY.ERROR, string.format("Silvus: failed to connect to " .. node_ip .. ":" .. SLV_HTTP_PORT:get(), name))
+      gcs:send_text(MAV_SEVERITY.ERROR, string.format("Silvus: failed to connect to " .. node_ip .. ":" .. SLV_HTTP_PORT:get()))
       sock = nil
       return nil
    end
    sock:set_blocking(true)
-
 
    local p1 = nil
    if params ~= nil then
@@ -131,7 +130,7 @@ local function http_request(api, params, http_request_response_handler)
    elseif params.num == 2 then
       json = string.format([[{"jsonrpc":"2.0","method":"%s", "params":["%s", "%s"],"id":"sbkb5u0c"}]], api, p1, params.p2)
    else
-      gcs:send_text(MAV_SEVERITY.EMERGENCY,"Error: Unsupported params.")
+      gcs:send_text(MAV_SEVERITY.ERROR,"Error: Unsupported params.")
       return nil
    end
    -- gcs:send_text(MAV_SEVERITY.INFO, "Json: " .. json)
@@ -177,7 +176,7 @@ local function handle_response_mcs(result)
    LINK_TABLE[findLINKibynid(REQUESTED_NODE)].mcs = { nows(), mcs }
 end
 
-function send_nvf(nodeid, nvfidloc, nvfidrem, res)
+local function send_nvf(nodeid, nvfidloc, nvfidrem, res)
    if type(res) == "number" then
       if nodeid == SLV_LOCAL_NODEID:get() then
          gcs:send_named_float(nvfidloc, res)
@@ -196,7 +195,7 @@ function send_nvf(nodeid, nvfidloc, nvfidrem, res)
 end
 
 -- returns LINK_TABLE index number for the given idx
-function findLINKibyidx(idx)
+local function findLINKibyidx(idx)
    for i, TR in pairs(LINK_TABLE) do
       if TR.idx == idx then
          return i
@@ -206,7 +205,7 @@ function findLINKibyidx(idx)
 end
 
 --returns LINK_TABLE index number where the given node id is in the first spot
-function findLINKibynid(nid)
+local function findLINKibynid(nid)
    for i, TR in pairs(LINK_TABLE) do
       if TR.snr[2] == nid then
          return i
@@ -216,7 +215,7 @@ function findLINKibynid(nid)
 end
 
 --returns LINK_TABLE index number where the given node id is in the second spot
-function findLINKibynid2(nid)
+local function findLINKibynid2(nid)
    for i, TR in pairs(LINK_TABLE) do
       if TR.snr[3] == nid then
          return i
@@ -224,7 +223,7 @@ function findLINKibynid2(nid)
    end
 end
 
-function getnids()
+local function getnids()
    local hash = {}
    local res = {}
    for _,v in pairs(LINK_TABLE) do
@@ -242,8 +241,19 @@ function getnids()
    return res
 end
 
+local function debug_msg(sev, msg)
+   if SLV_DEBUG:get() == 1 then
+      if sev == 1 then
+         gcs:send_text(MAV_SEVERITY.INFO, msg)
+      elseif sev == 2 then
+         gcs:send_text(MAV_SEVERITY.WARNING, msg)
+      else 
+         gcs:send_text(MAV_SEVERITY.EMERGENCY, msg)
+      end
+   end
+end
+
 local function handle_response_network_status(result)
-   -- gcs:send_text(3, "Handling network_status "..result[1])
    for res = 1, #result/3 do
       local nid1i = (res-1)*3+1
       local nid2i = (res-1)*3+2
@@ -262,10 +272,9 @@ local function handle_response_network_status(result)
       if findLINKibynid(nid2) == nil and findLINKibynid2(nid2) ~= nil then
          local idx2 = nid2.." "..nid1
          table.insert(LINK_TABLE, { idx=idx2, snr={-1,nid2,nid1,-1}, nse={-1,-1}, lt={-1,-1}, rssi={-1,-1,-1,-1,-1}, mcs={ -1,-1} })
-         gcs:send_text(MAV_SEVERITY.WARNING, "Added idx2 item: "..idx2.." nid1="..nid1.." nid2="..nid2)
+         debug_msg(2, "Added idx2 item: "..idx2)
       end
    end
-   -- gcs:send_text(MAV_SEVERITY.WARNING, "Finished handling network_status")
 end
 
 --[[
@@ -298,9 +307,16 @@ local function check_reply()
          gcs:send_text(MAV_SEVERITY.ERROR, "request failed")
          return
       end
-      if SLV_DEBUG:get() == 1 then
-         gcs:send_text(MAV_SEVERITY.INFO, "Reply is "..lines[#lines])
+      if type(req) ~= "table" then
+         save_to_file("json_rep.txt", http_reply)
+         if type(req) == "string" or type(req) == "number" then
+            gcs:send_text(MAV_SEVERITY.ERROR, "Error: Request returned "..req)
+         else
+            gcs:send_text(MAV_SEVERITY.ERROR, "Error: Request returned a "..type(req))
+         end
+         return
       end
+      debug_msg(1, "Reply is "..lines[#lines])
       local result = req['result']
       if result == nil then
          gcs:send_text(0, "nil here")
@@ -321,13 +337,11 @@ local function check_reply()
 end
 
 local function log_data()
-   if SLV_DEBUG:get() == 1 then
-      gcs:send_text(MAV_SEVERITY.INFO, "In log_data, LINK table is "..#LINK_TABLE.." long")
-   end
+   debug_msg(1,"In log_data, LINK table is "..#LINK_TABLE.." long")
    for i, TR in pairs(LINK_TABLE) do
       -- gcs:send_text(MAV_SEVERITY.INFO, "i is "..i)
-      logger:write('SLV1','I,sa,sl,sr,s,na,n,la,l','Iiiiiiiii', '#--------', '---------', i, TR.snr[1], TR.snr[2], TR.snr[3], TR.snr[4], TR.nse[1], TR.nse[2], TR.lt[1], TR.lt[2])
-      logger:write('SLV2','I,ra,r1,r2,r3,r4,ma,m','Iiiiiiii', '#-------', '--------', i, TR.rssi[1], TR.rssi[2], TR.rssi[3], TR.rssi[4], TR.rssi[5],TR.mcs[1],TR.mcs[2])
+      logger:write('SLV1','I,sa,sl,sr,s,na,n,la,l','Iffffffff', '#--------', '---------', i, TR.snr[1], TR.snr[2], TR.snr[3], TR.snr[4], TR.nse[1], TR.nse[2], TR.lt[1], TR.lt[2])
+      logger:write('SLV2','I,ra,r1,r2,r3,r4,ma,m','Ifffffff', '#-------', '--------', i, TR.rssi[1], TR.rssi[2], TR.rssi[3], TR.rssi[4], TR.rssi[5],TR.mcs[1],TR.mcs[2])
    end
 end
 
@@ -378,33 +392,28 @@ local function update()
       local rem = (n % #http_request_table)+1
       -- call each http request for each node
       local ftn = findLINKibynid(NIDS[quo])
+      -- check that the nid exists in LINK table before calling it.
       if ftn == nil then
          gcs:send_text(MAV_SEVERITY.WARNING, "NIDS["..quo.."] is "..NIDS[quo].." findLINKibynid=nil")
-         if SLV_DEBUG:get() == 1 then
-            for i=1, #NIDS do
-               gcs:send_text(MAV_SEVERITY.WARNING, "Quo is "..quo.." NIDS["..i.."] is "..NIDS[i])
-            end
+         for i=1, #NIDS do
+            debug_msg("Quo is "..quo.." NIDS["..i.."] is "..NIDS[i])
          end
          last_request_ms = now - period_ms
          n = n+1
          return
       end
-      REQUESTED_NODE=LINK_TABLE[ftn].snr[2]
+      REQUESTED_NODE=NIDS[quo]
       local do_local = (http_request_table[rem][4] and (REQUESTED_NODE == SLV_LOCAL_NODEID:get()))
       local do_remote = (http_request_table[rem][5] and (REQUESTED_NODE ~= SLV_LOCAL_NODEID:get()))
       if do_local or do_remote then
          local api = http_request_table[rem][1]
          local params_layout = http_request_table[rem][2]
          local response_handler = http_request_table[rem][3]
-         if SLV_DEBUG:get() == 1 then
-            gcs:send_text(MAV_SEVERITY.INFO, "RN is "..REQUESTED_NODE.." for "..api.." n is "..n.." tot is "..tot.." tab is "..#NIDS.." quo is "..quo)
-         end
+         debug_msg(1, "RN is "..REQUESTED_NODE.." for "..api.." n is "..n.." tot is "..tot.." tab is "..#NIDS.." quo is "..quo)
          http_request(api, params_layout, response_handler)
       else
          local api = http_request_table[rem][1]
-         if SLV_DEBUG:get() == 1 then
-            gcs:send_text(MAV_SEVERITY.INFO, "SKIPPED - RN is "..REQUESTED_NODE.." for "..api.." n is "..n.." tot is "..tot.." tab is "..#NIDS.." quo is "..quo)
-         end
+         debug_msg(1, "SKIPPED - RN is "..REQUESTED_NODE.." for "..api.." n is "..n.." tot is "..tot.." tab is "..#NIDS.." quo is "..quo)
          last_request_ms = now - period_ms --make sure it gets called again soon
       end
       n = n+1
