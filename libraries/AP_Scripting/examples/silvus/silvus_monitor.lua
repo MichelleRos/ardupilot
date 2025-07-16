@@ -231,7 +231,7 @@ end
 
 local function handle_response_noise_level(result)
    if #result  ~= 1 then
-      gcs:send_text(MAV_SEVERITY.ERROR, "Noise level expects #result = 1. #result is "..#result)
+      gcs:send_text(MAV_SEVERITY.ERROR, "Noise level expects #result = 1. #result is "..#result.." RN="..REQUESTED_NODE)
       return
    end
    local noise = tonumber(result[1])
@@ -241,7 +241,7 @@ end
 
 local function handle_response_throughput(result)
    if #result  ~= 1 then
-      gcs:send_text(MAV_SEVERITY.ERROR, "Link throughput expects #result = 1. #result is "..#result)
+      gcs:send_text(MAV_SEVERITY.ERROR, "Link throughput expects #result = 1. #result is "..#result.." RN="..REQUESTED_NODE)
       return
    end
    local link_tput = tonumber(result[1])
@@ -251,7 +251,7 @@ end
 
 local function handle_response_rssi(result)
    if #result  ~= 4 then
-      gcs:send_text(MAV_SEVERITY.ERROR, "NBR RSSI expects #result = 4. #result is "..#result)
+      gcs:send_text(MAV_SEVERITY.ERROR, "NBR RSSI expects #result = 4. #result is "..#result.." RN="..REQUESTED_NODE)
       return
    end
    local rssi = { tonumber(result[1]), tonumber(result[2]), tonumber(result[3]), tonumber(result[4]) } 
@@ -261,7 +261,7 @@ end
 
 local function handle_response_mcs(result)
    if #result  ~= 1 then
-      gcs:send_text(MAV_SEVERITY.ERROR, "NBR MCS expects #result = 1. #result is "..#result)
+      gcs:send_text(MAV_SEVERITY.ERROR, "NBR MCS expects #result = 1. #result is "..#result.." RN="..REQUESTED_NODE)
       return
    end
    local mcs = tonumber(result[1])
@@ -271,7 +271,7 @@ end
 
 local function handle_response_network_status(result)
    if (#result % 3) ~= 0 then
-      gcs:send_text(MAV_SEVERITY.ERROR, "Network status expects #result divisible by 3. #result is "..#result)
+      gcs:send_text(MAV_SEVERITY.ERROR, "Network status expects #result divisible by 3. #result is "..#result.." RN="..REQUESTED_NODE)
       return
    end
    for res = 1, #result/3 do
@@ -330,9 +330,9 @@ local function check_reply()
       if type(req) ~= "table" then
          save_to_file("json_rep.txt", http_reply)
          if type(req) == "string" or type(req) == "number" then
-            gcs:send_text(MAV_SEVERITY.ERROR, "Error: Request returned "..req)
+            gcs:send_text(MAV_SEVERITY.ERROR, "Error: Request returned "..req.." RN="..REQUESTED_NODE)
          else
-            gcs:send_text(MAV_SEVERITY.ERROR, "Error: Request returned a "..type(req))
+            gcs:send_text(MAV_SEVERITY.ERROR, "Error: Request returned a "..type(req).." RN="..REQUESTED_NODE)
          end
          return
       end
@@ -347,7 +347,7 @@ local function check_reply()
          return
       end
       if type(result) ~= "table" then
-         gcs:send_text(MAV_SEVERITY.ERROR, "Error: Result from reply is not a table.")
+         gcs:send_text(MAV_SEVERITY.ERROR, "Error: Result from reply is not a table. RN="..REQUESTED_NODE)
          return
       end
       handle_response(result)
@@ -377,7 +377,7 @@ http_request_table = {
    -- api          params   response handler          local remote
    { "noise_level", nil, handle_response_noise_level, true,  false },
    { "link_throughput", { num=2, p1="RN", p2=1 }, handle_response_throughput, true, true },
-   { "nbr_rssi", { num=1, p1="RN"}, handle_response_rssi, true, true },
+   { "nbr_rssi", { num=1, p1="RN"}, handle_response_rssi, false, true },
    { "nbr_mcs", { num=1, p1="RN"}, handle_response_mcs, true, true },
    { "network_status", nil, handle_response_network_status, true, false },
 }
