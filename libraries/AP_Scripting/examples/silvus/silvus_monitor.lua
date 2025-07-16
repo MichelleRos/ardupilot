@@ -152,30 +152,6 @@ Content-Length: %u
    handle_response = http_request_response_handler
 end
 
-local function handle_response_noise_level(result)
-   local noise = tonumber(result[1])
-   send_nvf(REQUESTED_NODE, "SR_LOCNSE", "SR_REMNSE", noise)
-   LINK_TABLE[findLINKibynid(REQUESTED_NODE)].nse = { nows(), noise }
-end
-
-local function handle_response_throughput(result)
-   local link_tput = tonumber(result[1])
-   send_nvf(REQUESTED_NODE, "SR_LOCTPUT", "SR_REMTPUT", link_tput)
-   LINK_TABLE[findLINKibynid(REQUESTED_NODE)].lt = { nows(), link_tput }
-end
-
-local function handle_response_rssi(result)
-   local rssi = { tonumber(result[1]), tonumber(result[2]), tonumber(result[3]), tonumber(result[4]) } 
-   send_nvf(REQUESTED_NODE, "SR_RXRSSI", "SR_TXRSSI", rssi)
-   LINK_TABLE[findLINKibynid(REQUESTED_NODE)].rssi = { nows(), rssi[1], rssi[2], rssi[3], rssi[4] }
-end
-
-local function handle_response_mcs(result)
-   local mcs = tonumber(result[1])
-   send_nvf(REQUESTED_NODE, "SR_LOCMCS", "SR_REMMCS", mcs)
-   LINK_TABLE[findLINKibynid(REQUESTED_NODE)].mcs = { nows(), mcs }
-end
-
 local function send_nvf(nodeid, nvfidloc, nvfidrem, res)
    if type(res) == "number" then
       if nodeid == SLV_LOCAL_NODEID:get() then
@@ -251,6 +227,30 @@ local function debug_msg(sev, msg)
          gcs:send_text(MAV_SEVERITY.EMERGENCY, msg)
       end
    end
+end
+
+local function handle_response_noise_level(result)
+   local noise = tonumber(result[1])
+   send_nvf(REQUESTED_NODE, "SR_LOCNSE", "SR_REMNSE", noise)
+   LINK_TABLE[findLINKibynid(REQUESTED_NODE)].nse = { nows(), noise }
+end
+
+local function handle_response_throughput(result)
+   local link_tput = tonumber(result[1])
+   send_nvf(REQUESTED_NODE, "SR_LOCTPUT", "SR_REMTPUT", link_tput)
+   LINK_TABLE[findLINKibynid(REQUESTED_NODE)].lt = { nows(), link_tput }
+end
+
+local function handle_response_rssi(result)
+   local rssi = { tonumber(result[1]), tonumber(result[2]), tonumber(result[3]), tonumber(result[4]) } 
+   send_nvf(REQUESTED_NODE, "SR_RXRSSI", "SR_TXRSSI", rssi)
+   LINK_TABLE[findLINKibynid(REQUESTED_NODE)].rssi = { nows(), rssi[1], rssi[2], rssi[3], rssi[4] }
+end
+
+local function handle_response_mcs(result)
+   local mcs = tonumber(result[1])
+   send_nvf(REQUESTED_NODE, "SR_LOCMCS", "SR_REMMCS", mcs)
+   LINK_TABLE[findLINKibynid(REQUESTED_NODE)].mcs = { nows(), mcs }
 end
 
 local function handle_response_network_status(result)
