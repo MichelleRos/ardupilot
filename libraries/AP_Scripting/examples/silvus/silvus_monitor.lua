@@ -230,30 +230,50 @@ local function debug_msg(sev, msg)
 end
 
 local function handle_response_noise_level(result)
+   if #result  ~= 1 then
+      gcs:send_text(MAV_SEVERITY.ERROR, "Noise level expects #result = 1. #result is "..#result)
+      return
+   end
    local noise = tonumber(result[1])
    send_nvf(REQUESTED_NODE, "SR_LOCNSE", "SR_REMNSE", noise)
    LINK_TABLE[findLINKibynid(REQUESTED_NODE)].nse = { nows(), noise }
 end
 
 local function handle_response_throughput(result)
+   if #result  ~= 1 then
+      gcs:send_text(MAV_SEVERITY.ERROR, "Link throughput expects #result = 1. #result is "..#result)
+      return
+   end
    local link_tput = tonumber(result[1])
    send_nvf(REQUESTED_NODE, "SR_LOCTPUT", "SR_REMTPUT", link_tput)
    LINK_TABLE[findLINKibynid(REQUESTED_NODE)].lt = { nows(), link_tput }
 end
 
 local function handle_response_rssi(result)
+   if #result  ~= 4 then
+      gcs:send_text(MAV_SEVERITY.ERROR, "NBR RSSI expects #result = 4. #result is "..#result)
+      return
+   end
    local rssi = { tonumber(result[1]), tonumber(result[2]), tonumber(result[3]), tonumber(result[4]) } 
    send_nvf(REQUESTED_NODE, "SR_RXRSSI", "SR_TXRSSI", rssi)
    LINK_TABLE[findLINKibynid(REQUESTED_NODE)].rssi = { nows(), rssi[1], rssi[2], rssi[3], rssi[4] }
 end
 
 local function handle_response_mcs(result)
+   if #result  ~= 1 then
+      gcs:send_text(MAV_SEVERITY.ERROR, "NBR MCS expects #result = 1. #result is "..#result)
+      return
+   end
    local mcs = tonumber(result[1])
    send_nvf(REQUESTED_NODE, "SR_LOCMCS", "SR_REMMCS", mcs)
    LINK_TABLE[findLINKibynid(REQUESTED_NODE)].mcs = { nows(), mcs }
 end
 
 local function handle_response_network_status(result)
+   if (#result % 3) ~= 0 then
+      gcs:send_text(MAV_SEVERITY.ERROR, "Network status expects #result divisible by 3. #result is "..#result)
+      return
+   end
    for res = 1, #result/3 do
       local nid1i = (res-1)*3+1
       local nid2i = (res-1)*3+2
@@ -324,6 +344,10 @@ local function check_reply()
       end
       if not result then
          -- badly formatted
+         return
+      end
+      if type(result) ~= "table" then
+         gcs:send_text(MAV_SEVERITY.ERROR, "Error: Result from reply is not a table.")
          return
       end
       handle_response(result)
