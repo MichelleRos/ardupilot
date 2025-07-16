@@ -67,7 +67,7 @@ local REQUESTED_NODE = nil
 local radio_ranges = {nil, nil}
 local radio_tstamp_ms = {nil, nil}
 
-gcs:send_text(MAV_SEVERITY.INFO, "Silvus: starting")
+gcs:send_text(MAV_SEVERITY.INFO, "Silvus: Starting")
 
 
 local function nows()
@@ -97,6 +97,32 @@ local json = require("json")
 local json_log = nil
 local handle_response = nil
 
+--When debug is 2. 1 = emergency, 2 = warning, 1 = info
+local function debug2_msg(sev, msg)
+   if SLV_DEBUG:get() == 2 then
+      if sev == 1 then
+         gcs:send_text(MAV_SEVERITY.EMERGENCY, "Silvus Error: "..msg)
+      elseif sev == 2 then
+         gcs:send_text(MAV_SEVERITY.WARNING, "Silvus Warning: "..msg)
+      else 
+         gcs:send_text(MAV_SEVERITY.INFO, "Silvus: "..msg)
+      end
+   end
+end
+
+--When debug is 1 or 2. 1 = emergency, 2 = warning, 1 = info
+local function debug1_msg(sev, msg)
+   if SLV_DEBUG:get() == 1 or SLV_DEBUG:get() == 2 then
+      if sev == 1 then
+         gcs:send_text(MAV_SEVERITY.EMERGENCY, "Silvus error: "..msg)
+      elseif sev == 2 then
+         gcs:send_text(MAV_SEVERITY.WARNING, "Silvus warning: "..msg)
+      else 
+         gcs:send_text(MAV_SEVERITY.INFO, "Silvus: "..msg)
+      end
+   end
+end
+
 --[[
    make a silvus API request
 --]]
@@ -108,7 +134,7 @@ local function http_request(api, params, http_request_response_handler)
    sock = Socket(0)
    local node_ip = local_ip()
    if not sock:connect(node_ip, SLV_HTTP_PORT:get()) then
-      gcs:send_text(MAV_SEVERITY.ERROR, string.format("Silvus: failed to connect to " .. node_ip .. ":" .. SLV_HTTP_PORT:get()))
+      debug1_msg(1,string.format("Failed to connect to " .. node_ip .. ":" .. SLV_HTTP_PORT:get()))
       sock = nil
       return nil
    end
@@ -130,7 +156,7 @@ local function http_request(api, params, http_request_response_handler)
    elseif params.num == 2 then
       json = string.format([[{"jsonrpc":"2.0","method":"%s", "params":["%s", "%s"],"id":"sbkb5u0c"}]], api, p1, params.p2)
    else
-      gcs:send_text(MAV_SEVERITY.ERROR,"Error: Unsupported params.")
+      debug1_msg(1,"Unsupported params.")
       return nil
    end
    -- gcs:send_text(MAV_SEVERITY.INFO, "Json: " .. json)
@@ -217,21 +243,9 @@ local function getnids()
    return res
 end
 
-local function debug_msg(sev, msg)
-   if SLV_DEBUG:get() == 1 then
-      if sev == 1 then
-         gcs:send_text(MAV_SEVERITY.INFO, msg)
-      elseif sev == 2 then
-         gcs:send_text(MAV_SEVERITY.WARNING, msg)
-      else 
-         gcs:send_text(MAV_SEVERITY.EMERGENCY, msg)
-      end
-   end
-end
-
 local function handle_response_noise_level(result)
    if #result  ~= 1 then
-      gcs:send_text(MAV_SEVERITY.ERROR, "Noise level expects #result = 1. #result is "..#result.." RN="..REQUESTED_NODE)
+      debug1_msg(2,"Noise level expects #result = 1. #result is "..#result.." RN="..REQUESTED_NODE)
       return
    end
    local noise = tonumber(result[1])
@@ -241,7 +255,7 @@ end
 
 local function handle_response_throughput(result)
    if #result  ~= 1 then
-      gcs:send_text(MAV_SEVERITY.ERROR, "Link throughput expects #result = 1. #result is "..#result.." RN="..REQUESTED_NODE)
+      debug1_msg(2,"Link throughput expects #result = 1. #result is "..#result.." RN="..REQUESTED_NODE)
       return
    end
    local link_tput = tonumber(result[1])
@@ -251,7 +265,7 @@ end
 
 local function handle_response_rssi(result)
    if #result  ~= 4 then
-      gcs:send_text(MAV_SEVERITY.ERROR, "NBR RSSI expects #result = 4. #result is "..#result.." RN="..REQUESTED_NODE)
+      debug1_msg(2,"NBR RSSI expects #result = 4. #result is "..#result.." RN="..REQUESTED_NODE)
       return
    end
    local rssi = { tonumber(result[1]), tonumber(result[2]), tonumber(result[3]), tonumber(result[4]) } 
@@ -261,7 +275,7 @@ end
 
 local function handle_response_mcs(result)
    if #result  ~= 1 then
-      gcs:send_text(MAV_SEVERITY.ERROR, "NBR MCS expects #result = 1. #result is "..#result.." RN="..REQUESTED_NODE)
+      debug1_msg(2,"NBR MCS expects #result = 1. #result is "..#result.." RN="..REQUESTED_NODE)
       return
    end
    local mcs = tonumber(result[1])
@@ -271,7 +285,7 @@ end
 
 local function handle_response_network_status(result)
    if (#result % 3) ~= 0 then
-      gcs:send_text(MAV_SEVERITY.ERROR, "Network status expects #result divisible by 3. #result is "..#result.." RN="..REQUESTED_NODE)
+      debug1_msg(2,"Network status expects #result divisible by 3. #result is "..#result.." RN="..REQUESTED_NODE)
       return
    end
    for res = 1, #result/3 do
@@ -292,7 +306,7 @@ local function handle_response_network_status(result)
       if findLINKibynid(nid2) == nil and findLINKibynid2(nid2) ~= nil then
          local idx2 = nid2.." "..nid1
          table.insert(LINK_TABLE, { idx=idx2, snr={-1,nid2,nid1,-1}, nse={-1,-1}, lt={-1,-1}, rssi={-1,-1,-1,-1,-1}, mcs={ -1,-1} })
-         debug_msg(2, "Added idx2 item: "..idx2)
+         debug2_msg(2,"Added idx2 item: "..idx2)
       end
    end
 end
@@ -324,22 +338,22 @@ local function check_reply()
       end
       local success, req = pcall(json.parse, lines[#lines])
       if not success then
-         gcs:send_text(MAV_SEVERITY.ERROR, "request failed")
+         debug1_msg(2,"Request failed")
          return
       end
       if type(req) ~= "table" then
          save_to_file("json_rep.txt", http_reply)
          if type(req) == "string" or type(req) == "number" then
-            gcs:send_text(MAV_SEVERITY.ERROR, "Error: Request returned "..req.." RN="..REQUESTED_NODE)
+            debug1_msg(2,"Request returned "..req.." RN="..REQUESTED_NODE)
          else
-            gcs:send_text(MAV_SEVERITY.ERROR, "Error: Request returned a "..type(req).." RN="..REQUESTED_NODE)
+            debug1_msg(2,"Request returned a "..type(req).." RN="..REQUESTED_NODE)
          end
          return
       end
-      debug_msg(1, "Reply is "..lines[#lines])
+      debug2_msg(3,"Reply is "..lines[#lines])
       local result = req['result']
       if result == nil then
-         gcs:send_text(0, "nil here")
+         debug1_msg(1,"Nil for result")
          return
       end
       if not result then
@@ -347,7 +361,7 @@ local function check_reply()
          return
       end
       if type(result) ~= "table" then
-         gcs:send_text(MAV_SEVERITY.ERROR, "Error: Result from reply is not a table. RN="..REQUESTED_NODE)
+         debug1_msg(2,"Result from reply is not a table. RN="..REQUESTED_NODE)
          return
       end
       handle_response(result)
@@ -361,7 +375,7 @@ local function check_reply()
 end
 
 local function log_data()
-   debug_msg(1,"In log_data, LINK table is "..#LINK_TABLE.." long")
+   debug2_msg(3,"In log_data, LINK table is "..#LINK_TABLE.." long")
    for i, TR in pairs(LINK_TABLE) do
       -- gcs:send_text(MAV_SEVERITY.INFO, "i is "..i)
       logger:write('SLV1','I,sa,sl,sr,s,na,n,la,l','Iffffffff', '#--------', '---------', i, TR.snr[1], TR.snr[2], TR.snr[3], TR.snr[4], TR.nse[1], TR.nse[2], TR.lt[1], TR.lt[2])
@@ -418,9 +432,9 @@ local function update()
       local ftn = findLINKibynid(NIDS[quo])
       -- check that the nid exists in LINK table before calling it.
       if ftn == nil then
-         gcs:send_text(MAV_SEVERITY.WARNING, "NIDS["..quo.."] is "..NIDS[quo].." findLINKibynid=nil")
+         debug1_msg(2,"NIDS["..quo.."] is "..NIDS[quo].." findLINKibynid=nil")
          for i=1, #NIDS do
-            debug_msg("Quo is "..quo.." NIDS["..i.."] is "..NIDS[i])
+            debug2_msg(2,"Quo is "..quo.." NIDS["..i.."] is "..NIDS[i])
          end
          last_request_ms = now - period_ms
          n = n+1
@@ -433,11 +447,11 @@ local function update()
          local api = http_request_table[rem][1]
          local params_layout = http_request_table[rem][2]
          local response_handler = http_request_table[rem][3]
-         debug_msg(1, "RN is "..REQUESTED_NODE.." for "..api.." n is "..n.." tot is "..tot.." tab is "..#NIDS.." quo is "..quo)
+         debug2_msg(3, "RN is "..REQUESTED_NODE.." for "..api.." n is "..n.." tot is "..tot.." tab is "..#NIDS.." quo is "..quo)
          http_request(api, params_layout, response_handler)
       else
          local api = http_request_table[rem][1]
-         debug_msg(1, "SKIPPED - RN is "..REQUESTED_NODE.." for "..api.." n is "..n.." tot is "..tot.." tab is "..#NIDS.." quo is "..quo)
+         debug2_msg(3, "SKIPPED - RN is "..REQUESTED_NODE.." for "..api.." n is "..n.." tot is "..tot.." tab is "..#NIDS.." quo is "..quo)
          last_request_ms = now - period_ms --make sure it gets called again soon
       end
       n = n+1
