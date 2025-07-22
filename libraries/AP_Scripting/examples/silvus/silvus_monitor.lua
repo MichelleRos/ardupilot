@@ -43,7 +43,7 @@ local SLV_LOCAL_IP = { bind_add_param('LOCAL_IP0', 2, 192),
   // @Units: Hz
   // @User: Standard
 --]]
-local SLV_RATE = bind_add_param('RATE', 6, 1)
+local SLV_RATE = bind_add_param('REQ_RATE', 6, 1)
 
 --[[
   // @Param: SLV_HTTP_PORT
@@ -55,9 +55,9 @@ local SLV_RATE = bind_add_param('RATE', 6, 1)
 local SLV_HTTP_PORT = bind_add_param('HTTP_PORT', 10, 80)
 
 local SLV_LOCAL_NODEID = bind_add_param('LOCAL_NODEID', 14, 42)
-local SLV_DEBUG = bind_add_param('DEBUG', 15, 0)
-
-local LOG_RATE = 0.1 -- once per 10 sec
+local SLV_INFO = bind_add_param('INFO', 15, 1) -- 1 is mostly just warnings, 2 is debug
+local SLV_LOG_RATE = bind_add_param('LOG_RATE', 16, 0.2) -- once every 5 sec
+local SLV_NVF_RATE = bind_add_param('NVF_RATE', 17, -1) -- max rate to send nvf for any message at. -1 means no restriction
 
 local SLV_GND_NODEID = {}
 local LINK_TABLE = {}
@@ -93,32 +93,33 @@ local reply_start = nil
 local REQUEST_TIMEOUT = 250
 local last_request_ms = nil
 local last_log_ms = nil
+local last_nvf_ms = nil
 local json = require("json")
 local json_log = nil
 local handle_response = nil
 
---When debug is 2. 1 = emergency, 2 = warning, 1 = info
-local function debug2_msg(sev, msg)
-   if SLV_DEBUG:get() == 2 then
+--When info is 2. 1 = emergency, 2 = warning, 3 = info
+local function info2_msg(sev, msg)
+   if SLV_INFO:get() == 2 then
       if sev == 1 then
-         gcs:send_text(MAV_SEVERITY.EMERGENCY, "Silvus Error: "..msg)
+         gcs:send_text(MAV_SEVERITY.EMERGENCY, "SilvusE: "..msg)
       elseif sev == 2 then
-         gcs:send_text(MAV_SEVERITY.WARNING, "Silvus Warning: "..msg)
+         gcs:send_text(MAV_SEVERITY.WARNING, "SilvusW: "..msg)
       else 
-         gcs:send_text(MAV_SEVERITY.INFO, "Silvus: "..msg)
+         gcs:send_text(MAV_SEVERITY.INFO, "SilvusI: "..msg)
       end
    end
 end
 
---When debug is 1 or 2. 1 = emergency, 2 = warning, 1 = info
-local function debug1_msg(sev, msg)
-   if SLV_DEBUG:get() == 1 or SLV_DEBUG:get() == 2 then
+--When info is 1 or 2. 1 = emergency, 2 = warning, 3 = info
+local function info1_msg(sev, msg)
+   if SLV_INFO:get() == 1 or SLV_INFO:get() == 2 then
       if sev == 1 then
-         gcs:send_text(MAV_SEVERITY.EMERGENCY, "Silvus error: "..msg)
+         gcs:send_text(MAV_SEVERITY.EMERGENCY, "SilvusE: "..msg)
       elseif sev == 2 then
-         gcs:send_text(MAV_SEVERITY.WARNING, "Silvus warning: "..msg)
+         gcs:send_text(MAV_SEVERITY.WARNING, "SilvusW: "..msg)
       else 
-         gcs:send_text(MAV_SEVERITY.INFO, "Silvus: "..msg)
+         gcs:send_text(MAV_SEVERITY.INFO, "SilvusI: "..msg)
       end
    end
 end
@@ -134,7 +135,7 @@ local function http_request(api, params, http_request_response_handler)
    sock = Socket(0)
    local node_ip = local_ip()
    if not sock:connect(node_ip, SLV_HTTP_PORT:get()) then
-      debug1_msg(1,string.format("Failed to connect to " .. node_ip .. ":" .. SLV_HTTP_PORT:get()))
+      info1_msg(1,string.format("Failed to connect to " .. node_ip .. ":" .. SLV_HTTP_PORT:get()))
       sock = nil
       return nil
    end
@@ -156,7 +157,7 @@ local function http_request(api, params, http_request_response_handler)
    elseif params.num == 2 then
       json = string.format([[{"jsonrpc":"2.0","method":"%s", "params":["%s", "%s"],"id":"sbkb5u0c"}]], api, p1, params.p2)
    else
-      debug1_msg(1,"Unsupported params.")
+      info1_msg(1,"Unsupported params.")
       return nil
    end
    -- gcs:send_text(MAV_SEVERITY.INFO, "Json: " .. json)
@@ -179,17 +180,35 @@ Content-Length: %u
 end
 
 local function send_nvf(nodeid, nvfidloc, nvfidrem, res)
+   local now = millis()
+   if SLV_NVF_RATE:get() > 0 then
+      local nvf_period_ms = 1000.0/SLV_NVF_RATE:get()
+      if (last_nvf_ms ~= nil) and ((now - last_nvf_ms) < nvf_period_ms) then
+         if nodeid == SLV_LOCAL_NODEID:get() then
+            info2_msg(2, "NVF: Too soon, not sending "..nvfidloc)
+         else
+            info2_msg(2, "NVF: Too soon, not sending "..nvfidrem)
+         end
+         return
+      end
+   end
+   last_nvf_ms = now
+
    if type(res) == "number" then
       if nodeid == SLV_LOCAL_NODEID:get() then
+         info2_msg(3, "NVF: Sending ".. nvfidloc)
          gcs:send_named_float(nvfidloc, res)
       else
+         info2_msg(3, "NVF: Sending ".. nvfidrem)
          gcs:send_named_float(nvfidrem, res)
       end
    else
       for i = 1, #res do
          if nodeid == SLV_LOCAL_NODEID:get() then
+            info2_msg(3, "NVF: Sending ".. nvfidloc..i)
             gcs:send_named_float(nvfidloc..i, res[i])
          else
+            info2_msg(3, "NVF: Sending ".. nvfidrem..i)
             gcs:send_named_float(nvfidrem..i, res[i])
          end 
       end
@@ -245,7 +264,7 @@ end
 
 local function handle_response_noise_level(result)
    if #result  ~= 1 then
-      debug1_msg(2,"Noise level expects #result = 1. #result is "..#result.." RN="..REQUESTED_NODE)
+      info1_msg(2,"Noise level expects #result = 1. #result is "..#result.." RN="..REQUESTED_NODE)
       return
    end
    local noise = tonumber(result[1])
@@ -255,7 +274,7 @@ end
 
 local function handle_response_throughput(result)
    if #result  ~= 1 then
-      debug1_msg(2,"Link throughput expects #result = 1. #result is "..#result.." RN="..REQUESTED_NODE)
+      info1_msg(2,"Link throughput expects #result = 1. #result is "..#result.." RN="..REQUESTED_NODE)
       return
    end
    local link_tput = tonumber(result[1])
@@ -265,17 +284,17 @@ end
 
 local function handle_response_rssi(result)
    if #result  ~= 4 then
-      debug1_msg(2,"NBR RSSI expects #result = 4. #result is "..#result.." RN="..REQUESTED_NODE)
+      info1_msg(2,"NBR RSSI expects #result = 4. #result is "..#result.." RN="..REQUESTED_NODE)
       return
    end
    local rssi = { tonumber(result[1]), tonumber(result[2]), tonumber(result[3]), tonumber(result[4]) } 
-   send_nvf(REQUESTED_NODE, "SR_RXRSSI", "SR_TXRSSI", rssi)
+   send_nvf(REQUESTED_NODE, "SR_LRSSI", "SR_RRSSI", rssi)
    LINK_TABLE[findLINKibynid(REQUESTED_NODE)].rssi = { nows(), rssi[1], rssi[2], rssi[3], rssi[4] }
 end
 
 local function handle_response_mcs(result)
    if #result  ~= 1 then
-      debug1_msg(2,"NBR MCS expects #result = 1. #result is "..#result.." RN="..REQUESTED_NODE)
+      info1_msg(2,"NBR MCS expects #result = 1. #result is "..#result.." RN="..REQUESTED_NODE)
       return
    end
    local mcs = tonumber(result[1])
@@ -285,7 +304,7 @@ end
 
 local function handle_response_network_status(result)
    if (#result % 3) ~= 0 then
-      debug1_msg(2,"Network status expects #result divisible by 3. #result is "..#result.." RN="..REQUESTED_NODE)
+      info1_msg(2,"Network status expects #result divisible by 3. #result is "..#result.." RN="..REQUESTED_NODE)
       return
    end
    for res = 1, #result/3 do
@@ -295,19 +314,21 @@ local function handle_response_network_status(result)
       local nid1 = tonumber(result[nid1i])
       local nid2 = tonumber(result[nid2i])
       local snr = tonumber(result[snri])
-      --add new item if needed
       local idx1 = nid1.." "..nid2
       if findLINKibyidx(idx1) == nil then
-         table.insert(LINK_TABLE, { idx=idx1, snr={-1,nid1,nid2,-1}, nse={-1,-1}, lt={-1,-1}, rssi={-1,-1,-1,-1,-1}, mcs={ -1,-1} })
+         -- add new item if needed
+         table.insert(LINK_TABLE, { idx=idx1, snr={nows(),nid1,nid2,snr}, nse={-1,-1}, lt={-1,-1}, rssi={-1,-1,-1,-1,-1}, mcs={ -1,-1} })
+      else
+         -- if item already exists, update data
+         LINK_TABLE[findLINKibyidx(idx1)].snr = { nows(), nid1, nid2, snr }
       end
-      --always age first, then data
-      LINK_TABLE[findLINKibyidx(idx1)].snr = { nows(),nid1, nid2, snr }
-      -- nid has been added, but in the second spot.
+      -- check if nid has been added, but only in the second spot, add to first spot if so
       if findLINKibynid(nid2) == nil and findLINKibynid2(nid2) ~= nil then
          local idx2 = nid2.." "..nid1
          table.insert(LINK_TABLE, { idx=idx2, snr={-1,nid2,nid1,-1}, nse={-1,-1}, lt={-1,-1}, rssi={-1,-1,-1,-1,-1}, mcs={ -1,-1} })
-         debug2_msg(2,"Added idx2 item: "..idx2)
+         info2_msg(2,"Added idx2 item: "..idx2)
       end
+      send_nvf(nid1, "SR_LOCSNR", "SR_REMSNR", snr)
    end
 end
 
@@ -338,22 +359,22 @@ local function check_reply()
       end
       local success, req = pcall(json.parse, lines[#lines])
       if not success then
-         debug1_msg(2,"Request failed")
+         info1_msg(2,"Request failed")
          return
       end
       if type(req) ~= "table" then
          save_to_file("json_rep.txt", http_reply)
          if type(req) == "string" or type(req) == "number" then
-            debug1_msg(2,"Request returned "..req.." RN="..REQUESTED_NODE)
+            info1_msg(2,"Request returned "..req.." RN="..REQUESTED_NODE)
          else
-            debug1_msg(2,"Request returned a "..type(req).." RN="..REQUESTED_NODE)
+            info1_msg(2,"Request returned a "..type(req).." RN="..REQUESTED_NODE)
          end
          return
       end
-      debug2_msg(3,"Reply is "..lines[#lines])
+      info2_msg(3,"Reply is "..lines[#lines])
       local result = req['result']
       if result == nil then
-         debug1_msg(1,"Nil for result")
+         info1_msg(1,"Nil for result")
          return
       end
       if not result then
@@ -361,7 +382,7 @@ local function check_reply()
          return
       end
       if type(result) ~= "table" then
-         debug1_msg(2,"Result from reply is not a table. RN="..REQUESTED_NODE)
+         info1_msg(2,"Result from reply is not a table. RN="..REQUESTED_NODE)
          return
       end
       handle_response(result)
@@ -375,7 +396,7 @@ local function check_reply()
 end
 
 local function log_data()
-   debug2_msg(3,"In log_data, LINK table is "..#LINK_TABLE.." long")
+   info2_msg(3,"In log_data, LINK table is "..#LINK_TABLE.." long")
    for i, TR in pairs(LINK_TABLE) do
       -- gcs:send_text(MAV_SEVERITY.INFO, "i is "..i)
       logger:write('SLV1','I,sa,sl,sr,s,na,n,la,l','Iffffffff', '#--------', '---------', i, TR.snr[1], TR.snr[2], TR.snr[3], TR.snr[4], TR.nse[1], TR.nse[2], TR.lt[1], TR.lt[2])
@@ -416,7 +437,7 @@ local function update()
       n = 0
    end
 
-   local log_period_ms = 1000.0/LOG_RATE
+   local log_period_ms = 1000.0/SLV_LOG_RATE:get()
    if not last_log_ms or now - last_log_ms >= log_period_ms then
       last_log_ms = now
       log_data()
@@ -432,9 +453,9 @@ local function update()
       local ftn = findLINKibynid(NIDS[quo])
       -- check that the nid exists in LINK table before calling it.
       if ftn == nil then
-         debug1_msg(2,"NIDS["..quo.."] is "..NIDS[quo].." findLINKibynid=nil")
+         info1_msg(2,"NIDS["..quo.."] is "..NIDS[quo].." findLINKibynid=nil")
          for i=1, #NIDS do
-            debug2_msg(2,"Quo is "..quo.." NIDS["..i.."] is "..NIDS[i])
+            info2_msg(2,"Quo is "..quo.." NIDS["..i.."] is "..NIDS[i])
          end
          last_request_ms = now - period_ms
          n = n+1
@@ -447,11 +468,11 @@ local function update()
          local api = http_request_table[rem][1]
          local params_layout = http_request_table[rem][2]
          local response_handler = http_request_table[rem][3]
-         debug2_msg(3, "RN is "..REQUESTED_NODE.." for "..api.." n is "..n.." tot is "..tot.." tab is "..#NIDS.." quo is "..quo)
+         info2_msg(3, "RN is "..REQUESTED_NODE.." for "..api.." n is "..n.." tot is "..tot.." tab is "..#NIDS.." quo is "..quo)
          http_request(api, params_layout, response_handler)
       else
          local api = http_request_table[rem][1]
-         debug2_msg(3, "SKIPPED - RN is "..REQUESTED_NODE.." for "..api.." n is "..n.." tot is "..tot.." tab is "..#NIDS.." quo is "..quo)
+         info2_msg(3, "SKIPPED - RN is "..REQUESTED_NODE.." for "..api.." n is "..n.." tot is "..tot.." tab is "..#NIDS.." quo is "..quo)
          last_request_ms = now - period_ms --make sure it gets called again soon
       end
       n = n+1
