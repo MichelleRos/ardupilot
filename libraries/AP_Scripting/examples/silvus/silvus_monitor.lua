@@ -364,6 +364,7 @@ local function handle_response_network_status(result)
          send_nvf(nid1, "SR_x", "SR_REMSNR1", nid1)
          send_nvf(nid1, "SR_x", "SR_REMSNR2", nid2)
       end
+      info2_msg(2, "Finished handle_response_network_status")
    end
    -- send max SNRs
    send_nvf_single("SR_M1_SNR", max_snr1)
@@ -442,12 +443,12 @@ local function check_reply()
 end
 
 local function log_data()
-   info2_msg(3,"In log_data, LINK table is "..#LINK_TABLE.." long")
    for i, TR in pairs(LINK_TABLE) do
       -- gcs:send_text(MAV_SEVERITY.INFO, "i is "..i)
       logger:write('SLV1','I,st,sr,s,nt,n,lt,l','Ifffffff', '#-------', '--------', TR.snr[2], TR.snr[1], TR.snr[3], TR.snr[4], TR.nse[1], TR.nse[2], TR.lt[1], TR.lt[2])
       logger:write('SLV2','I,rt,r1,r2,r3,r4,mt,m','Ifffffff', '#-------', '--------', TR.snr[2], TR.rssi[1], TR.rssi[2], TR.rssi[3], TR.rssi[4], TR.rssi[5],TR.mcs[1],TR.mcs[2])
-   end
+   end 
+   info2_msg(2,"Finished log_data, LINK table is "..#LINK_TABLE.." long")
 end
 
 local heartbeat_counter = 0
