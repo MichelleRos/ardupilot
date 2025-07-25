@@ -63,6 +63,7 @@ local SLV_GND_NODEID = {}
 local LINK_TABLE = {}
 table.insert(LINK_TABLE, { id=1 , snr={-1,SLV_LOCAL_NODEID:get(),SLV_LOCAL_NODEID:get(),-1}, nse={-1,-1}, lt={-1,-1}, rssi = {-1,-1,-1,-1,-1}, mcs={ -1,-1} })
 local REQUESTED_NODE = nil
+local REQUESTED_API = nil
 
 local radio_ranges = {nil, nil}
 local radio_tstamp_ms = {nil, nil}
@@ -215,6 +216,10 @@ local function send_nvf(nodeid, nvfidloc, nvfidrem, res)
    end
 end
 
+local function send_nvf_single(nvfid, res)
+   send_nvf(SLV_LOCAL_NODEID:get(), nvfid, "NVF_x", res)
+end
+
 -- returns LINK_TABLE index number for the given idx
 local function findLINKibyidx(idx)
    for i, TR in pairs(LINK_TABLE) do
@@ -307,6 +312,12 @@ local function handle_response_network_status(result)
       info1_msg(2,"Network status expects #result divisible by 3. #result is "..#result.." RN="..REQUESTED_NODE)
       return
    end
+   local max_snr1 = -1
+   local max_snr2 = -1
+   local max_snr1_nid1 = -1
+   local max_snr1_nid2 = -1
+   local max_snr2_nid1 = -1
+   local max_snr2_nid2 = -1
    for res = 1, #result/3 do
       local nid1i = (res-1)*3+1
       local nid2i = (res-1)*3+2
@@ -328,14 +339,39 @@ local function handle_response_network_status(result)
          table.insert(LINK_TABLE, { idx=idx2, snr={-1,nid2,nid1,-1}, nse={-1,-1}, lt={-1,-1}, rssi={-1,-1,-1,-1,-1}, mcs={ -1,-1} })
          info2_msg(2,"Added idx2 item: "..idx2)
       end
+      if snr > max_snr2 and snr ~= 150 then
+         max_snr2 = snr
+         max_snr2_nid1 = nid1
+         max_snr2_nid2 = nid2
+      end
+      if max_snr2 > max_snr1 then
+         -- swap snrs
+         local max_snr_tmp = max_snr2
+         local max_snr_nid1_tmp = max_snr2_nid1
+         local max_snr_nid2_tmp = max_snr2_nid2
+         max_snr2 = max_snr1
+         max_snr2_nid1 = max_snr1_nid1
+         max_snr2_nid2 = max_snr1_nid2
+         max_snr1 = max_snr_tmp
+         max_snr1_nid1 = max_snr_nid1_tmp
+         max_snr1_nid2 = max_snr_nid2_tmp
+      end
+      -- send NVFs per local/remote radio
       send_nvf(nid1, "SR_LOCSNR", "SR_REMSNR", snr)
       if nid1 == SLV_LOCAL_NODEID:get() then
          send_nvf(nid1, "SR_LOCSNRN", "SR_x", nid2)
       else
-         send_nvf(nid1, "SR_x", "SR_REMSNRN1", nid1)
-         send_nvf(nid1, "SR_x", "SR_REMSNRN2", nid2)
+         send_nvf(nid1, "SR_x", "SR_REMSNR1", nid1)
+         send_nvf(nid1, "SR_x", "SR_REMSNR2", nid2)
       end
    end
+   -- send max SNRs
+   send_nvf_single("SR_M1_SNR", max_snr1)
+   send_nvf_single("SR_M1_NID1", max_snr1_nid1)
+   send_nvf_single("SR_M1_NID2", max_snr1_nid2)
+   send_nvf_single("SR_M2_SNR", max_snr2)
+   send_nvf_single("SR_M2_NID1", max_snr2_nid1)
+   send_nvf_single("SR_M2_NID2", max_snr2_nid2)
 end
 
 --[[
@@ -477,6 +513,7 @@ local function update()
          local params_layout = http_request_table[rem][2]
          local response_handler = http_request_table[rem][3]
          REQUESTED_NODE=NIDS[quo]
+         REQUESTED_API=http_request_table[rem][1]
          info2_msg(3, "RN is "..REQUESTED_NODE.." for "..api.." n is "..n.." tot is "..tot.." tab is "..#NIDS.." quo is "..quo)
          http_request(api, params_layout, response_handler)
       else
