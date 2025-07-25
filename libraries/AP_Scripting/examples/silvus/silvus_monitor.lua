@@ -196,19 +196,19 @@ local function send_nvf(nodeid, nvfidloc, nvfidrem, res)
 
    if type(res) == "number" then
       if nodeid == SLV_LOCAL_NODEID:get() then
-         info2_msg(3, "NVF: Sending ".. nvfidloc)
+         -- info2_msg(3, "NVF: Sending ".. nvfidloc)
          gcs:send_named_float(nvfidloc, res)
       else
-         info2_msg(3, "NVF: Sending ".. nvfidrem)
+         -- info2_msg(3, "NVF: Sending ".. nvfidrem)
          gcs:send_named_float(nvfidrem, res)
       end
    else
       for i = 1, #res do
          if nodeid == SLV_LOCAL_NODEID:get() then
-            info2_msg(3, "NVF: Sending ".. nvfidloc..i)
+            -- info2_msg(3, "NVF: Sending ".. nvfidloc..i)
             gcs:send_named_float(nvfidloc..i, res[i])
          else
-            info2_msg(3, "NVF: Sending ".. nvfidrem..i)
+            -- info2_msg(3, "NVF: Sending ".. nvfidrem..i)
             gcs:send_named_float(nvfidrem..i, res[i])
          end 
       end
@@ -329,6 +329,12 @@ local function handle_response_network_status(result)
          info2_msg(2,"Added idx2 item: "..idx2)
       end
       send_nvf(nid1, "SR_LOCSNR", "SR_REMSNR", snr)
+      if nid1 == SLV_LOCAL_NODEID:get() then
+         send_nvf(nid1, "SR_LOCSNRN", "SR_x", nid2)
+      else
+         send_nvf(nid1, "SR_x", "SR_REMSNRN1", nid1)
+         send_nvf(nid1, "SR_x", "SR_REMSNRN2", nid2)
+      end
    end
 end
 
@@ -343,7 +349,6 @@ local function check_reply()
    if reply_start and now - reply_start > REQUEST_TIMEOUT then
       sock:close()
       sock = nil
-      lines = {}
       if not http_reply then
          return
       end
@@ -354,10 +359,14 @@ local function check_reply()
          json_log:write(http_reply)
       end
       --save_to_file("json_rep.txt", http_reply)
+      local json_body = ""
       for s in http_reply:gmatch("[^\r\n]+") do
-         table.insert(lines, s)
+         if s:find('"') then
+            json_body = json_body .. s
+         end
       end
-      local success, req = pcall(json.parse, lines[#lines])
+      -- save_to_file("json_body.txt", json_body)
+      local success, req = pcall(json.parse, json_body)
       if not success then
          info1_msg(2,"Request failed")
          return
@@ -371,7 +380,7 @@ local function check_reply()
          end
          return
       end
-      info2_msg(3,"Reply is "..lines[#lines])
+      --save_to_file("json_OK.txt", http_reply)
       local result = req['result']
       if result == nil then
          info1_msg(1,"Nil for result")
@@ -399,8 +408,8 @@ local function log_data()
    info2_msg(3,"In log_data, LINK table is "..#LINK_TABLE.." long")
    for i, TR in pairs(LINK_TABLE) do
       -- gcs:send_text(MAV_SEVERITY.INFO, "i is "..i)
-      logger:write('SLV1','I,sa,sl,sr,s,na,n,la,l','Iffffffff', '#--------', '---------', i, TR.snr[1], TR.snr[2], TR.snr[3], TR.snr[4], TR.nse[1], TR.nse[2], TR.lt[1], TR.lt[2])
-      logger:write('SLV2','I,ra,r1,r2,r3,r4,ma,m','Ifffffff', '#-------', '--------', i, TR.rssi[1], TR.rssi[2], TR.rssi[3], TR.rssi[4], TR.rssi[5],TR.mcs[1],TR.mcs[2])
+      logger:write('SLV1','I,st,sl,sr,s,nt,n,lt,l','Iffffffff', '#--------', '---------', i, TR.snr[1], TR.snr[2], TR.snr[3], TR.snr[4], TR.nse[1], TR.nse[2], TR.lt[1], TR.lt[2])
+      logger:write('SLV2','I,rt,r1,r2,r3,r4,mt,m','Ifffffff', '#-------', '--------', i, TR.rssi[1], TR.rssi[2], TR.rssi[3], TR.rssi[4], TR.rssi[5],TR.mcs[1],TR.mcs[2])
    end
 end
 
@@ -461,13 +470,13 @@ local function update()
          n = n+1
          return
       end
-      REQUESTED_NODE=NIDS[quo]
-      local do_local = (http_request_table[rem][4] and (REQUESTED_NODE == SLV_LOCAL_NODEID:get()))
-      local do_remote = (http_request_table[rem][5] and (REQUESTED_NODE ~= SLV_LOCAL_NODEID:get()))
+      local do_local = (http_request_table[rem][4] and (NIDS[quo] == SLV_LOCAL_NODEID:get()))
+      local do_remote = (http_request_table[rem][5] and (NIDS[quo] ~= SLV_LOCAL_NODEID:get()))
       if do_local or do_remote then
          local api = http_request_table[rem][1]
          local params_layout = http_request_table[rem][2]
          local response_handler = http_request_table[rem][3]
+         REQUESTED_NODE=NIDS[quo]
          info2_msg(3, "RN is "..REQUESTED_NODE.." for "..api.." n is "..n.." tot is "..tot.." tab is "..#NIDS.." quo is "..quo)
          http_request(api, params_layout, response_handler)
       else
