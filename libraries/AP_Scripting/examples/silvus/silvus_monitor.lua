@@ -392,6 +392,7 @@ local function check_reply()
          json_log = io.open("json.log",'wb')
       end
       if json_log then
+         json_log:write("\nRequested API: "..REQUESTED_API.."\nRequested Node: "..REQUESTED_NODE.."\n")
          json_log:write(http_reply)
       end
       --save_to_file("json_rep.txt", http_reply)
