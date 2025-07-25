@@ -386,6 +386,7 @@ local function check_reply()
       sock:close()
       sock = nil
       if not http_reply then
+         info1_msg(2,"No http reply")
          return
       end
       if not json_log then
@@ -405,7 +406,10 @@ local function check_reply()
       -- save_to_file("json_body.txt", json_body)
       local success, req = pcall(json.parse, json_body)
       if not success then
-         info1_msg(2,"Request failed")
+         info1_msg(2,"Json parse failed")
+         if json_log then
+            json_log:write("\nAbove request was not parsed.\n")
+         end
          return
       end
       if type(req) ~= "table" then
