@@ -59,20 +59,15 @@ local SLV_INFO = bind_add_param('INFO', 15, 1) -- 1 is mostly just warnings, 2 i
 local SLV_LOG_RATE = bind_add_param('LOG_RATE', 16, 0.2) -- once every 5 sec
 local SLV_NVF_RATE = bind_add_param('NVF_RATE', 17, -1) -- max rate to send nvf for any message at. -1 means no restriction
 
-local SLV_GND_NODEID = {}
 local LINK_TABLE = {}
-table.insert(LINK_TABLE, { id=1 , snr={-1,SLV_LOCAL_NODEID:get(),SLV_LOCAL_NODEID:get(),-1}, nse={-1,-1}, lt={-1,-1}, rssi = {-1,-1,-1,-1,-1}, mcs={ -1,-1} })
+table.insert(LINK_TABLE, { idx="init" , snr={-1,SLV_LOCAL_NODEID:get(),SLV_LOCAL_NODEID:get(),-1}, nse={-1,-1}, lt={-1,-1}, rssi = {-1,-1,-1,-1,-1}, mcs={ -1,-1} })
 local REQUESTED_NODE = nil
 local REQUESTED_API = nil
 
-local radio_ranges = {nil, nil}
-local radio_tstamp_ms = {nil, nil}
-
 gcs:send_text(MAV_SEVERITY.INFO, "Silvus: Starting")
 
-
 local function nows()
-   return millis():toint()
+   return millis():tofloat() * 0.001
 end
 
 --[[
@@ -80,12 +75,6 @@ end
 --]]
 local function local_ip()
    return string.format("%u.%u.%u.%u", SLV_LOCAL_IP[1]:get(), SLV_LOCAL_IP[2]:get(), SLV_LOCAL_IP[3]:get(), SLV_LOCAL_IP[4]:get())
-end
-
-local function save_to_file(fname, data)
-   local fh = io.open(fname,'wb')
-   fh:write(data)
-   fh:close()
 end
 
 local sock = nil
@@ -123,6 +112,16 @@ local function info1_msg(sev, msg)
          gcs:send_text(MAV_SEVERITY.INFO, "SilvusI: "..msg)
       end
    end
+end
+
+local function save_to_file(fname, data)
+   local fh = io.open(fname,'wb')
+   if fh == nil then
+      info1_msg(1, "Save_to_file's file open failed")
+      return
+   end
+   fh:write(data)
+   fh:close()
 end
 
 --[[
@@ -325,7 +324,7 @@ local function handle_response_network_status(result)
       local nid1 = tonumber(result[nid1i])
       local nid2 = tonumber(result[nid2i])
       local snr = tonumber(result[snri])
-      local idx1 = nid1.." "..nid2
+      local idx1 = nid1.."_"..nid2
       if findLINKibyidx(idx1) == nil then
          -- add new item if needed
          table.insert(LINK_TABLE, { idx=idx1, snr={nows(),nid1,nid2,snr}, nse={-1,-1}, lt={-1,-1}, rssi={-1,-1,-1,-1,-1}, mcs={ -1,-1} })
@@ -335,7 +334,7 @@ local function handle_response_network_status(result)
       end
       -- check if nid has been added, but only in the second spot, add to first spot if so
       if findLINKibynid(nid2) == nil and findLINKibynid2(nid2) ~= nil then
-         local idx2 = nid2.." "..nid1
+         local idx2 = nid2.."_"..nid1
          table.insert(LINK_TABLE, { idx=idx2, snr={-1,nid2,nid1,-1}, nse={-1,-1}, lt={-1,-1}, rssi={-1,-1,-1,-1,-1}, mcs={ -1,-1} })
          info2_msg(2,"Added idx2 item: "..idx2)
       end
@@ -432,6 +431,10 @@ local function check_reply()
          info1_msg(2,"Result from reply is not a table. RN="..REQUESTED_NODE)
          return
       end
+      if handle_response == nil then
+         info1_msg(1,"Nil for handle_response")
+         return
+      end
       handle_response(result)
       return
    end
@@ -444,11 +447,11 @@ end
 
 local function log_data()
    for i, TR in pairs(LINK_TABLE) do
-      -- gcs:send_text(MAV_SEVERITY.INFO, "i is "..i)
-      logger:write('SLV1','I,st,sr,s,nt,n,lt,l','Ifffffff', '#-------', '--------', TR.snr[2], TR.snr[1], TR.snr[3], TR.snr[4], TR.nse[1], TR.nse[2], TR.lt[1], TR.lt[2])
-      logger:write('SLV2','I,rt,r1,r2,r3,r4,mt,m','Ifffffff', '#-------', '--------', TR.snr[2], TR.rssi[1], TR.rssi[2], TR.rssi[3], TR.rssi[4], TR.rssi[5],TR.mcs[1],TR.mcs[2])
+      -- gcs:send_text(MAV_SEVERITY.INFO, "i is "..i.." idx is "..TR.idx..".")
+      logger:write('SLV1','I,st,sl,sr,s,nt,n,lt,l','Nffffffff', '#--------', '---------', TR.idx, TR.snr[1], TR.snr[2], TR.snr[3], TR.snr[4], TR.nse[1], TR.nse[2], TR.lt[1], TR.lt[2])
+      logger:write('SLV2','I,rt,r1,r2,r3,r4,mt,m','Nfffffff', '#-------', '--------', TR.idx, TR.rssi[1], TR.rssi[2], TR.rssi[3], TR.rssi[4], TR.rssi[5],TR.mcs[1],TR.mcs[2])
    end 
-   info2_msg(2,"Finished log_data, LINK table is "..#LINK_TABLE.." long")
+   info2_msg(3,"Finished log_data, LINK table is "..#LINK_TABLE.." long")
 end
 
 local heartbeat_counter = 0
