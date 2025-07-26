@@ -361,7 +361,7 @@ local function handle_response_network_status(result)
          table.insert(LINK_TABLE, { idx=idx2, snr={-1,nid2,nid1,-1}, nse={-1,-1}, lt={-1,-1}, rssi={-1,-1,-1,-1,-1}, mcs={ -1,-1} })
          info2_msg(2,"Added idx2 item: "..idx2)
       end
-      if snr > max_snr2 and snr ~= 150 then
+      if snr > max_snr2 and (nid1 == SLV_LOCAL_NODEID:get() or nid2 == SLV_LOCAL_NODEID:get()) then
          max_snr2 = snr
          max_snr2_nid1 = nid1
          max_snr2_nid2 = nid2

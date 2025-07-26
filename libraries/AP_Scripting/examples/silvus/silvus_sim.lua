@@ -110,6 +110,9 @@ local SSIM_GND_LAT = {}
 local SSIM_GND_LON = {}
 local SSIM_GND_ALT = {}
 
+--add the local node id 
+SSIM_GND_NODEID[SSIM_NUM_RADIOS:get()+1] = bind_add_param('LCL_NODEID', 14, 0)
+
 -- clamp number of radios
 if SSIM_NUM_RADIOS:get() > MAX_GROUND_RADIOS then
    SSIM_NUM_RADIOS:set(MAX_GROUND_RADIOS)
