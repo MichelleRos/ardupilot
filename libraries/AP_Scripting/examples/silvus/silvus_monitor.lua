@@ -421,23 +421,23 @@ local function check_reply()
             json_body = json_body .. s
          end
       end
-      local success, req = pcall(json.parse, json_body)
+      log_to_json("\nJSON_BODY: "..json_body.."\n")
+      local success, rep = pcall(json.parse, json_body)
       if not success then
-         info1_msg(2,"Json parse failed")
-         info2_msg(2,"JPF- "..lines[#lines])
-         log_to_json("\nAbove request was not parsed.\n")
+         info1_msg(2,"Json parse failed.")
+         info2_msg(2, "JPF json_body is "..json_body)
+         log_to_json("\nAbove reply was not parsed successfully.\n")
          return
       end
-      if type(req) ~= "table" then
-         if type(req) == "string" or type(req) == "number" then
-            info1_msg(2,"Request returned "..req.." RN="..REQUESTED_NODE)
+      if type(rep) ~= "table" then
+         if type(rep) == "string" or type(rep) == "number" then
+            info1_msg(2,"Reply is "..rep.." RN="..REQUESTED_NODE)
          else
-            info1_msg(2,"Request returned a "..type(req).." RN="..REQUESTED_NODE)
+            info1_msg(2,"Reply is a "..type(rep).." RN="..REQUESTED_NODE)
          end
-         log_to_json("\nAbove request was not parsed as a table.\n")
          return
       end
-      local result = req['result']
+      local result = rep['result']
       if result == nil then
          info1_msg(1,"Nil for result")
          return
