@@ -239,7 +239,7 @@ local function send_nvf(nodeid, nvfidloc, nvfidrem, res)
 end
 
 local function send_nvf_single(nvfid, res)
-   send_nvf(SLV_LOCAL_NODEID:get(), nvfid, "NVF_x", res)
+   send_nvf(SLV_LOCAL_NODEID:get(), nvfid, "SR_x", res)
 end
 
 -- returns LINK_TABLE index number for the given idx
@@ -381,10 +381,10 @@ local function handle_response_network_status(result)
       -- send NVFs per local/remote radio
       send_nvf(nid1, "SR_LOCSNR", "SR_REMSNR", snr)
       if nid1 == SLV_LOCAL_NODEID:get() then
-         send_nvf(nid1, "SR_LOCSNRN", "SR_x", nid2)
+         send_nvf_single("SR_LOCSNRN", nid2)
       else
-         send_nvf(nid1, "SR_x", "SR_REMSNR1", nid1)
-         send_nvf(nid1, "SR_x", "SR_REMSNR2", nid2)
+         send_nvf_single("SR_REMSNR1", nid1)
+         send_nvf_single("SR_REMSNR2", nid2)
       end
       info2_msg(2, "Finished handle_response_network_status")
    end
