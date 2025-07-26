@@ -471,7 +471,7 @@ end
 local function log_data()
    for i, TR in pairs(LINK_TABLE) do
       -- gcs:send_text(MAV_SEVERITY.INFO, "i is "..i.." idx is "..TR.idx..".")
-      logger:write('SLV1','I,st,sl,sr,s,nt,n,lt,l','Nffffffff', '#--------', '---------', TR.idx, TR.snr[1], TR.snr[2], TR.snr[3], TR.snr[4], TR.nse[1], TR.nse[2], TR.lt[1], TR.lt[2])
+      logger:write('SLV1','I,st,s1,s2,s,nt,n,lt,l','Nffffffff', '#--------', '---------', TR.idx, TR.snr[1], TR.snr[2], TR.snr[3], TR.snr[4], TR.nse[1], TR.nse[2], TR.lt[1], TR.lt[2])
       logger:write('SLV2','I,rt,r1,r2,r3,r4,mt,m','Nfffffff', '#-------', '--------', TR.idx, TR.rssi[1], TR.rssi[2], TR.rssi[3], TR.rssi[4], TR.rssi[5],TR.mcs[1],TR.mcs[2])
    end 
    info2_msg(3,"Finished log_data, LINK table is "..#LINK_TABLE.." long")
