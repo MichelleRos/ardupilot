@@ -318,7 +318,7 @@ local function finalise_request()
       return
    end
    if not json_log then
-      json_log = io.open("json.log",'wb')
+      json_log = io.open("json_sim.log",'wb')
    end
    if json_log then
       json_log:write(http_request)

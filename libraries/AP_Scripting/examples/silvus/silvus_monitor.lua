@@ -59,12 +59,35 @@ local SLV_INFO = bind_add_param('INFO', 15, 1) -- 1 is mostly just warnings, 2 i
 local SLV_LOG_RATE = bind_add_param('LOG_RATE', 16, 0.2) -- once every 5 sec
 local SLV_NVF_RATE = bind_add_param('NVF_RATE', 17, -1) -- max rate to send nvf for any message at. -1 means no restriction
 
+gcs:send_text(MAV_SEVERITY.INFO, "Silvus: Starting")
+
+local sock = nil
+local http_reply = nil
+local reply_start = nil
+local REQUEST_TIMEOUT = 250
+local last_request_ms = nil
+local last_log_ms = nil
+local last_nvf_ms = nil
+local json = require("json")
+local handle_response = nil
+
 local LINK_TABLE = {}
 table.insert(LINK_TABLE, { idx="init" , snr={-1,SLV_LOCAL_NODEID:get(),SLV_LOCAL_NODEID:get(),-1}, nse={-1,-1}, lt={-1,-1}, rssi = {-1,-1,-1,-1,-1}, mcs={ -1,-1} })
+
 local REQUESTED_NODE = nil
 local REQUESTED_API = nil
+local JSONLOG="json.log"
 
-gcs:send_text(MAV_SEVERITY.INFO, "Silvus: Starting")
+local function init_jsonlog()
+   local fh = io.open(JSONLOG,'w')
+   if fh == nil then
+      info1_msg(1, "init_jsonlog's file open failed")
+      return
+   end
+   fh:write("")
+   fh:close()
+end
+init_jsonlog()
 
 local function nows()
    return millis():tofloat() * 0.001
@@ -76,17 +99,6 @@ end
 local function local_ip()
    return string.format("%u.%u.%u.%u", SLV_LOCAL_IP[1]:get(), SLV_LOCAL_IP[2]:get(), SLV_LOCAL_IP[3]:get(), SLV_LOCAL_IP[4]:get())
 end
-
-local sock = nil
-local http_reply = nil
-local reply_start = nil
-local REQUEST_TIMEOUT = 250
-local last_request_ms = nil
-local last_log_ms = nil
-local last_nvf_ms = nil
-local json = require("json")
-local json_log = nil
-local handle_response = nil
 
 --When info is 2. 1 = emergency, 2 = warning, 3 = info
 local function info2_msg(sev, msg)
@@ -114,10 +126,20 @@ local function info1_msg(sev, msg)
    end
 end
 
-local function save_to_file(fname, data)
-   local fh = io.open(fname,'wb')
+local function save_to_json_rep(data)
+   local fh = io.open("json_rep.txt",'wb')
    if fh == nil then
       info1_msg(1, "Save_to_file's file open failed")
+      return
+   end
+   fh:write(data)
+   fh:close()
+end
+
+local function log_to_json(data)
+   local fh = io.open(JSONLOG,'a+')
+   if fh == nil then
+      info1_msg(1, "jsonlog's file open failed")
       return
    end
    fh:write(data)
@@ -174,6 +196,7 @@ Content-Length: %u
    -- sock:set_blocking(false)
    sock:send(cmd, #cmd)
    sock:send(json, #json)
+   log_to_json("\nHTTP_REQUEST_SENT:\n"..cmd..json.."\n")
    http_reply = ''
    reply_start = millis()
    handle_response = http_request_response_handler
@@ -385,43 +408,35 @@ local function check_reply()
    if reply_start and now - reply_start > REQUEST_TIMEOUT then
       sock:close()
       sock = nil
+      lines = {}
       if not http_reply then
          info1_msg(2,"No http reply")
          return
       end
-      if not json_log then
-         json_log = io.open("json.log",'wb')
-      end
-      if json_log then
-         json_log:write("\nRequested API: "..REQUESTED_API.."\nRequested Node: "..REQUESTED_NODE.."\n")
-         json_log:write(http_reply)
-      end
-      --save_to_file("json_rep.txt", http_reply)
+      log_to_json("\nHTTP_REPLY_RECEIVED:\n"..http_reply.."\n")
+      save_to_json_rep(http_reply)
       local json_body = ""
       for s in http_reply:gmatch("[^\r\n]+") do
          if s:find('"') then
             json_body = json_body .. s
          end
       end
-      -- save_to_file("json_body.txt", json_body)
       local success, req = pcall(json.parse, json_body)
       if not success then
          info1_msg(2,"Json parse failed")
-         if json_log then
-            json_log:write("\nAbove request was not parsed.\n")
-         end
+         info2_msg(2,"JPF- "..lines[#lines])
+         log_to_json("\nAbove request was not parsed.\n")
          return
       end
       if type(req) ~= "table" then
-         save_to_file("json_rep.txt", http_reply)
          if type(req) == "string" or type(req) == "number" then
             info1_msg(2,"Request returned "..req.." RN="..REQUESTED_NODE)
          else
             info1_msg(2,"Request returned a "..type(req).." RN="..REQUESTED_NODE)
          end
+         log_to_json("\nAbove request was not parsed as a table.\n")
          return
       end
-      --save_to_file("json_OK.txt", http_reply)
       local result = req['result']
       if result == nil then
          info1_msg(1,"Nil for result")
