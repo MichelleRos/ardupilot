@@ -414,7 +414,6 @@ local function check_reply()
          return
       end
       log_to_json("\nHTTP_REPLY_RECEIVED:\n"..http_reply.."\n")
-      save_to_json_rep(http_reply)
       local json_body = ""
       for s in http_reply:gmatch("[^\r\n]+") do
          if s:find('"') then
@@ -427,6 +426,7 @@ local function check_reply()
          info1_msg(2,"Json parse failed.")
          info2_msg(2, "JPF json_body is "..json_body)
          log_to_json("\nAbove reply was not parsed successfully.\n")
+         save_to_json_rep(http_reply)
          return
       end
       if type(rep) ~= "table" then
@@ -435,19 +435,23 @@ local function check_reply()
          else
             info1_msg(2,"Reply is a "..type(rep).." RN="..REQUESTED_NODE)
          end
+         save_to_json_rep(http_reply)
          return
       end
       local result = rep['result']
       if result == nil then
          info1_msg(1,"Nil for result")
+         save_to_json_rep(http_reply)
          return
       end
       if not result then
-         -- badly formatted
+         info1_msg(1,"No result")
+         save_to_json_rep(http_reply)
          return
       end
       if type(result) ~= "table" then
          info1_msg(2,"Result from reply is not a table. RN="..REQUESTED_NODE)
+         save_to_json_rep(http_reply)
          return
       end
       if handle_response == nil then
