@@ -56,7 +56,6 @@ local SLV_HTTP_PORT = bind_add_param('HTTP_PORT', 10, 80)
 
 local SLV_LOCAL_NODEID = bind_add_param('LOCAL_NODEID', 14, 42)
 local SLV_INFO = bind_add_param('INFO', 15, 1) -- 1 is mostly just warnings, 2 is debug
-local SLV_LOG_RATE = bind_add_param('LOG_RATE', 16, 0.2) -- once every 5 sec
 local SLV_NVF_RATE = bind_add_param('NVF_RATE', 17, -1) -- max rate to send nvf for any message at. -1 means no restriction
 
 gcs:send_text(MAV_SEVERITY.INFO, "Silvus: Starting")
@@ -66,15 +65,14 @@ local http_reply = nil
 local reply_start = nil
 local REQUEST_TIMEOUT = 250
 local last_request_ms = nil
-local last_log_ms = nil
 local last_nvf_ms = nil
 local json = require("json")
 local handle_response = nil
 
 local LINK_TABLE = {}
-table.insert(LINK_TABLE, { idx="init" , snr={-1,SLV_LOCAL_NODEID:get(),SLV_LOCAL_NODEID:get(),-1}, nse={-1,-1}, lt={-1,-1}, rssi = {-1,-1,-1,-1,-1}, mcs={ -1,-1} })
 
 local REQUESTED_NODE = nil
+local REQUESTED_NODE_STR = nil
 local REQUESTED_API = nil
 local JSONLOG="json.log"
 
@@ -252,31 +250,12 @@ local function findLINKibyidx(idx)
    return nil
 end
 
---returns LINK_TABLE index number where the given node id is in the first spot
-local function findLINKibynid(nid)
-   for i, TR in pairs(LINK_TABLE) do
-      if TR.snr[2] == nid then
-         return i
-      end
-   end
-   return nil
-end
-
---returns LINK_TABLE index number where the given node id is in the second spot
-local function findLINKibynid2(nid)
-   for i, TR in pairs(LINK_TABLE) do
-      if TR.snr[3] == nid then
-         return i
-      end
-   end
-end
-
 local function getnids()
    local hash = {}
    local res = {}
    for _,v in pairs(LINK_TABLE) do
-      n1 = v.snr[2]
-      n2 = v.snr[3]
+      n1 = v.nid1
+      n2 = v.nid2
       if (not hash[n1]) then
          res[#res+1] = n1
          hash[n1] = true
@@ -286,27 +265,31 @@ local function getnids()
          hash[n2] = true
       end
    end
+   if #res == 0 then
+      info2_msg(3, "Initting.")
+      res[1] = SLV_LOCAL_NODEID:get()
+   end
    return res
 end
 
 local function handle_response_noise_level(result)
    if #result  ~= 1 then
-      info1_msg(2,"Noise level expects #result = 1. #result is "..#result.." RN="..REQUESTED_NODE)
+      info1_msg(2,"Noise level expects #result = 1. #result is "..#result.." RN="..REQUESTED_NODE_STR)
       return
    end
    local noise = tonumber(result[1])
+   logger:write('SLNL','I,nl','Nf', '#-', '--', REQUESTED_NODE_STR, noise)
    send_nvf(REQUESTED_NODE, "SR_LOCNSE", "SR_REMNSE", noise)
-   LINK_TABLE[findLINKibynid(REQUESTED_NODE)].nse = { nows(), noise }
 end
 
 local function handle_response_throughput(result)
    if #result  ~= 1 then
-      info1_msg(2,"Link throughput expects #result = 1. #result is "..#result.." RN="..REQUESTED_NODE)
+      info1_msg(2,"Link throughput expects #result = 1. #result is "..#result.." RN="..REQUESTED_NODE_STR)
       return
    end
    local link_tput = tonumber(result[1])
+   logger:write('SLLT','I,ltput','Nf', '#-', '--', REQUESTED_NODE_STR, link_tput)
    send_nvf(REQUESTED_NODE, "SR_LOCTPUT", "SR_REMTPUT", link_tput)
-   LINK_TABLE[findLINKibynid(REQUESTED_NODE)].lt = { nows(), link_tput }
 end
 
 local function handle_response_rssi(result)
@@ -315,23 +298,23 @@ local function handle_response_rssi(result)
       return
    end
    local rssi = { tonumber(result[1]), tonumber(result[2]), tonumber(result[3]), tonumber(result[4]) } 
+   logger:write('SLNR','I,r1,r2,r3,r4','Nffff', '#----', '-----', REQUESTED_NODE_STR, rssi[1], rssi[2], rssi[3], rssi[4])
    send_nvf(REQUESTED_NODE, "SR_LRSSI", "SR_RRSSI", rssi)
-   LINK_TABLE[findLINKibynid(REQUESTED_NODE)].rssi = { nows(), rssi[1], rssi[2], rssi[3], rssi[4] }
 end
 
 local function handle_response_mcs(result)
    if #result  ~= 1 then
-      info1_msg(2,"NBR MCS expects #result = 1. #result is "..#result.." RN="..REQUESTED_NODE)
+      info1_msg(2,"NBR MCS expects #result = 1. #result is "..#result.." RN="..REQUESTED_NODE_STR)
       return
    end
    local mcs = tonumber(result[1])
+   logger:write('SLNM','I,mcs','Nf', '#-', '--', REQUESTED_NODE_STR, mcs)
    send_nvf(REQUESTED_NODE, "SR_LOCMCS", "SR_REMMCS", mcs)
-   LINK_TABLE[findLINKibynid(REQUESTED_NODE)].mcs = { nows(), mcs }
 end
 
 local function handle_response_network_status(result)
    if (#result % 3) ~= 0 then
-      info1_msg(2,"Network status expects #result divisible by 3. #result is "..#result.." RN="..REQUESTED_NODE)
+      info1_msg(2,"Network status expects #result divisible by 3. #result is "..#result.." RN="..REQUESTED_NODE_STR)
       return
    end
    local max_snr1 = -1
@@ -348,18 +331,12 @@ local function handle_response_network_status(result)
       local nid2 = tonumber(result[nid2i])
       local snr = tonumber(result[snri])
       local idx1 = nid1.."_"..nid2
+      logger:write('SLNS','I,s1,s2,s','Nfff', '#---', '----', idx1, nid1, nid2, snr)
+
+      -- fill the table to keep track of which nodes to request from
       if findLINKibyidx(idx1) == nil then
          -- add new item if needed
-         table.insert(LINK_TABLE, { idx=idx1, snr={nows(),nid1,nid2,snr}, nse={-1,-1}, lt={-1,-1}, rssi={-1,-1,-1,-1,-1}, mcs={ -1,-1} })
-      else
-         -- if item already exists, update data
-         LINK_TABLE[findLINKibyidx(idx1)].snr = { nows(), nid1, nid2, snr }
-      end
-      -- check if nid has been added, but only in the second spot, add to first spot if so
-      if findLINKibynid(nid2) == nil and findLINKibynid2(nid2) ~= nil then
-         local idx2 = nid2.."_"..nid1
-         table.insert(LINK_TABLE, { idx=idx2, snr={-1,nid2,nid1,-1}, nse={-1,-1}, lt={-1,-1}, rssi={-1,-1,-1,-1,-1}, mcs={ -1,-1} })
-         info2_msg(2,"Added idx2 item: "..idx2)
+         table.insert(LINK_TABLE, { idx=idx1, nid1=nid1, nid2=nid2 })
       end
       if snr > max_snr2 and (nid1 == SLV_LOCAL_NODEID:get() or nid2 == SLV_LOCAL_NODEID:get()) then
          max_snr2 = snr
@@ -386,7 +363,6 @@ local function handle_response_network_status(result)
          send_nvf_single("SR_REMSNR1", nid1)
          send_nvf_single("SR_REMSNR2", nid2)
       end
-      info2_msg(2, "Finished handle_response_network_status")
    end
    -- send max SNRs
    send_nvf_single("SR_M1_SNR", max_snr1)
@@ -395,6 +371,8 @@ local function handle_response_network_status(result)
    send_nvf_single("SR_M2_SNR", max_snr2)
    send_nvf_single("SR_M2_NID1", max_snr2_nid1)
    send_nvf_single("SR_M2_NID2", max_snr2_nid2)
+   info2_msg(2, "Finished handle_response_network_status.")
+   info2_msg(2, "LINK_TABLE is "..#LINK_TABLE.." long")
 end
 
 --[[
@@ -431,9 +409,9 @@ local function check_reply()
       end
       if type(rep) ~= "table" then
          if type(rep) == "string" or type(rep) == "number" then
-            info1_msg(2,"Reply is "..rep.." RN="..REQUESTED_NODE)
+            info1_msg(2,"Reply is "..rep.." RN="..REQUESTED_NODE_STR)
          else
-            info1_msg(2,"Reply is a "..type(rep).." RN="..REQUESTED_NODE)
+            info1_msg(2,"Reply is a "..type(rep).." RN="..REQUESTED_NODE_STR)
          end
          save_to_json_rep(http_reply)
          return
@@ -450,7 +428,7 @@ local function check_reply()
          return
       end
       if type(result) ~= "table" then
-         info1_msg(2,"Result from reply is not a table. RN="..REQUESTED_NODE)
+         info1_msg(2,"Result from reply is not a table. RN="..REQUESTED_NODE_STR)
          save_to_json_rep(http_reply)
          return
       end
@@ -466,15 +444,6 @@ local function check_reply()
    if r then
       http_reply = http_reply .. r
    end
-end
-
-local function log_data()
-   for i, TR in pairs(LINK_TABLE) do
-      -- gcs:send_text(MAV_SEVERITY.INFO, "i is "..i.." idx is "..TR.idx..".")
-      logger:write('SLV1','I,st,s1,s2,s,nt,n,lt,l','Nffffffff', '#--------', '---------', TR.idx, TR.snr[1], TR.snr[2], TR.snr[3], TR.snr[4], TR.nse[1], TR.nse[2], TR.lt[1], TR.lt[2])
-      logger:write('SLV2','I,rt,r1,r2,r3,r4,mt,m','Nfffffff', '#-------', '--------', TR.idx, TR.rssi[1], TR.rssi[2], TR.rssi[3], TR.rssi[4], TR.rssi[5],TR.mcs[1],TR.mcs[2])
-   end 
-   info2_msg(3,"Finished log_data, LINK table is "..#LINK_TABLE.." long")
 end
 
 local heartbeat_counter = 0
@@ -510,12 +479,6 @@ local function update()
       n = 0
    end
 
-   local log_period_ms = 1000.0/SLV_LOG_RATE:get()
-   if not last_log_ms or now - last_log_ms >= log_period_ms then
-      last_log_ms = now
-      log_data()
-   end
-
    local period_ms = 1000.0 / SLV_RATE:get()
    if not last_request_ms or now - last_request_ms >= period_ms then
       last_request_ms = now
@@ -523,17 +486,6 @@ local function update()
       local quo = (n // #http_request_table)+1  -- integer division
       local rem = (n % #http_request_table)+1
       -- call each http request for each node
-      local ftn = findLINKibynid(NIDS[quo])
-      -- check that the nid exists in LINK table before calling it.
-      if ftn == nil then
-         info1_msg(2,"NIDS["..quo.."] is "..NIDS[quo].." findLINKibynid=nil")
-         for i=1, #NIDS do
-            info2_msg(2,"Quo is "..quo.." NIDS["..i.."] is "..NIDS[i])
-         end
-         last_request_ms = now - period_ms
-         n = n+1
-         return
-      end
       local do_local = (http_request_table[rem][4] and (NIDS[quo] == SLV_LOCAL_NODEID:get()))
       local do_remote = (http_request_table[rem][5] and (NIDS[quo] ~= SLV_LOCAL_NODEID:get()))
       if do_local or do_remote then
@@ -541,12 +493,13 @@ local function update()
          local params_layout = http_request_table[rem][2]
          local response_handler = http_request_table[rem][3]
          REQUESTED_NODE=NIDS[quo]
+         REQUESTED_NODE_STR=string.format("%.0f", REQUESTED_NODE)
          REQUESTED_API=http_request_table[rem][1]
-         info2_msg(3, "RN is "..REQUESTED_NODE.." for "..api.." n is "..n.." tot is "..tot.." tab is "..#NIDS.." quo is "..quo)
+         info2_msg(3, "RN is "..REQUESTED_NODE_STR.." for "..api.." n is "..n.." tot is "..tot.." tab is "..#NIDS.." quo is "..quo)
          http_request(api, params_layout, response_handler)
       else
          local api = http_request_table[rem][1]
-         info2_msg(3, "SKIPPED - RN is "..REQUESTED_NODE.." for "..api.." n is "..n.." tot is "..tot.." tab is "..#NIDS.." quo is "..quo)
+         info2_msg(3, "SKIPPED - RN is "..REQUESTED_NODE_STR.." for "..api.." n is "..n.." tot is "..tot.." tab is "..#NIDS.." quo is "..quo)
          last_request_ms = now - period_ms --make sure it gets called again soon
       end
       n = n+1
