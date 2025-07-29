@@ -74,6 +74,7 @@ local NODEID_TABLE = { math.tointeger(SLV_LOCAL_NODEID:get()) }
 local REQUESTED_NODE = nil
 local REQUESTED_API = nil
 local JSONLOG="json.log"
+local NODE_NAMES = require("nodes")
 
 local function init_jsonlog()
    local fh = io.open(JSONLOG,'w')
@@ -249,13 +250,21 @@ local function checknidintable(nid)
    return false
 end
 
+local function nidname(nid)
+   local nam = NODE_NAMES[nid]
+   if nam == nil then
+      nam = nid
+   end
+   return nam
+end
+
 local function handle_response_noise_level(result)
    if #result  ~= 1 then
-      info1_msg(2,"Noise level expects #result = 1. #result is "..#result.." RN="..REQUESTED_NODE)
+      info1_msg(2,"Noise level expects #result = 1. #result is "..#result.." RN="..NODE_NAMES[REQUESTED_NODE])
       return
    end
    local noise = tonumber(result[1])
-   logger:write('SLNL','I,nl','Nf', '#-', '--', REQUESTED_NODE, noise)
+   logger:write('SLNL','I,nid,nl','Nif', '#--', '---', nidname(REQUESTED_NODE), REQUESTED_NODE, noise)
    send_nvf(REQUESTED_NODE, "SR_LOCNSE", "SR_REMNSE", noise)
 end
 
@@ -265,7 +274,7 @@ local function handle_response_throughput(result)
       return
    end
    local link_tput = tonumber(result[1])
-   logger:write('SLLT','I,ltput','Nf', '#-', '--', REQUESTED_NODE, link_tput)
+   logger:write('SLLT','I,nid,ltput','Nif', '#--', '---', nidname(REQUESTED_NODE), REQUESTED_NODE, link_tput)
    send_nvf(REQUESTED_NODE, "SR_LOCTPUT", "SR_REMTPUT", link_tput)
 end
 
@@ -275,7 +284,7 @@ local function handle_response_rssi(result)
       return
    end
    local rssi = { tonumber(result[1]), tonumber(result[2]), tonumber(result[3]), tonumber(result[4]) } 
-   logger:write('SLNR','I,r1,r2,r3,r4','Nffff', '#----', '-----', REQUESTED_NODE, rssi[1], rssi[2], rssi[3], rssi[4])
+   logger:write('SLNR','I,nid,r1,r2,r3,r4','Niffff', '#-----', '------', nidname(REQUESTED_NODE), REQUESTED_NODE, rssi[1], rssi[2], rssi[3], rssi[4])
    send_nvf(REQUESTED_NODE, "SR_LRSSI", "SR_RRSSI", rssi)
 end
 
@@ -285,7 +294,7 @@ local function handle_response_mcs(result)
       return
    end
    local mcs = tonumber(result[1])
-   logger:write('SLNM','I,mcs','Nf', '#-', '--', REQUESTED_NODE, mcs)
+   logger:write('SLNM','I,nid,mcs','Nif', '#--', '---', nidname(REQUESTED_NODE), REQUESTED_NODE, mcs)
    send_nvf(REQUESTED_NODE, "SR_LOCMCS", "SR_REMMCS", mcs)
 end
 
@@ -307,19 +316,19 @@ local function handle_response_network_status(result)
       local nid1 = math.tointeger(result[nid1i])
       local nid2 = math.tointeger(result[nid2i])
       local snr = tonumber(result[snri])
-      local idx1 = nid1.."_"..nid2
-      logger:write('SLNS','I,s1,s2,s','Nfff', '#---', '----', idx1, nid1, nid2, snr)
+      local idx1 = nidname(nid1).."_"..nidname(nid2)
+      logger:write('SLNS','I,s1,s2,s','Niif', '#---', '----', idx1, nid1, nid2, snr)
 
       -- fill the table to keep track of which nodes to request from
       if not checknidintable(nid1) then
          -- add new item if needed
          table.insert(NODEID_TABLE, nid1)
-         info2_msg(2, "Seen new nid1: "..nid1)
+         info2_msg(2, "Seen new nid1: "..nid1.."("..nidname(nid1)..")")
       end
       if not checknidintable(nid2) then
          -- add new item if needed
          table.insert(NODEID_TABLE, nid2)
-         info2_msg(2, "Seen new nid2: "..nid2)
+         info2_msg(2, "Seen new nid2: "..nid2.."("..nidname(nid2)..")")
       end
       if snr > max_snr2 and (nid1 == SLV_LOCAL_NODEID:get() or nid2 == SLV_LOCAL_NODEID:get()) then
          max_snr2 = snr
@@ -356,7 +365,7 @@ local function handle_response_network_status(result)
    send_nvf_single("SR_M2_NID2", max_snr2_nid2)
    local tab = ""
    for i = 1, #NODEID_TABLE do
-      tab = tab.." "..NODEID_TABLE[i]
+      tab = tab.." "..NODEID_TABLE[i].."("..nidname(NODEID_TABLE[i])..")"
    end
    info2_msg(2, "Seen "..#NODEID_TABLE.." nodes:"..tab)
    info2_msg(2, "Finished handle_response_network_status")
@@ -477,11 +486,11 @@ local function update()
          local response_handler = http_request_table[rem][3]
          REQUESTED_NODE=NODEID_TABLE[quo]
          REQUESTED_API=http_request_table[rem][1]
-         info2_msg(3, "RN="..REQUESTED_NODE.." API="..api.." n="..n.." tot="..tot.." tab="..#NODEID_TABLE.." quo="..quo)
+         info2_msg(3, "RN="..REQUESTED_NODE.."("..nidname(REQUESTED_NODE)..") API="..api.." n="..n.." tot="..tot.." tab="..#NODEID_TABLE.." quo="..quo)
          http_request(api, params_layout, response_handler)
       else
          local api = http_request_table[rem][1]
-         info2_msg(3, "SKIPPED - RN="..REQUESTED_NODE.." API="..api.." n="..n.." tot="..tot.." tab="..#NODEID_TABLE.." quo="..quo)
+         info2_msg(3, "SKIPPED - RN="..REQUESTED_NODE.."("..nidname(REQUESTED_NODE)..") API="..api.." n="..n.." tot="..tot.." tab="..#NODEID_TABLE.." quo="..quo)
          last_request_ms = now - period_ms --make sure it gets called again soon
       end
       n = n+1
