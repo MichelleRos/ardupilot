@@ -68,28 +68,14 @@ local reply_start = nil
 local REQUEST_TIMEOUT = 250
 local last_request_ms = nil
 local last_nvf_ms = nil
+local last_flush_ms = nil
 local json = require("json")
 local handle_response = nil
 local NODEID_TABLE = { math.tointeger(SLV_LOCAL_NODEID:get()) }
 local REQUESTED_NODE = nil
 local REQUESTED_API = nil
-local JSONLOG="json.log"
+local json_log = nil
 local NODE_NAMES = require("nodes")
-
-local function init_jsonlog()
-   local fh = io.open(JSONLOG,'w')
-   if fh == nil then
-      info1_msg(1, "init_jsonlog's file open failed")
-      return
-   end
-   fh:write("")
-   fh:close()
-end
-init_jsonlog()
-
-local function nows()
-   return millis():tofloat() * 0.001
-end
 
 --[[
    get IP address of local radio
@@ -125,23 +111,24 @@ local function info1_msg(sev, msg)
 end
 
 local function save_to_json_rep(data)
-   local fh = io.open("json_rep.txt",'wb')
-   if fh == nil then
+   local json_rep = io.open("json_rep.txt",'wb')
+   if not json_rep then
       info1_msg(1, "Save_to_file's file open failed")
       return
    end
-   fh:write(data)
-   fh:close()
+   json_rep:write(data)
+   json_rep:close()
 end
 
 local function log_to_json(data)
-   local fh = io.open(JSONLOG,'a+')
-   if fh == nil then
-      info1_msg(1, "jsonlog's file open failed")
+   if not json_log then
+      json_log = io.open("json.log",'wb')
+   end
+   if not json_log then
+      info1_msg(1, "json.log's file open failed")
       return
    end
-   fh:write(data)
-   fh:close()
+   json_log:write(data)
 end
 
 --[[
@@ -268,7 +255,7 @@ local function handle_response_noise_level(result)
       return
    end
    local noise = tonumber(result[1])
-   logger:write('SLNL','I,nid,nl','Nif', '#--', '---', nidname(REQUESTED_NODE), REQUESTED_NODE, noise)
+   logger:write('SLNL','I,nid,noise','Nif', '#--', '---', nidname(REQUESTED_NODE), REQUESTED_NODE, noise)
    send_nvf(REQUESTED_NODE, "SR_LOCNSE", "SR_REMNSE", noise)
 end
 
@@ -321,7 +308,7 @@ local function handle_response_network_status(result)
       local nid2 = math.tointeger(result[nid2i])
       local snr = tonumber(result[snri])
       local idx1 = nidname(nid1).."_"..nidname(nid2)
-      logger:write('SLNS','I,s1,s2,s','Niif', '#---', '----', idx1, nid1, nid2, snr)
+      logger:write('SLNS','I,nid1,nid2,snr','Niif', '#---', '----', idx1, nid1, nid2, snr)
 
       -- fill the table to keep track of which nodes to request from
       if not checknidintable(nid1) then
@@ -472,6 +459,13 @@ local function update()
    tot = #NODEID_TABLE*#http_request_table-1
    if n > tot then
       n = 0
+   end
+
+   local flush_period_ms = 5000.0
+   if json_log and (not last_flush_ms or now - last_flush_ms >= flush_period_ms) then
+      last_flush_ms = now
+      info2_msg(3, "Flushing json.log ")
+      json_log:flush()
    end
 
    local period_ms = 1000.0 / SLV_RATE:get()
