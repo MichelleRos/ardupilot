@@ -254,6 +254,10 @@ local function nidname(nid)
    local nam = NODE_NAMES[nid]
    if nam == nil then
       nam = nid
+      if not checknidintable(nid) then
+         -- Only send message the first time the node is seen.
+         info1_msg(2,"Node ID "..nid.." was not expected.")
+      end
    end
    return nam
 end
@@ -368,7 +372,6 @@ local function handle_response_network_status(result)
       tab = tab.." "..NODEID_TABLE[i].."("..nidname(NODEID_TABLE[i])..")"
    end
    info2_msg(2, "Seen "..#NODEID_TABLE.." nodes:"..tab)
-   info2_msg(2, "Finished handle_response_network_status")
 end
 
 --[[
