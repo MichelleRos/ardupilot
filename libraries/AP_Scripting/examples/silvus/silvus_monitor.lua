@@ -59,6 +59,7 @@ local SLV_INFO = bind_add_param('INFO', 15, 1) -- 1 is mostly just warnings, 2 i
 -- 16 was log rate
 local SLV_NVF_RATE = bind_add_param('NVF_RATE', 17, -1) -- max rate to send nvf for any message at. -1 means no restriction
 local SLV_REQ_TIMEOUT = bind_add_param('REQ_TIMEOUT', 18, 250) -- request timeout in milliseconds
+local SLV_DEST_NODEID = bind_add_param('DEST_NODEID', 19, 43) -- destination node id for weakest_link
 
 gcs:send_text(MAV_SEVERITY.INFO, "Silvus: Starting")
 
@@ -71,7 +72,7 @@ local last_nvf_ms = nil
 local last_flush_ms = nil
 local json = require("json")
 local handle_response = nil
-local NODEID_TABLE = { math.tointeger(SLV_LOCAL_NODEID:get()) }
+local NODEID_TABLE = { math.tointeger(SLV_LOCAL_NODEID:get()), math.tointeger(SLV_DEST_NODEID:get()) }
 local REQUESTED_NODE = nil
 local REQUESTED_API = nil
 local json_log = nil
@@ -251,7 +252,7 @@ end
 
 local function handle_response_noise_level(result)
    if #result  ~= 1 then
-      info1_msg(2,"Noise level expects #result = 1. #result is "..#result.." RN="..NODE_NAMES[REQUESTED_NODE])
+      info1_msg(2,"Noise level expects #result = 1. #result is "..#result)
       return
    end
    local noise = tonumber(result[1])
@@ -289,9 +290,35 @@ local function handle_response_mcs(result)
    send_nvf(REQUESTED_NODE, "SR_LOCMCS", "SR_REMMCS", mcs)
 end
 
+local function handle_response_weakest_link(result)
+   if #result  ~= 4 then
+      info1_msg(2,"Weakest Link expects #result = 4. #result is "..#result)
+      return
+   end
+   local wl1 = math.tointeger(result[1])
+   local wl2 = math.tointeger(result[2])
+   local snr = tonumber(result[3])
+   local reuse = tonumber(result[4])
+   logger:write('SLWL','I,wl1,wl2n,wl2,snr,reuse','NiNiff', '#-----', '------', nidname(wl1), wl1, nidname(wl2), wl2, snr, reuse)
+   send_nvf_single("SR_WKLKSNR", snr)
+   send_nvf_single("SR_WKLKID1", wl1)
+   send_nvf_single("SR_WKLKID2", wl2)
+   send_nvf_single("SR_WKLKRU", reuse)
+   if not checknidintable(wl1) then
+      -- add new item if needed
+      table.insert(NODEID_TABLE, wl1)
+      info2_msg(2, "Seen new wl1: "..wl1.."("..nidname(wl1)..")")
+   end
+   if not checknidintable(wl2) then
+      -- add new item if needed
+      table.insert(NODEID_TABLE, wl2)
+      info2_msg(2, "Seen new wl2: "..wl2.."("..nidname(wl2)..")")
+   end
+end
+
 local function handle_response_network_status(result)
    if (#result % 3) ~= 0 then
-      info1_msg(2,"Network status expects #result divisible by 3. #result is "..#result.." RN="..REQUESTED_NODE)
+      info1_msg(2,"Network status expects #result divisible by 3. #result is "..#result)
       return
    end
    local max_snr1 = -1
@@ -435,11 +462,12 @@ end
 local http_request_table = {}
 http_request_table = { 
    -- api          params   response handler          local remote
+   { "network_status", nil, handle_response_network_status, true, false },
    { "noise_level", nil, handle_response_noise_level, true,  false },
    { "link_throughput", { num=2, p1="RN", p2=1 }, handle_response_throughput, true, true },
    { "nbr_rssi", { num=1, p1="RN"}, handle_response_rssi, false, true },
    { "nbr_mcs", { num=1, p1="RN"}, handle_response_mcs, true, true },
-   { "network_status", nil, handle_response_network_status, true, false },
+   { "weakest_link", { num=1, p1=math.tointeger(SLV_DEST_NODEID:get())}, handle_response_weakest_link, true, false },
 }
 local n = 0
 

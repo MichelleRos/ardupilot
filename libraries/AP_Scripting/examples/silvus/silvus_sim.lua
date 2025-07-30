@@ -194,6 +194,15 @@ local function send_mcs()
    send_json(json)
 end
 
+local function send_weakest_link()
+   n1 = SSIM_GND_NODEID[math.random(1, #SSIM_GND_NODEID)]:get()
+   n2 = SSIM_GND_NODEID[1]:get()
+   snr = math.random(44,46)
+   reuse = math.random(0,3)
+   local json = string.format([[{"result" : [%s,%s,%s,%s],"id" : "sbkb5u0c", "jsonrpc" : "2.0"}]], n1,n2,snr,reuse)
+   send_json(json)
+end
+
 --[[
    get ground radio location
 --]]
@@ -307,6 +316,10 @@ local function parse_request()
    end
    if method == "nbr_mcs" then
       send_mcs()
+      return
+   end
+   if method == "weakest_link" then
+      send_weakest_link()
       return
    end
    gcs:send_text(0, "Unknown method (" .. method .. ")")
