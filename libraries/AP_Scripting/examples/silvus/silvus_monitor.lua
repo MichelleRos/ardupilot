@@ -228,7 +228,7 @@ local function send_nvf_single(nvfid, res)
    send_nvf(SLV_LOCAL_NODEID:get(), nvfid, "SR_x", res)
 end
 
--- returns LINK_TABLE index number for the given nid
+-- just checks whether nid is in the table, returns true if it is, false if not
 local function checknidintable(nid)
    for i = 1, #NODEID_TABLE do
       if NODEID_TABLE[i] == nid then
@@ -242,13 +242,26 @@ local function nidname(nid)
    local nam = NODE_NAMES[nid]
    if nam == nil then
       nam = nid
+      -- don't add to nidtable here
       if not checknidintable(nid) then
-         -- Only send message the first time the node is seen.
+         -- only send message
          info1_msg(2,"Node ID "..nid.." was not expected.")
       end
    end
    return nam
 end
+
+-- returns true if nid already in NODEID_TABLE, else it also adds nid to the table and returns false.
+local function checkaddnidintable(nid)
+   if checknidintable(nid) then
+      return true
+   end
+   info2_msg(2, "Seen new node: "..nid.."("..nidname(nid)..")")
+   -- add new item
+   table.insert(NODEID_TABLE, nid)
+   return false
+end
+
 
 local function handle_response_noise_level(result)
    if #result  ~= 1 then
@@ -292,7 +305,7 @@ end
 
 local function handle_response_weakest_link(result)
    if #result  ~= 4 then
-      info1_msg(2,"Weakest Link expects #result = 4. #result is "..#result)
+      info1_msg(2,"Weakest Link expects #result = 4. #result is "..#result.."NODE is "..math.tointeger(SLV_DEST_NODEID:get()))
       return
    end
    local wl1 = math.tointeger(result[1])
@@ -304,16 +317,8 @@ local function handle_response_weakest_link(result)
    send_nvf_single("SR_WKLKID1", wl1)
    send_nvf_single("SR_WKLKID2", wl2)
    send_nvf_single("SR_WKLKRU", reuse)
-   if not checknidintable(wl1) then
-      -- add new item if needed
-      table.insert(NODEID_TABLE, wl1)
-      info2_msg(2, "Seen new wl1: "..wl1.."("..nidname(wl1)..")")
-   end
-   if not checknidintable(wl2) then
-      -- add new item if needed
-      table.insert(NODEID_TABLE, wl2)
-      info2_msg(2, "Seen new wl2: "..wl2.."("..nidname(wl2)..")")
-   end
+   checkaddnidintable(wl1)
+   checkaddnidintable(wl2)
 end
 
 local function handle_response_network_status(result)
@@ -338,16 +343,10 @@ local function handle_response_network_status(result)
       logger:write('SLNS','I,nid1,nid2,snr','Niif', '#---', '----', idx1, nid1, nid2, snr)
 
       -- fill the table to keep track of which nodes to request from
-      if not checknidintable(nid1) then
-         -- add new item if needed
-         table.insert(NODEID_TABLE, nid1)
-         info2_msg(2, "Seen new nid1: "..nid1.."("..nidname(nid1)..")")
-      end
-      if not checknidintable(nid2) then
-         -- add new item if needed
-         table.insert(NODEID_TABLE, nid2)
-         info2_msg(2, "Seen new nid2: "..nid2.."("..nidname(nid2)..")")
-      end
+      checkaddnidintable(nid1)
+      checkaddnidintable(nid2)
+
+      -- update max calculations
       if snr > max_snr2 and (nid1 == SLV_LOCAL_NODEID:get() or nid2 == SLV_LOCAL_NODEID:get()) then
          max_snr2 = snr
          max_snr2_nid1 = nid1
@@ -364,14 +363,6 @@ local function handle_response_network_status(result)
          max_snr1 = max_snr_tmp
          max_snr1_nid1 = max_snr_nid1_tmp
          max_snr1_nid2 = max_snr_nid2_tmp
-      end
-      -- send NVFs per local/remote radio
-      send_nvf(nid1, "SR_LOCSNR", "SR_REMSNR", snr)
-      if nid1 == SLV_LOCAL_NODEID:get() then
-         send_nvf_single("SR_LOCSNRN", nid2)
-      else
-         send_nvf_single("SR_REMSNR1", nid1)
-         send_nvf_single("SR_REMSNR2", nid2)
       end
    end
    -- send max SNRs
@@ -461,11 +452,11 @@ end
 
 local http_request_table = {}
 http_request_table = { 
-   -- api          params   response handler          local remote
+   -- api          params   response handler          local/single remote
    { "network_status", nil, handle_response_network_status, true, false },
    { "noise_level", nil, handle_response_noise_level, true,  false },
    { "link_throughput", { num=2, p1="RN", p2=1 }, handle_response_throughput, true, true },
-   { "nbr_rssi", { num=1, p1="RN"}, handle_response_rssi, false, true },
+   { "nbr_rssi", { num=1, p1="RN"}, handle_response_rssi, true, true },
    { "nbr_mcs", { num=1, p1="RN"}, handle_response_mcs, true, true },
    { "weakest_link", { num=1, p1=math.tointeger(SLV_DEST_NODEID:get())}, handle_response_weakest_link, true, false },
 }
@@ -503,9 +494,9 @@ local function update()
       local quo = (n // #http_request_table)+1  -- integer division
       local rem = (n % #http_request_table)+1
       -- call each http request for each node
-      local do_local = (http_request_table[rem][4] and (NODEID_TABLE[quo] == SLV_LOCAL_NODEID:get()))
+      local do_local_or_single = (http_request_table[rem][4] and (NODEID_TABLE[quo] == SLV_LOCAL_NODEID:get()))
       local do_remote = (http_request_table[rem][5] and (NODEID_TABLE[quo] ~= SLV_LOCAL_NODEID:get()))
-      if do_local or do_remote then
+      if do_local_or_single or do_remote then
          local api = http_request_table[rem][1]
          local params_layout = http_request_table[rem][2]
          local response_handler = http_request_table[rem][3]
