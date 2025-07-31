@@ -55,7 +55,7 @@ local SLV_RATE = bind_add_param('REQ_RATE', 6, 1)
 local SLV_HTTP_PORT = bind_add_param('HTTP_PORT', 10, 80)
 
 local SLV_LOCAL_NODEID = bind_add_param('LOCAL_NODEID', 14, 42)
-local SLV_INFO = bind_add_param('INFO', 15, 1) -- 1 is mostly just warnings, 2 is debug
+local SLV_INFO = bind_add_param('INFO', 15, 2) -- 1 is mostly just warnings, 2 adds max's & weaklink as gcs send text, 3 is debug
 -- 16 was log rate
 local SLV_NVF_RATE = bind_add_param('NVF_RATE', 17, -1) -- max rate to send nvf for any message at. -1 means no restriction
 local SLV_REQ_TIMEOUT = bind_add_param('REQ_TIMEOUT', 18, 250) -- request timeout in milliseconds
@@ -85,9 +85,9 @@ local function local_ip()
    return string.format("%u.%u.%u.%u", SLV_LOCAL_IP[1]:get(), SLV_LOCAL_IP[2]:get(), SLV_LOCAL_IP[3]:get(), SLV_LOCAL_IP[4]:get())
 end
 
---When info is 2. 1 = emergency, 2 = warning, 3 = info
-local function info2_msg(sev, msg)
-   if SLV_INFO:get() == 2 then
+--When info is 3. 1 = emergency, 2 = warning, 3 = info
+local function info3_msg(sev, msg)
+   if SLV_INFO:get() > 2 then
       if sev == 1 then
          gcs:send_text(MAV_SEVERITY.EMERGENCY, "SilvusE: "..msg)
       elseif sev == 2 then
@@ -98,9 +98,16 @@ local function info2_msg(sev, msg)
    end
 end
 
---When info is 1 or 2. 1 = emergency, 2 = warning, 3 = info
+-- when info is 2 or 3
+local function info2_msg(msg)
+   if SLV_INFO:get() > 1 then
+      gcs:send_text(MAV_SEVERITY.INFO, "SilvusI: "..msg)
+   end
+end
+
+--When info is 1, 2 or 3. 1 = emergency, 2 = warning, 3 = info
 local function info1_msg(sev, msg)
-   if SLV_INFO:get() == 1 or SLV_INFO:get() == 2 then
+   if SLV_INFO:get() > 0 then
       if sev == 1 then
          gcs:send_text(MAV_SEVERITY.EMERGENCY, "SilvusE: "..msg)
       elseif sev == 2 then
@@ -195,9 +202,9 @@ local function send_nvf(nodeid, nvfidloc, nvfidrem, res)
       local nvf_period_ms = 1000.0/SLV_NVF_RATE:get()
       if (last_nvf_ms ~= nil) and ((now - last_nvf_ms) < nvf_period_ms) then
          if nodeid == SLV_LOCAL_NODEID:get() then
-            info2_msg(2, "NVF: Too soon, not sending "..nvfidloc)
+            info3_msg(2, "NVF: Too soon, not sending "..nvfidloc)
          else
-            info2_msg(2, "NVF: Too soon, not sending "..nvfidrem)
+            info3_msg(2, "NVF: Too soon, not sending "..nvfidrem)
          end
          return
       end
@@ -257,7 +264,7 @@ local function checkaddnidintable(nid)
    if checknidintable(nid) then
       return true
    end
-   info2_msg(2, "Seen new node: "..nid.."("..nidname(nid)..")")
+   info3_msg(2, "Seen new node: "..nid.."("..nidname(nid)..")")
    -- add new item
    table.insert(NODEID_TABLE, nid)
    return false
@@ -306,7 +313,7 @@ end
 
 local function handle_response_weakest_link(result)
    if #result  ~= 4 then
-      info1_msg(2,"Weakest Link expects #result = 4. #result is "..#result.."NODE is "..math.floor(SLV_DEST_NODEID:get()))
+      info1_msg(2,"Weakest Link expects #result = 4. #result is "..#result.." NODE is "..math.floor(SLV_DEST_NODEID:get()))
       return
    end
    local wl1 = math.floor(result[1])
@@ -318,6 +325,7 @@ local function handle_response_weakest_link(result)
    send_nvf_single("SR_WKLKID1", wl1)
    send_nvf_single("SR_WKLKID2", wl2)
    send_nvf_single("SR_WKLKRU", reuse)
+   info2_msg("Weaklink SNR="..snr.." Node1="..nidname(wl1).." Node2="..nidname(wl2).." RU="..reuse)
    checkaddnidintable(wl1)
    checkaddnidintable(wl2)
 end
@@ -373,11 +381,13 @@ local function handle_response_network_status(result)
    send_nvf_single("SR_M2_SNR", max_snr2)
    send_nvf_single("SR_M2_NID1", max_snr2_nid1)
    send_nvf_single("SR_M2_NID2", max_snr2_nid2)
+   info2_msg("Max1 SNR="..max_snr1.." Node1="..nidname(max_snr1_nid1).." Node2="..nidname(max_snr1_nid2))
+   info2_msg("Max2 SNR="..max_snr2.." Node1="..nidname(max_snr2_nid1).." Node2="..nidname(max_snr2_nid2))
    local tab = ""
    for i = 1, #NODEID_TABLE do
       tab = tab.." "..NODEID_TABLE[i].."("..nidname(NODEID_TABLE[i])..")"
    end
-   info2_msg(2, "Seen "..#NODEID_TABLE.." nodes:"..tab)
+   info3_msg(2, "Seen "..#NODEID_TABLE.." nodes:"..tab)
 end
 
 --[[
@@ -407,7 +417,7 @@ local function check_reply()
       local success, rep = pcall(json.parse, json_body)
       if not success then
          info1_msg(2,"Json parse failed.")
-         info2_msg(2, "JPF json_body is "..json_body)
+         info3_msg(2, "JPF json_body is "..json_body)
          log_to_json("\nAbove reply was not parsed successfully.\n")
          save_to_json_rep(http_reply)
          return
@@ -457,7 +467,7 @@ http_request_table = {
    { "network_status", nil, handle_response_network_status, true, false },
    { "noise_level", nil, handle_response_noise_level, true,  false },
    { "link_throughput", { num=2, p1="RN", p2=1 }, handle_response_throughput, true, true },
-   { "nbr_rssi", { num=1, p1="RN"}, handle_response_rssi, true, true },
+   { "nbr_rssi", { num=1, p1="RN"}, handle_response_rssi, false, true },
    { "nbr_mcs", { num=1, p1="RN"}, handle_response_mcs, true, true },
    { "weakest_link", { num=1, p1=math.floor(SLV_DEST_NODEID:get())}, handle_response_weakest_link, true, false },
 }
@@ -484,7 +494,7 @@ local function update()
    local flush_period_ms = 5000.0
    if json_log and (not last_flush_ms or now - last_flush_ms >= flush_period_ms) then
       last_flush_ms = now
-      info2_msg(3, "Flushing json.log ")
+      info3_msg(3, "Flushing json.log ")
       json_log:flush()
    end
 
@@ -503,11 +513,11 @@ local function update()
          local response_handler = http_request_table[rem][3]
          REQUESTED_NODE=NODEID_TABLE[quo]
          REQUESTED_API=http_request_table[rem][1]
-         info2_msg(3, "RN="..REQUESTED_NODE.."("..nidname(REQUESTED_NODE)..") API="..api.." n="..n.." tot="..tot.." tab="..#NODEID_TABLE.." quo="..quo)
+         info3_msg(3, "RN="..REQUESTED_NODE.."("..nidname(REQUESTED_NODE)..") API="..api.." n="..n.." tot="..tot.." tab="..#NODEID_TABLE.." quo="..quo)
          http_request(api, params_layout, response_handler)
       else
          local api = http_request_table[rem][1]
-         info2_msg(3, "SKIPPED - RN="..REQUESTED_NODE.."("..nidname(REQUESTED_NODE)..") API="..api.." n="..n.." tot="..tot.." tab="..#NODEID_TABLE.." quo="..quo)
+         info3_msg(3, "SKIPPED - RN="..REQUESTED_NODE.."("..nidname(REQUESTED_NODE)..") API="..api.." n="..n.." tot="..tot.." tab="..#NODEID_TABLE.." quo="..quo)
          last_request_ms = now - period_ms --make sure it gets called again soon
       end
       n = n+1
