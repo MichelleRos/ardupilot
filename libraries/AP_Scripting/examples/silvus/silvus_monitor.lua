@@ -118,6 +118,80 @@ local function info1_msg(sev, msg)
    end
 end
 
+-- just checks whether nid is in the table, returns true if it is, false if not
+local function checknidintable(nid)
+   for i = 1, #NODEID_TABLE do
+      if NODEID_TABLE[i] == nid then
+         return true
+      end
+   end
+   return false
+end
+
+local function nidname(nid)
+   local nam = NODE_NAMES[nid]
+   if nam == nil then
+      nam = nid
+      -- don't add to nidtable here
+      if not checknidintable(nid) then
+         -- only send message
+         info1_msg(2,"Node ID "..nid.." was not expected.")
+      end
+   end
+   return nam
+end
+
+-- returns true if nid already in NODEID_TABLE, else it also adds nid to the table and returns false.
+local function checkaddnidintable(nid)
+   if checknidintable(nid) then
+      return true
+   end
+   info3_msg(2, "Seen new node: "..nid.."("..nidname(nid)..")")
+   -- add new item
+   table.insert(NODEID_TABLE, nid)
+   return false
+end
+
+local function send_nvf(nodeid, nvfidloc, nvfidrem, res)
+   local now = millis()
+   if SLV_NVF_RATE:get() > 0 then
+      local nvf_period_ms = 1000.0/SLV_NVF_RATE:get()
+      if (last_nvf_ms ~= nil) and ((now - last_nvf_ms) < nvf_period_ms) then
+         if nodeid == SLV_LOCAL_NODEID:get() then
+            info3_msg(2, "NVF: Too soon, not sending "..nvfidloc)
+         else
+            info3_msg(2, "NVF: Too soon, not sending "..nvfidrem)
+         end
+         return
+      end
+   end
+   last_nvf_ms = now
+
+   if type(res) == "number" then
+      if nodeid == SLV_LOCAL_NODEID:get() then
+         -- info2_msg(3, "NVF: Sending ".. nvfidloc)
+         gcs:send_named_float(nvfidloc, res)
+      else
+         -- info2_msg(3, "NVF: Sending ".. nvfidrem)
+         gcs:send_named_float(nvfidrem, res)
+      end
+   else
+      for i = 1, #res do
+         if nodeid == SLV_LOCAL_NODEID:get() then
+            -- info2_msg(3, "NVF: Sending ".. nvfidloc..i)
+            gcs:send_named_float(nvfidloc..i, res[i])
+         else
+            -- info2_msg(3, "NVF: Sending ".. nvfidrem..i)
+            gcs:send_named_float(nvfidrem..i, res[i])
+         end 
+      end
+   end
+end
+
+local function send_nvf_single(nvfid, res)
+   send_nvf(SLV_LOCAL_NODEID:get(), nvfid, "SR_x", res)
+end
+
 local function save_to_json_rep(data)
    local json_rep = io.open("json_rep.txt",'wb')
    if not json_rep then
@@ -161,6 +235,7 @@ local function http_request(api, params, http_request_response_handler)
    if params ~= nil then
       if params.p1 == "RN" then
          p1 = math.floor(REQUESTED_NODE)
+         log_to_json("\nREQUESTED NODE is: "..REQUESTED_NODE.."("..nidname(REQUESTED_NODE)..")\n")
       else
          p1 = params.p1
       end
@@ -195,81 +270,6 @@ Content-Length: %u
    reply_start = millis()
    handle_response = http_request_response_handler
 end
-
-local function send_nvf(nodeid, nvfidloc, nvfidrem, res)
-   local now = millis()
-   if SLV_NVF_RATE:get() > 0 then
-      local nvf_period_ms = 1000.0/SLV_NVF_RATE:get()
-      if (last_nvf_ms ~= nil) and ((now - last_nvf_ms) < nvf_period_ms) then
-         if nodeid == SLV_LOCAL_NODEID:get() then
-            info3_msg(2, "NVF: Too soon, not sending "..nvfidloc)
-         else
-            info3_msg(2, "NVF: Too soon, not sending "..nvfidrem)
-         end
-         return
-      end
-   end
-   last_nvf_ms = now
-
-   if type(res) == "number" then
-      if nodeid == SLV_LOCAL_NODEID:get() then
-         -- info2_msg(3, "NVF: Sending ".. nvfidloc)
-         gcs:send_named_float(nvfidloc, res)
-      else
-         -- info2_msg(3, "NVF: Sending ".. nvfidrem)
-         gcs:send_named_float(nvfidrem, res)
-      end
-   else
-      for i = 1, #res do
-         if nodeid == SLV_LOCAL_NODEID:get() then
-            -- info2_msg(3, "NVF: Sending ".. nvfidloc..i)
-            gcs:send_named_float(nvfidloc..i, res[i])
-         else
-            -- info2_msg(3, "NVF: Sending ".. nvfidrem..i)
-            gcs:send_named_float(nvfidrem..i, res[i])
-         end 
-      end
-   end
-end
-
-local function send_nvf_single(nvfid, res)
-   send_nvf(SLV_LOCAL_NODEID:get(), nvfid, "SR_x", res)
-end
-
--- just checks whether nid is in the table, returns true if it is, false if not
-local function checknidintable(nid)
-   for i = 1, #NODEID_TABLE do
-      if NODEID_TABLE[i] == nid then
-         return true
-      end
-   end
-   return false
-end
-
-local function nidname(nid)
-   local nam = NODE_NAMES[nid]
-   if nam == nil then
-      nam = nid
-      -- don't add to nidtable here
-      if not checknidintable(nid) then
-         -- only send message
-         info1_msg(2,"Node ID "..nid.." was not expected.")
-      end
-   end
-   return nam
-end
-
--- returns true if nid already in NODEID_TABLE, else it also adds nid to the table and returns false.
-local function checkaddnidintable(nid)
-   if checknidintable(nid) then
-      return true
-   end
-   info3_msg(2, "Seen new node: "..nid.."("..nidname(nid)..")")
-   -- add new item
-   table.insert(NODEID_TABLE, nid)
-   return false
-end
-
 
 local function handle_response_noise_level(result)
    if #result  ~= 1 then
