@@ -402,11 +402,13 @@ local function handle_response_network_status(result)
    send_nvf_single("SR_M2_NID2", max_snr2_nid2)
    info2_msg("Max1 SNR="..max_snr1.." Node1="..nidname(max_snr1_nid1).." Node2="..nidname(max_snr1_nid2))
    info2_msg("Max2 SNR="..max_snr2.." Node1="..nidname(max_snr2_nid1).." Node2="..nidname(max_snr2_nid2))
-   local tab = ""
-   for i = 1, #NODEID_TABLE do
-      tab = tab.." "..NODEID_TABLE[i].."("..nidname(NODEID_TABLE[i])..")"
+   if SLV_INFO:get() > 2 then
+      local tab = ""
+      for i = 1, #NODEID_TABLE do
+         tab = tab.." "..NODEID_TABLE[i].."("..nidname(NODEID_TABLE[i])..")"
+      end
+      info3_msg(2, "Seen "..#NODEID_TABLE.." nodes:"..tab)
    end
-   info3_msg(2, "Seen "..#NODEID_TABLE.." nodes:"..tab)
 end
 
 -- see if we have a API reply, parse it if so
@@ -425,8 +427,15 @@ local function check_reply()
       end
       log_to_json("\nHTTP_REPLY_RECEIVED:\n"..http_reply.."\n")
       local json_body = ""
+      local matching = false
+      -- loop through each line in reply
       for s in http_reply:gmatch("[^\r\n]+") do
-         if s:find('"') then
+         -- check for the start of the table
+         if not matching and s:find('{') then
+            matching = true
+         end
+         -- filter out hex numbers in between lines
+         if matching and not tonumber(s,16) then
             json_body = json_body .. s
          end
       end
@@ -533,8 +542,8 @@ local function update()
          info3_msg(3, "RN="..REQUESTED_NODE.."("..nidname(REQUESTED_NODE)..") API="..api.." n="..n.." tot="..tot.." tab="..#NODEID_TABLE.." quo="..quo)
          http_request(api, params_layout, response_handler)
       else
-         local api = http_request_table[rem][1]
-         info3_msg(3, "SKIPPED - RN="..REQUESTED_NODE.."("..nidname(REQUESTED_NODE)..") API="..api.." n="..n.." tot="..tot.." tab="..#NODEID_TABLE.." quo="..quo)
+         -- local api = http_request_table[rem][1]
+         -- info3_msg(3, "SKIPPED - RN="..REQUESTED_NODE.."("..nidname(REQUESTED_NODE)..") API="..api.." n="..n.." tot="..tot.." tab="..#NODEID_TABLE.." quo="..quo)
          last_request_ms = now - period_ms --make sure it gets called again soon
       end
       n = n+1
