@@ -202,20 +202,40 @@ local function save_to_json_rep(data)
    json_rep:close()
 end
 
+local function get_next_log_name()
+   local nln = io.open("scripts/nextlogno.txt",'r')
+   if not nln then
+      info1_msg(2, "Couldn't open nextlogno.txt. Using json.log as logname")
+      return "json.log"
+   end
+   local nln_contents = nln:read("*a")
+   local logno = tonumber(nln_contents)
+   nln:close()
+   nln = io.open("scripts/nextlogno.txt",'w')
+   if not nln then
+      info1_msg(2, "Couldn't write to nextlogno.txt. Using json.log as logname")
+      return "json.log"
+   end
+   nln:write(logno+1)
+   nln:close()
+   local logname = "jsonlogs/json"..logno..".log"
+   info1_msg(3, "Using "..logname.." as logname")
+   return logname
+end
+
 local function log_to_json(data)
    if not json_log then
-      json_log = io.open("json.log",'wb')
+      local logname = get_next_log_name()
+      json_log = io.open(logname,'wb')
    end
    if not json_log then
-      info1_msg(1, "json.log's file open failed")
+      info1_msg(1, logname.."'s file open failed")
       return
    end
    json_log:write(data)
 end
 
---[[
-   make a silvus API request
---]]
+-- make a silvus API request
 local function http_request(api, params, http_request_response_handler)
    if sock then
       sock:close()
@@ -261,7 +281,6 @@ Content-Length: %u
 ]], node_ip, #json)
    cmd = string.gsub(cmd,"\n","\r\n")
    local full_cmd = cmd .. json
-   --save_to_file("json_req.txt", full_cmd)
    -- sock:set_blocking(false)
    sock:send(cmd, #cmd)
    sock:send(json, #json)
@@ -390,9 +409,7 @@ local function handle_response_network_status(result)
    info3_msg(2, "Seen "..#NODEID_TABLE.." nodes:"..tab)
 end
 
---[[
-   see if we have a API reply, parse it if so
---]]
+-- see if we have a API reply, parse it if so
 local function check_reply() 
    if not sock then
       return
@@ -494,7 +511,7 @@ local function update()
    local flush_period_ms = 5000.0
    if json_log and (not last_flush_ms or now - last_flush_ms >= flush_period_ms) then
       last_flush_ms = now
-      info3_msg(3, "Flushing json.log ")
+      info3_msg(3, "Flushing json log")
       json_log:flush()
    end
 
