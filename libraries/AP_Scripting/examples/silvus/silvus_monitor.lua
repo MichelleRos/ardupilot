@@ -72,7 +72,7 @@ local last_nvf_ms = nil
 local last_flush_ms = nil
 local json = require("json")
 local handle_response = nil
-local NODEID_TABLE = { math.tointeger(SLV_LOCAL_NODEID:get()), math.tointeger(SLV_DEST_NODEID:get()) }
+local NODEID_TABLE = { math.floor(SLV_LOCAL_NODEID:get()), math.floor(SLV_DEST_NODEID:get()) }
 local REQUESTED_NODE = nil
 local REQUESTED_API = nil
 local json_log = nil
@@ -143,7 +143,7 @@ local function http_request(api, params, http_request_response_handler)
    sock = Socket(0)
    local node_ip = local_ip()
    if not sock:connect(node_ip, SLV_HTTP_PORT:get()) then
-      info1_msg(1,"Failed to connect to " .. node_ip .. ":" .. math.tointeger(SLV_HTTP_PORT:get()))
+      info1_msg(1,"Failed to connect to " .. node_ip .. ":" .. math.floor(SLV_HTTP_PORT:get()))
       sock:close()
       sock = nil
       return nil
@@ -153,7 +153,7 @@ local function http_request(api, params, http_request_response_handler)
    local p1 = nil
    if params ~= nil then
       if params.p1 == "RN" then
-         p1 = math.tointeger(REQUESTED_NODE)
+         p1 = math.floor(REQUESTED_NODE)
       else
          p1 = params.p1
       end
@@ -306,11 +306,11 @@ end
 
 local function handle_response_weakest_link(result)
    if #result  ~= 4 then
-      info1_msg(2,"Weakest Link expects #result = 4. #result is "..#result.."NODE is "..math.tointeger(SLV_DEST_NODEID:get()))
+      info1_msg(2,"Weakest Link expects #result = 4. #result is "..#result.."NODE is "..math.floor(SLV_DEST_NODEID:get()))
       return
    end
-   local wl1 = math.tointeger(result[1])
-   local wl2 = math.tointeger(result[2])
+   local wl1 = math.floor(result[1])
+   local wl2 = math.floor(result[2])
    local snr = tonumber(result[3])
    local reuse = tonumber(result[4])
    logger:write('SLWL','I,wl1,wl2n,wl2,snr,reuse','NiNiff', '#-----', '------', nidname(wl1), wl1, nidname(wl2), wl2, snr, reuse)
@@ -337,8 +337,8 @@ local function handle_response_network_status(result)
       local nid1i = (res-1)*3+1
       local nid2i = (res-1)*3+2
       local snri = (res-1)*3+3
-      local nid1 = math.tointeger(result[nid1i])
-      local nid2 = math.tointeger(result[nid2i])
+      local nid1 = math.floor(result[nid1i])
+      local nid2 = math.floor(result[nid2i])
       local snr = tonumber(result[snri])
       local idx1 = nidname(nid1).."_"..nidname(nid2)
       logger:write('SLNS','I,nid1,nid2,snr','Niif', '#---', '----', idx1, nid1, nid2, snr)
@@ -459,7 +459,7 @@ http_request_table = {
    { "link_throughput", { num=2, p1="RN", p2=1 }, handle_response_throughput, true, true },
    { "nbr_rssi", { num=1, p1="RN"}, handle_response_rssi, true, true },
    { "nbr_mcs", { num=1, p1="RN"}, handle_response_mcs, true, true },
-   { "weakest_link", { num=1, p1=math.tointeger(SLV_DEST_NODEID:get())}, handle_response_weakest_link, true, false },
+   { "weakest_link", { num=1, p1=math.floor(SLV_DEST_NODEID:get())}, handle_response_weakest_link, true, false },
 }
 local n = 0
 
