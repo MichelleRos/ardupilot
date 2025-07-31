@@ -143,7 +143,8 @@ local function http_request(api, params, http_request_response_handler)
    sock = Socket(0)
    local node_ip = local_ip()
    if not sock:connect(node_ip, SLV_HTTP_PORT:get()) then
-      info1_msg(1,string.format("Failed to connect to " .. node_ip .. ":" .. SLV_HTTP_PORT:get()))
+      info1_msg(1,"Failed to connect to " .. node_ip .. ":" .. math.tointeger(SLV_HTTP_PORT:get()))
+      sock:close()
       sock = nil
       return nil
    end
