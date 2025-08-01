@@ -212,7 +212,7 @@ local function get_next_log_name()
    local logno = tonumber(nln_contents)
    nln:close()
    nln = io.open("scripts/nextlogno.txt",'w')
-   if not nln then
+   if not nln or not logno then
       info1_msg(2, "Couldn't write to nextlogno.txt. Using json.log as logname")
       return "json.log"
    end
@@ -339,12 +339,15 @@ local function handle_response_weakest_link(result)
    local wl2 = math.floor(result[2])
    local snr = tonumber(result[3])
    local reuse = tonumber(result[4])
-   logger:write('SLWL','I,wl1,wl2n,wl2,snr,reuse','NiNiff', '#-----', '------', nidname(wl1), wl1, nidname(wl2), wl2, snr, reuse)
+   local wl1n = nidname(wl1)
+   local wl2n = nidname(wl2)
+   local logid = wl1n.."_"..wl2n
+   logger:write('SLWL','I,wl1n,wl1,wl2n,wl2,snr,reuse','NNiNiff', '#------', '-------', logid ,wl1n, wl1, wl2n, wl2, snr, reuse)
    send_nvf_single("SR_WKLKSNR", snr)
    send_nvf_single("SR_WKLKID1", wl1)
    send_nvf_single("SR_WKLKID2", wl2)
    send_nvf_single("SR_WKLKRU", reuse)
-   info2_msg("Weaklink SNR="..snr.." Node1="..nidname(wl1).." Node2="..nidname(wl2).." RU="..reuse)
+   info2_msg("Weaklink SNR="..snr.." Node1="..wl1n.." Node2="..wl2n.." RU="..reuse)
    checkaddnidintable(wl1)
    checkaddnidintable(wl2)
 end
