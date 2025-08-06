@@ -139,14 +139,20 @@ local json_log = nil
 
 gcs:send_text(MAV_SEVERITY.INFO, string.format("SilvusSim: starting with %u beacons", #SSIM_GND_ALT))
 
-local function send_json(json)
+local function send_json(json, chunked)
+   local lenchu = "Transfer-Encoding: chunked"
+   local chu = "\n0\n"
+   if not chunked then
+      lenchu = "Content-Length: "..#json
+      chu = ""
+   end
    local msg = string.format([[HTTP/1.0 200 OK
 Content-Type: application/json
 Cache-Control: no-cache
-Content-Length: %u
+%s
 Server: silvus sim
 
-%s]], #json, json)
+%s%s]], lenchu, json, chu)
    msg = string.gsub(msg, "\n", "\r\n")
    connection_sock:send(msg, #msg)
 end
@@ -155,7 +161,7 @@ local function send_noise_level()
    -- gcs:send_text(MAV_SEVERITY.INFO, string.format("SilvusSim: send_noise_level"))
    noise_level = 17 + math.random(-5,5)
    local json = string.format([[{"result" : [%s],"id" : "sbkb5u0c", "jsonrpc" : "2.0"}]], noise_level)
-   send_json(json)
+   send_json(json, false)
 end
 
 local function send_nbr_rssi()
@@ -164,13 +170,13 @@ local function send_nbr_rssi()
    r3 = 6+math.random(-1,1)
    r4 = 8+math.random(-1,1)
    local json = string.format([[{"result" : [%s,%s,%s,%s],"id" : "sbkb5u0c", "jsonrpc" : "2.0"}]], r1,r2,r3,r4)
-   send_json(json)
+   send_json(json, false)
 end
 
 local function send_link_throughput()
    link_throughput = 5 + math.random(-5,5)
    local json = string.format([[{"result" : [%s],"id" : "sbkb5u0c", "jsonrpc" : "2.0"}]], link_throughput)
-   send_json(json)
+   send_json(json, false)
 end
 
 local function send_network_status()
@@ -185,13 +191,13 @@ local function send_network_status()
       network_str = network_str .. string.format([["%u","%u","%u"]], SSIM_GND_NODEID[i]:get(), SSIM_GND_NODEID[othernode]:get(), snr)
    end
    local json = string.format([[{"result" : [%s],"id" : "sbkb5u0c", "jsonrpc" : "2.0"}]], network_str)
-   send_json(json)
+   send_json(json, true)
 end
 
 local function send_mcs()
    mcs = math.random(5,15)
    local json = string.format([[{"result" : [%s],"id" : "sbkb5u0c", "jsonrpc" : "2.0"}]], mcs)
-   send_json(json)
+   send_json(json, false)
 end
 
 local function send_weakest_link()
@@ -200,7 +206,7 @@ local function send_weakest_link()
    snr = math.random(44,46)
    reuse = math.random(0,3)
    local json = string.format([[{"result" : [%s,%s,%s,%s],"id" : "sbkb5u0c", "jsonrpc" : "2.0"}]], n1,n2,snr,reuse)
-   send_json(json)
+   send_json(json, false)
 end
 
 --[[

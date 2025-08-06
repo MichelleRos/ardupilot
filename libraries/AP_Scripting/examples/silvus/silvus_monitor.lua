@@ -65,7 +65,7 @@ gcs:send_text(MAV_SEVERITY.INFO, "Silvus: Starting")
 
 local sock = nil
 local http_reply = nil
-local reply_start = nil
+local reply_start_time = nil
 local REQUEST_TIMEOUT = 250
 local last_request_ms = nil
 local last_nvf_ms = nil
@@ -198,7 +198,7 @@ end
 local function save_to_json_rep(data)
    local json_rep = io.open("json_rep.txt",'wb')
    if not json_rep then
-      info1_msg(1, "Save_to_file's file open failed")
+      info1_msg(2, "Save_to_file's file open failed")
       return
    end
    json_rep:write(data)
@@ -240,7 +240,7 @@ local function log_to_json(data)
       json_log = io.open(json_log_name,'wb')
    end
    if not json_log then
-      info1_msg(1, "Json log's file open failed")
+      info1_msg(2, "Json log's file open failed")
       return
    end
    json_log:write(data)
@@ -255,7 +255,7 @@ local function http_request(api, params, http_request_response_handler)
    sock = Socket(0)
    local node_ip = local_ip()
    if not sock:connect(node_ip, SLV_HTTP_PORT:get()) then
-      info1_msg(1,"Failed to connect to " .. node_ip .. ":" .. math.floor(SLV_HTTP_PORT:get()))
+      info1_msg(2,"Failed to connect to " .. node_ip .. ":" .. math.floor(SLV_HTTP_PORT:get()))
       sock:close()
       sock = nil
       return nil
@@ -279,7 +279,7 @@ local function http_request(api, params, http_request_response_handler)
    elseif params.num == 2 then
       json = string.format([[{"jsonrpc":"2.0","method":"%s", "params":["%s", "%s"],"id":"sbkb5u0c"}]], api, p1, params.p2)
    else
-      info1_msg(1,"Unsupported params.")
+      info1_msg(2,"Unsupported params.")
       return nil
    end
    -- gcs:send_text(MAV_SEVERITY.INFO, "Json: " .. json)
@@ -297,7 +297,7 @@ Content-Length: %u
    sock:send(json, #json)
    log_to_json("\nHTTP_REQUEST_SENT:\n"..cmd..json.."\n")
    http_reply = ''
-   reply_start = millis()
+   reply_start_time = millis()
    handle_response = http_request_response_handler
 end
 
@@ -434,75 +434,96 @@ local function check_reply()
    if not sock then
       return
    end
-   local now = millis()
-   if reply_start and now - reply_start > SLV_REQ_TIMEOUT:get() then
-      sock:close()
-      sock = nil
-      lines = {}
-      if not http_reply then
-         info1_msg(2,"No http reply")
-         return
-      end
-      log_to_json("\nHTTP_REPLY_RECEIVED:\n"..http_reply.."\n")
-      local json_body = ""
-      local matching = false
-      -- loop through each line in reply
-      for s in http_reply:gmatch("[^\r\n]+") do
-         -- check for the start of the table
-         if not matching and s:find('{') then
-            matching = true
-         end
-         -- filter out hex numbers in between lines
-         if matching and not tonumber(s,16) then
-            json_body = json_body .. s
-         end
-      end
-      log_to_json("\nJSON_BODY: "..json_body.."\n")
-      local success, rep = pcall(json.parse, json_body)
-      if not success then
-         info1_msg(2,"Json parse failed.")
-         info3_msg(2, "JPF json_body is "..json_body)
-         log_to_json("\nAbove reply was not parsed successfully.\n")
-         save_to_json_rep(http_reply)
-         return
-      end
-      if type(rep) ~= "table" then
-         if type(rep) == "string" or type(rep) == "number" then
-            info1_msg(2,"Reply is "..rep.." RN="..REQUESTED_NODE)
-         else
-            info1_msg(2,"Reply is a "..type(rep).." RN="..REQUESTED_NODE)
-         end
-         save_to_json_rep(http_reply)
-         return
-      end
-      local result = rep['result']
-      if result == nil then
-         info1_msg(1,"Nil for result")
-         save_to_json_rep(http_reply)
-         return
-      end
-      if not result then
-         info1_msg(1,"No result")
-         save_to_json_rep(http_reply)
-         return
-      end
-      if type(result) ~= "table" then
-         info1_msg(2,"Result from reply is not a table. RN="..REQUESTED_NODE)
-         save_to_json_rep(http_reply)
-         return
-      end
-      if handle_response == nil then
-         info1_msg(1,"Nil for handle_response")
-         return
-      end
-      handle_response(result)
-      return
-   end
    sock:set_blocking(true)
    local r = sock:recv(1024)
    if r then
       http_reply = http_reply .. r
    end
+   if not http_reply then
+      info1_msg(2,"No http reply")
+      return
+   end
+   -- Check if we've finished
+   local now = millis()
+   -- must use a literal match
+   if http_reply:find("Transfer-Encoding: chunked", 1, true) then
+      info3_msg(2, REQUESTED_API.." Transfer-Encoding is chunked. Checking.")
+      if http_reply:find("\r\n0\r\n", 1, true) then
+         -- transfer-encoding is chunked, and it ended with a 0 on a new line, which means it's finished.
+         info3_msg(3, REQUESTED_API.." Transfer-Encoding is chunked. Processing.")
+      elseif reply_start_time and now - reply_start_time > SLV_REQ_TIMEOUT:get()*5 then
+         info1_msg(2, REQUESTED_API.." Transfer-Encoding is chunked but didn't finish before timeout*5")
+         log_to_json("\nHTTP_REPLY_RECEIVED:\n"..http_reply.."\n\nAbove chunked reply timed out.\n")
+         save_to_json_rep(http_reply)
+         sock:close()
+         sock = nil
+         return
+      else
+         -- no full reply yet, so return early.
+         return
+      end
+   elseif reply_start_time and now - reply_start_time > SLV_REQ_TIMEOUT:get() then
+      -- not chunked, which means we just use the timeout
+      info3_msg(3, REQUESTED_API.." Non-chunked finished. Processing.")
+   else
+      -- no full reply yet, so return early.
+      return
+   end
+   sock:close()
+   sock = nil
+   log_to_json("\nHTTP_REPLY_RECEIVED:\n"..http_reply.."\n")
+   local json_body = ""
+   local matching = false
+   -- loop through each line in reply
+   for s in http_reply:gmatch("[^\r\n]+") do
+      -- check for the start of the table
+      if not matching and s:find('{') then
+         matching = true
+      end
+      -- filter out hex numbers in between lines
+      if matching and not tonumber(s,16) then
+         json_body = json_body .. s
+      end
+   end
+   log_to_json("\nJSON_BODY: "..json_body.."\n")
+   local success, rep = pcall(json.parse, json_body)
+   if not success then
+      info1_msg(2,"Json parse failed.")
+      info3_msg(2, "JPF json_body is "..json_body)
+      log_to_json("\nAbove reply was not parsed successfully.\n")
+      save_to_json_rep(http_reply)
+      return
+   end
+   if type(rep) ~= "table" then
+      if type(rep) == "string" or type(rep) == "number" then
+         info1_msg(2,"Reply is "..rep.." RN="..REQUESTED_NODE)
+      else
+         info1_msg(2,"Reply is a "..type(rep).." RN="..REQUESTED_NODE)
+      end
+      save_to_json_rep(http_reply)
+      return
+   end
+   local result = rep['result']
+   if result == nil then
+      info1_msg(2,"Nil for result")
+      save_to_json_rep(http_reply)
+      return
+   end
+   if not result then
+      info1_msg(2,"No result")
+      save_to_json_rep(http_reply)
+      return
+   end
+   if type(result) ~= "table" then
+      info1_msg(2,"Result from reply is not a table. RN="..REQUESTED_NODE)
+      save_to_json_rep(http_reply)
+      return
+   end
+   if handle_response == nil then
+      info1_msg(2,"Nil for handle_response")
+      return
+   end
+   handle_response(result)
 end
 
 local http_request_table = {}
