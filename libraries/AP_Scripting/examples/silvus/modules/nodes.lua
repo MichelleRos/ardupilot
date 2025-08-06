@@ -1,3 +1,4 @@
+--max length 7 char. Numbers, capital letters and underscores allowed
 local NODE_NAMES = {
     [427839] = "LOCAL",
     [167537] = "ONE",

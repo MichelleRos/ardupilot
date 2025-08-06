@@ -129,12 +129,15 @@ local function checknidintable(nid)
 end
 
 local function nidname(nid)
+   -- returns Node name or otherwise just the number itself
+   -- make sure not to call it on nids that haven't been added to table, other than in checkaddnidintable()
+   -- else it will send the not expected message each time.
    local nam = NODE_NAMES[nid]
    if nam == nil then
       nam = nid
       -- don't add to nidtable here
       if not checknidintable(nid) then
-         -- only send message
+         -- only send message the first time
          info1_msg(2,"Node ID "..nid.." was not expected.")
       end
    end
@@ -202,34 +205,42 @@ local function save_to_json_rep(data)
    json_rep:close()
 end
 
-local function get_next_log_name()
-   local nln = io.open("scripts/nextlogno.txt",'r')
+local function update_json_log_name()
+   -- set this global at the start of the function so we can be sure it will always be set after this function is called
+   local json_log_name = "json.log"
+   local foln = "jsonlogs/"
+   local nln = io.open(foln.."nextlogno.txt",'r')
    if not nln then
-      info1_msg(2, "Couldn't open nextlogno.txt. Using json.log as logname")
-      return "json.log"
+      foln = "APM/jsonlogs/"
+      nln = io.open(foln.."/nextlogno.txt",'r')
+   end
+   if not nln then
+      info1_msg(2, "Couldn't open jsonlogs/nextlogno.txt or APM/jsonlogs/jsonlogno.txt. Using "..json_log_name.." as logname")
+      return json_log_name
    end
    local nln_contents = nln:read("*a")
    local logno = tonumber(nln_contents)
    nln:close()
-   nln = io.open("scripts/nextlogno.txt",'w')
+
+   nln = io.open(foln.."nextlogno.txt",'w')
    if not nln or not logno then
-      info1_msg(2, "Couldn't write to nextlogno.txt. Using json.log as logname")
-      return "json.log"
+      info1_msg(2, "Couldn't write to "..foln.."scripts/nextlogno.txt or it didn't have number. Using "..json_log_name.." as logname")
+      return json_log_name
    end
    nln:write(logno+1)
    nln:close()
-   local logname = "jsonlogs/json"..logno..".log"
-   info1_msg(3, "Using "..logname.." as logname")
-   return logname
+   json_log_name = foln.."json"..logno..".log"
+   info1_msg(3, "Using "..json_log_name.." as logname")
+   return json_log_name
 end
 
 local function log_to_json(data)
    if not json_log then
-      local logname = get_next_log_name()
-      json_log = io.open(logname,'wb')
+      local json_log_name = update_json_log_name()
+      json_log = io.open(json_log_name,'wb')
    end
    if not json_log then
-      info1_msg(1, logname.."'s file open failed")
+      info1_msg(1, "Json log's file open failed")
       return
    end
    json_log:write(data)
@@ -353,7 +364,7 @@ local function handle_response_weakest_link(result)
 end
 
 local function handle_response_network_status(result)
-   if (#result % 3) ~= 0 then
+   if (#result % 3) ~= 0 or #result == 0 then
       info1_msg(2,"Network status expects #result divisible by 3. #result is "..#result)
       return
    end
@@ -397,14 +408,18 @@ local function handle_response_network_status(result)
       end
    end
    -- send max SNRs
-   send_nvf_single("SR_M1_SNR", max_snr1)
-   send_nvf_single("SR_M1_NID1", max_snr1_nid1)
-   send_nvf_single("SR_M1_NID2", max_snr1_nid2)
-   send_nvf_single("SR_M2_SNR", max_snr2)
-   send_nvf_single("SR_M2_NID1", max_snr2_nid1)
-   send_nvf_single("SR_M2_NID2", max_snr2_nid2)
-   info2_msg("Max1 SNR="..max_snr1.." Node1="..nidname(max_snr1_nid1).." Node2="..nidname(max_snr1_nid2))
-   info2_msg("Max2 SNR="..max_snr2.." Node1="..nidname(max_snr2_nid1).." Node2="..nidname(max_snr2_nid2))
+   if max_snr1 ~= -1 then
+      send_nvf_single("SR_M1_SNR", max_snr1)
+      send_nvf_single("SR_M1_NID1", max_snr1_nid1)
+      send_nvf_single("SR_M1_NID2", max_snr1_nid2)
+      info2_msg("Max1 SNR="..max_snr1.." Node1="..nidname(max_snr1_nid1).." Node2="..nidname(max_snr1_nid2))
+   end
+   if max_snr2 ~= -1 then
+      send_nvf_single("SR_M2_SNR", max_snr2)
+      send_nvf_single("SR_M2_NID1", max_snr2_nid1)
+      send_nvf_single("SR_M2_NID2", max_snr2_nid2)
+      info2_msg("Max2 SNR="..max_snr2.." Node1="..nidname(max_snr2_nid1).." Node2="..nidname(max_snr2_nid2))
+   end
    if SLV_INFO:get() > 2 then
       local tab = ""
       for i = 1, #NODEID_TABLE do
