@@ -231,6 +231,7 @@ public:
     AP_Float        wp_radius;
     AP_Float        wp_yaw_min_vel;
     AP_Float        wp_yaw_spd;
+    AP_Float        stream_rate;
     AP_Int8         simple_mode;
     AP_Float        max_man_thr;
 

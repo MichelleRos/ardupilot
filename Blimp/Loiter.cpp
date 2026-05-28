@@ -832,6 +832,213 @@ const AP_Param::GroupInfo Loiter::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("POS_LAG", 19, Loiter, pos_lag, 1),
 
+    // @Param: LVLPIT_P
+    // @DisplayName: Pitch axis level controller P gain
+    // @Description: Pitch axis level controller P gain.  Corrects in proportion to the difference between the desired Yaw position vs actual Yaw position
+    // @Range: 0.01 0.5
+    // @Increment: 0.005
+    // @User: Standard
+
+    // @Param: LVLPIT_I
+    // @DisplayName: Pitch axis level controller I gain
+    // @Description: Pitch axis level controller I gain.  Corrects long-term difference in desired Yaw position vs actual Yaw position
+    // @Range: 0.01 2.0
+    // @Increment: 0.01
+    // @User: Standard
+
+    // @Param: LVLPIT_IMAX
+    // @DisplayName: Pitch axis level controller I gain maximum
+    // @Description: Pitch axis level controller I gain maximum.  Constrains the maximum that the I term will output
+    // @Range: 0 1
+    // @Increment: 0.01
+    // @User: Standard
+
+    // @Param: LVLPIT_D
+    // @DisplayName: Pitch axis level controller D gain
+    // @Description: Pitch axis level controller D gain.  Compensates for short-term change in desired Yaw position vs actual Yaw position
+    // @Range: 0.0 0.05
+    // @Increment: 0.001
+    // @User: Standard
+
+    // @Param: LVLPIT_FF
+    // @DisplayName: Pitch axis level controller feed forward
+    // @Description: Pitch axis level controller feed forward
+    // @Range: 0 0.5
+    // @Increment: 0.001
+    // @User: Standard
+
+    // @Param: LVLPIT_FLTT
+    // @DisplayName: Pitch axis level controller target frequency in Hz
+    // @Description: Pitch axis level controller target frequency in Hz
+    // @Range: 5 100
+    // @Increment: 1
+    // @Units: Hz
+    // @User: Standard
+
+    // @Param: LVLPIT_FLTE
+    // @DisplayName: Pitch axis level controller error frequency in Hz
+    // @Description: Pitch axis level controller error frequency in Hz
+    // @Range: 0 100
+    // @Increment: 1
+    // @Units: Hz
+    // @User: Standard
+
+    // @Param: LVLPIT_FLTD
+    // @DisplayName: Pitch axis level controller derivative frequency in Hz
+    // @Description: Pitch axis level controller derivative frequency in Hz
+    // @Range: 5 100
+    // @Increment: 1
+    // @Units: Hz
+    // @User: Standard
+
+    // @Param: LVLPIT_SMAX
+    // @DisplayName: Pitch axis level slew rate limit
+    // @Description: Sets an upper limit on the slew rate produced by the combined P and D gains. If the amplitude of the control action produced by the rate feedback exceeds this value, then the D+P gain is reduced to respect the limit. This limits the amplitude of high frequency oscillations caused by an excessive gain. The limit should be set to no more than 25% of the actuators maximum slew rate to allow for load effects. Note: The gain will not be reduced to less than 10% of the nominal value. A value of zero will disable this feature.
+    // @Range: 0 200
+    // @Increment: 0.5
+    // @User: Advanced
+
+    // @Param: LVLPIT_PDMX
+    // @DisplayName: Pitch axis level controller PD sum maximum
+    // @Description: Pitch axis level controller PD sum maximum.  The maximum/minimum value that the sum of the P and D term can output
+    // @Range: 0 1
+    // @Increment: 0.01
+    // @User: Advanced
+
+    // @Param: LVLPIT_D_FF
+    // @DisplayName: Pitch axis level derivative feedforward gain
+    // @Description: FF D Gain which produces an output that is proportional to the rate of change of the target
+    // @Range: 0 0.02
+    // @Increment: 0.0001
+    // @User: Advanced
+
+    // @Param: LVLPIT_NTF
+    // @DisplayName: Pitch axis level target notch filter index
+    // @Description: Pitch axis level target notch filter index
+    // @Range: 1 8
+    // @User: Advanced
+
+    // @Param: LVLPIT_NEF
+    // @DisplayName: Pitch axis level error notch filter index
+    // @Description: Pitch axis level error notch filter index
+    // @Range: 1 8
+    // @User: Advanced
+    AP_SUBGROUPINFO(pid_lvl_pitch, "LVLPIT_", 20, Loiter, AC_PID),
+
+    // @Param: LVLRLL_P
+    // @DisplayName: Roll axis level controller P gain
+    // @Description: Roll axis level controller P gain.  Corrects in proportion to the difference between the desired Yaw position vs actual Yaw position
+    // @Range: 0.01 0.5
+    // @Increment: 0.005
+    // @User: Standard
+
+    // @Param: LVLRLL_I
+    // @DisplayName: Roll axis level controller I gain
+    // @Description: Roll axis level controller I gain.  Corrects long-term difference in desired Yaw position vs actual Yaw position
+    // @Range: 0.01 2.0
+    // @Increment: 0.01
+    // @User: Standard
+
+    // @Param: LVLRLL_IMAX
+    // @DisplayName: Roll axis level controller I gain maximum
+    // @Description: Roll axis level controller I gain maximum.  Constrains the maximum that the I term will output
+    // @Range: 0 1
+    // @Increment: 0.01
+    // @User: Standard
+
+    // @Param: LVLRLL_D
+    // @DisplayName: Roll axis level controller D gain
+    // @Description: Roll axis level controller D gain.  Compensates for short-term change in desired Yaw position vs actual Yaw position
+    // @Range: 0.0 0.05
+    // @Increment: 0.001
+    // @User: Standard
+
+    // @Param: LVLRLL_FF
+    // @DisplayName: Roll axis level controller feed forward
+    // @Description: Roll axis level controller feed forward
+    // @Range: 0 0.5
+    // @Increment: 0.001
+    // @User: Standard
+
+    // @Param: LVLRLL_FLTT
+    // @DisplayName: Roll axis level controller target frequency in Hz
+    // @Description: Roll axis level controller target frequency in Hz
+    // @Range: 5 100
+    // @Increment: 1
+    // @Units: Hz
+    // @User: Standard
+
+    // @Param: LVLRLL_FLTE
+    // @DisplayName: Roll axis level controller error frequency in Hz
+    // @Description: Roll axis level controller error frequency in Hz
+    // @Range: 0 100
+    // @Increment: 1
+    // @Units: Hz
+    // @User: Standard
+
+    // @Param: LVLRLL_FLTD
+    // @DisplayName: Roll axis level controller derivative frequency in Hz
+    // @Description: Roll axis level controller derivative frequency in Hz
+    // @Range: 5 100
+    // @Increment: 1
+    // @Units: Hz
+    // @User: Standard
+
+    // @Param: LVLRLL_SMAX
+    // @DisplayName: Roll axis level slew rate limit
+    // @Description: Sets an upper limit on the slew rate produced by the combined P and D gains. If the amplitude of the control action produced by the rate feedback exceeds this value, then the D+P gain is reduced to respect the limit. This limits the amplitude of high frequency oscillations caused by an excessive gain. The limit should be set to no more than 25% of the actuators maximum slew rate to allow for load effects. Note: The gain will not be reduced to less than 10% of the nominal value. A value of zero will disable this feature.
+    // @Range: 0 200
+    // @Increment: 0.5
+    // @User: Advanced
+
+    // @Param: LVLRLL_PDMX  
+    // @DisplayName: Roll axis level controller PD sum maximum
+    // @Description: Roll axis level controller PD sum maximum.  The maximum/minimum value that the sum of the P and D term can output
+    // @Range: 0 1
+    // @Increment: 0.01
+    // @User: Advanced
+
+    // @Param: LVLRLL_D_FF
+    // @DisplayName: Roll axis level derivative feedforward gain
+    // @Description: FF D Gain which produces an output that is proportional to the rate of change of the target
+    // @Range: 0 0.02
+    // @Increment: 0.0001
+    // @User: Advanced
+
+    // @Param: LVLRLL_NTF
+    // @DisplayName: Roll axis level target notch filter index
+    // @Description: Roll axis level target notch filter index
+    // @Range: 1 8
+    // @User: Advanced
+
+    // @Param: LVLRLL_NEF
+    // @DisplayName: Roll axis level error notch filter index
+    // @Description: Roll axis level error notch filter index
+    // @Range: 1 8
+    // @User: Advanced
+    AP_SUBGROUPINFO(pid_lvl_roll, "LVLRLL_", 21, Loiter, AC_PID),
+
+    // @Param: LVLMAX
+    // @DisplayName: Max Level throttle
+    // @Description: Max throttle output to level, 0 to disable leveling. Use only for prop blimp.
+    // @Range: 0 1
+    // @User: Standard
+    AP_GROUPINFO("LVLMAX", 22, Loiter, lvl_max, 0),
+
+    // @Param: OPTIONS
+    // @DisplayName: Options
+    // @Description: Mask for enabling different Level mode options
+    // @Bitmask: 0:Yaw rate,1:Yaw pos,2:Z Rate
+    // @User: Standard
+    AP_GROUPINFO("OPTIONS", 25, Loiter, options, 0),
+
+    // @Param: LVLRELTC
+    // @DisplayName: Level Relax Timeconstant
+    // @Description: Timeconstant for the speed at which the integrator for the two level controllers are relaxed. Set to 0 to disable
+    // @Range: 0 1
+    // @User: Standard
+    AP_GROUPINFO("LVLRELTC", 27, Loiter, lvl_relax_tc, 0.16),
+
     AP_GROUPEND
 };
 
@@ -953,6 +1160,16 @@ void Loiter::run_vel(Vector3f& target_vel_ef, float& target_vel_yaw, Vector4b ax
                                 AP_HAL::micros64(),
                                 scaler_x, scaler_y, scaler_z, scaler_yaw, scaler_x_n, scaler_y_n, scaler_z_n, scaler_yaw_n);
 #endif
+    if (!is_equal(float(blimp.g.stream_rate), 0.0f) && AP_HAL::millis() % int((1 / blimp.g.stream_rate) * 1000) < 30){
+        gcs().send_named_float("BSCXN", scaler_x_n);
+        gcs().send_named_float("BSCYN", scaler_y_n);
+        gcs().send_named_float("BSCZN", scaler_z_n);
+        gcs().send_named_float("BSCYAWN", scaler_yaw_n);
+        gcs().send_named_float("BSCX", scaler_x);
+        gcs().send_named_float("BSCY", scaler_y);
+        gcs().send_named_float("BSCZ", scaler_z);
+        gcs().send_named_float("BSCYAW", scaler_yaw);
+    }
 
     Vector4b zero;
     if (!blimp.motors->_armed || (dis_mask & (1<<(2-1)))) {
@@ -1009,13 +1226,13 @@ void Loiter::run_vel(Vector3f& target_vel_ef, float& target_vel_yaw, Vector4b ax
         blimp.motors->front_out = 0;
     } else if (axes_disabled.x);
     else {
-        blimp.motors->front_out = actuator.x;
+        run_level_pitch(actuator.x);
     }
     if (zero.y) {
         blimp.motors->right_out = 0;
     } else if (axes_disabled.y);
     else {
-        blimp.motors->right_out = actuator.y;
+        run_level_roll(actuator.y);
     }
     if (zero.z) {
         blimp.motors->down_out = 0;
@@ -1037,4 +1254,125 @@ void Loiter::run_vel(Vector3f& target_vel_ef, float& target_vel_yaw, Vector4b ax
         AC_PosControl::Write_PSCD(0.0, 0.0, -blimp.pos_ned.z * 100.0, 0.0, -target_vel_bf_c.z * 100.0, -blimp.vel_ned_filtd.z * 100.0, 0.0, 0.0, 0.0);
     }
 #endif
+}
+
+void Loiter::run_level_roll(float& out_right_com)
+{
+    if (is_zero(lvl_max)) {
+        blimp.motors->right_out = out_right_com;
+        return;
+    }
+    const float dt = blimp.scheduler.get_last_loop_time_s();
+    const float roll = blimp.ahrs.get_roll();
+
+    float lvl_out = -blimp.loiter->pid_lvl_roll.update_all(0, roll, dt, 0);
+    if (!blimp.motors->armed()) {
+        blimp.loiter->pid_lvl_roll.set_integrator(0);
+    }
+    if(!is_zero(lvl_relax_tc)) {
+        pid_lvl_roll.relax_integrator(0.0, dt, lvl_relax_tc);
+    }
+
+    float out_right_lvl = constrain_float(lvl_out, -lvl_max, lvl_max);
+    blimp.motors->right_out = out_right_com + out_right_lvl;
+
+    if (!is_equal(float(blimp.g.stream_rate), 0.0f) && AP_HAL::millis() % int((1 / blimp.g.stream_rate) * 1000) < 30){
+        gcs().send_named_float("LVLRol", out_right_lvl);
+        gcs().send_named_float("LVLRoc", out_right_com);
+        gcs().send_named_float("LVLRs", lvl_scaler_rll);
+    }
+#if HAL_LOGGING_ENABLED
+    AP::logger().WriteStreaming("LVLR", "TimeUS,ol,oc,s", "Qfff",
+                                            AP_HAL::micros64(),
+                                            out_right_lvl,
+                                            out_right_com,
+                                            lvl_scaler_rll);
+#endif
+}
+
+void Loiter::run_level_pitch(float& out_front_com)
+{
+    if (is_zero(lvl_max)) {
+        blimp.motors->front_out = out_front_com;
+        return;
+    }
+    const float dt = blimp.scheduler.get_last_loop_time_s();
+    const float pitch = blimp.ahrs.get_pitch();
+
+    float lvl_out = pid_lvl_pitch.update_all(0, pitch, dt);
+
+    if (!blimp.motors->armed()) {
+        blimp.loiter->pid_lvl_roll.set_integrator(0);
+    }
+
+    if(!is_zero(lvl_relax_tc)) {
+        pid_lvl_pitch.relax_integrator(0.0, dt, lvl_relax_tc);
+    }
+
+    float out_front_lvl = constrain_float(lvl_out, -lvl_max, lvl_max);
+    blimp.motors->front_out = out_front_com + out_front_lvl;
+
+    if (!is_equal(float(blimp.g.stream_rate), 0.0f) && AP_HAL::millis() % int((1 / blimp.g.stream_rate) * 1000) < 30){
+        gcs().send_named_float("LVLPol", out_front_lvl);
+        gcs().send_named_float("LVLPoc", out_front_com);
+        gcs().send_named_float("LVLPs", lvl_scaler_pit);
+
+    }
+#if HAL_LOGGING_ENABLED
+    AP::logger().WriteStreaming("LVLP", "TimeUS,ol,oc,s", "Qfff",
+                                            AP_HAL::micros64(),
+                                            out_front_lvl,
+                                            out_front_com,
+                                            lvl_scaler_pit);
+#endif
+}
+
+void Loiter::run_yaw_stab(float& out_yaw_com, float& target_yaw)
+{
+    if (!((options & Loiter::LVL_EN_YAW_RATE) || (options & Loiter::LVL_EN_YAW_POS))) {
+        blimp.motors->yaw_out = out_yaw_com*blimp.g.max_man_thr;
+        return;
+    }
+    const float dt = blimp.scheduler.get_last_loop_time_s();
+
+    float target_vel_yaw;
+    if (options & Loiter::LVL_EN_YAW_POS) {
+        const float yaw = blimp.ahrs.get_yaw();
+        const float pilot_yaw = out_yaw_com * max_pos_yaw * dt;
+        if (fabsf(wrap_PI(target_yaw-yaw)) < max_pos_yaw*pos_lag) {
+            target_yaw = wrap_PI(target_yaw + pilot_yaw);
+        }
+        target_vel_yaw = pid_pos_yaw.update_error(wrap_PI(target_yaw - yaw), dt);
+        pid_pos_yaw.set_target_rate(target_yaw);
+        pid_pos_yaw.set_actual_rate(yaw);
+        target_vel_yaw = constrain_float(target_vel_yaw, -max_vel_yaw, max_vel_yaw);
+    } else {
+        target_vel_yaw = out_yaw_com*max_vel_yaw;
+    }
+    float out = pid_vel_yaw.update_all(target_vel_yaw, blimp.vel_yaw_filtd, dt);
+
+    if (!blimp.motors->armed()) {
+        pid_vel_yaw.set_integrator(0);
+    }
+
+    blimp.motors->yaw_out = out;
+}
+
+void Loiter::run_down_stab(float& out_down_com)
+{
+    float velD;
+    bool valid = blimp.ahrs.get_vert_pos_rate_D(velD);
+    if (!(options & Loiter::LVL_EN_Z_RATE) || !valid) {
+        blimp.motors->down_out = out_down_com*blimp.g.max_man_thr;
+        return;
+    }
+    const float dt = blimp.scheduler.get_last_loop_time_s();
+
+    float out = pid_vel_z.update_all(out_down_com*max_vel_z, velD, dt);
+
+    if (!blimp.motors->armed()) {
+        pid_vel_z.set_integrator(0);
+    }
+
+    blimp.motors->down_out = out;
 }

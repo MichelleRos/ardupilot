@@ -236,6 +236,14 @@ const AP_Param::Info Blimp::var_info[] = {
     // @User: Standard
     GSCALAR(wp_yaw_spd, "WP_YAW_SPD", 0.5),
 
+    // @Param: STREAM_RATE
+    // @DisplayName: Stream rate for blimp-specific values
+    // @Description: Stream rate in Hz for fins and loiter scaling values.
+    // @Range: 0.5 10
+    // @User: Standard
+    GSCALAR(stream_rate, "STREAM_RATE", 1),
+    
+
     // @Param: SIMPLE_MODE
     // @DisplayName: Simple mode
     // @Description: Simple mode for Position control - "forward" moves blimp in +ve X direction world-frame

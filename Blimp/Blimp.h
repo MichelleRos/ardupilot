@@ -94,6 +94,7 @@ public:
     friend class ModeRTL;
     friend class ModeAuto;
     friend class ModeHold;
+    friend class ModeLevel;
 
     friend class Fins;
     friend class Loiter;
@@ -409,6 +410,7 @@ private:
     ModeRTL mode_rtl;
     ModeAuto mode_auto;
     ModeHold mode_hold;
+    ModeLevel mode_level;
 
     // mode.cpp
     Mode *mode_from_mode_num(const Mode::Number mode);
