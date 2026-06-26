@@ -62,6 +62,7 @@ FLTMODE5         1
 FLTMODE6         1
 
 SIM_BARO_RND    0
+SIM_BATT_VOLTAGE 4.2
 
 # we need small INS_ACC offsets so INS is recognised as being calibrated
 INS_ACCOFFS_X   0.001
