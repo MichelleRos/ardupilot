@@ -114,6 +114,22 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info[] = {
     // @Range: 0 21
     AP_SUBGROUPINFO(bat_volt, "BAT_VOLT", 5, AP_OSD_Screen, AP_OSD_Setting),
 
+    // @Param: LANDNOW_EN
+    // @DisplayName: LANDNOW_EN
+    // @Description: Displays LAND NOW when the main battery voltage drops below the configured threshold
+    // @Values: 0:Disabled,1:Enabled
+
+    // @Param: LANDNOW_X
+    // @DisplayName: LANDNOW_X
+    // @Description: Horizontal position on screen
+    // @Range: 0 59
+
+    // @Param: LANDNOW_Y
+    // @DisplayName: LANDNOW_Y
+    // @Description: Vertical position on screen
+    // @Range: 0 21
+    AP_SUBGROUPINFO(land_now, "LANDNOW", 63, AP_OSD_Screen, AP_OSD_Setting),
+
     // @Param: RSSI_EN
     // @DisplayName: RSSI_EN
     // @Description: Displays RC signal strength
@@ -1511,6 +1527,20 @@ void AP_OSD_Screen::draw_bat_volt(uint8_t x, uint8_t y)
     draw_bat_volt(0,VoltageType::VOLTAGE,x,y);
 }
 
+void AP_OSD_Screen::draw_land_now(uint8_t x, uint8_t y)
+{
+#if AP_BATTERY_ENABLED
+    AP_BattMonitor &battery = AP::battery();
+    const float voltage = battery.voltage();
+    if (voltage < osd->warn_landnow) {
+        backend->write(x, y, true, "LAND NOW");
+        return;
+    }
+#else
+    backend->write(x, y, false, "        ");
+#endif
+}
+
 void AP_OSD_Screen::draw_avgcellvolt(uint8_t x, uint8_t y)
 {
     draw_bat_volt(0,VoltageType::AVG_CELL,x,y);
@@ -2583,6 +2613,7 @@ void AP_OSD_Screen::draw(void)
     DRAW_SETTING(waypoint);
     DRAW_SETTING(xtrack_error);
     DRAW_SETTING(bat_volt);
+    DRAW_SETTING(land_now);
     DRAW_SETTING(bat2_vlt);
     DRAW_SETTING(avgcellvolt);
     DRAW_SETTING(avgcellrestvolt);

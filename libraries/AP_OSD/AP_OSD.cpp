@@ -214,6 +214,14 @@ const AP_Param::GroupInfo AP_OSD::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("_W_ACRVOLT", 31, AP_OSD, warn_avgcellrestvolt, 3.6f),
 
+    // @Param: _W_LANDNOW
+    // @DisplayName: Land now threshold
+    // @Description: Set battery voltage below which the LANDNOW item will display
+    // @Range: 0 100
+    // @Units: V
+    // @User: Standard
+    AP_GROUPINFO("_W_LANDNOW", 37, AP_OSD, warn_landnow, 10.5f),
+
 #if AP_OSD_EXTENDED_LNK_STATS
     // @Param: _W_LQ
     // @DisplayName: RC link quality warn level (in %)

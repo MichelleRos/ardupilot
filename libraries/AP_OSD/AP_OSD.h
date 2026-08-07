@@ -177,6 +177,7 @@ private:
 
     AP_OSD_Setting altitude{true, 23, 8};
     AP_OSD_Setting bat_volt{true, 24, 1};
+    AP_OSD_Setting land_now{false, 11, 11};
     AP_OSD_Setting rssi{true, 1, 1};
     AP_OSD_Setting link_quality{false,1,1};
     AP_OSD_Setting restvolt{false, 24, 2};
@@ -267,6 +268,7 @@ private:
     void draw_altitude(uint8_t x, uint8_t y);
     void draw_bat_volt(uint8_t instance,VoltageType  type,uint8_t x, uint8_t y);
     void draw_bat_volt(uint8_t x, uint8_t y);
+    void draw_land_now(uint8_t x, uint8_t y);
     void draw_avgcellvolt(uint8_t x, uint8_t y);
     void draw_avgcellrestvolt(uint8_t x, uint8_t y);
     void draw_restvolt(uint8_t x, uint8_t y);
@@ -584,6 +586,7 @@ public:
     AP_Float warn_restvolt;
     AP_Float warn_avgcellrestvolt;
     AP_Float warn_batvolt;
+    AP_Float warn_landnow;
     AP_Float warn_bat2volt;
     AP_Int8 msgtime_s;
     AP_Int8 arm_scr;
